@@ -1,0 +1,623 @@
+<template>
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div
+            class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+        >
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1
+                            class="text-2xl font-bold text-gray-900 dark:text-white"
+                        >
+                            Dashboard
+                        </h1>
+                        <p
+                            class="mt-1 text-sm text-gray-600 dark:text-gray-400"
+                        >
+                            Welcome back, {{ authStore.user?.name || "Admin" }}!
+                            Here's what's happening today.
+                        </p>
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ currentDateTime }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Total Users -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center"
+                            >
+                                <svg
+                                    class="w-5 h-5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-14a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt
+                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                                >
+                                    Total Users
+                                </dt>
+                                <dd
+                                    class="text-lg font-medium text-gray-900 dark:text-white"
+                                >
+                                    {{ stats.totalUsers.toLocaleString() }}
+                                </dd>
+                            </dl>
+                        </div>
+                        <div
+                            class="flex items-center text-sm text-green-600 dark:text-green-400"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                                />
+                            </svg>
+                            +12%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center"
+                            >
+                                <svg
+                                    class="w-5 h-5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt
+                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                                >
+                                    Revenue
+                                </dt>
+                                <dd
+                                    class="text-lg font-medium text-gray-900 dark:text-white"
+                                >
+                                    ${{ stats.revenue.toLocaleString() }}
+                                </dd>
+                            </dl>
+                        </div>
+                        <div
+                            class="flex items-center text-sm text-green-600 dark:text-green-400"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                                />
+                            </svg>
+                            +8%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center"
+                            >
+                                <svg
+                                    class="w-5 h-5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt
+                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                                >
+                                    Orders
+                                </dt>
+                                <dd
+                                    class="text-lg font-medium text-gray-900 dark:text-white"
+                                >
+                                    {{ stats.orders.toLocaleString() }}
+                                </dd>
+                            </dl>
+                        </div>
+                        <div
+                            class="flex items-center text-sm text-red-600 dark:text-red-400"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                                />
+                            </svg>
+                            -3%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Growth Rate -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center"
+                            >
+                                <svg
+                                    class="w-5 h-5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt
+                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                                >
+                                    Growth Rate
+                                </dt>
+                                <dd
+                                    class="text-lg font-medium text-gray-900 dark:text-white"
+                                >
+                                    {{ stats.growthRate }}%
+                                </dd>
+                            </dl>
+                        </div>
+                        <div
+                            class="flex items-center text-sm text-green-600 dark:text-green-400"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                                />
+                            </svg>
+                            +5%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Tables Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recent Activity -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <h3
+                        class="text-lg font-medium text-gray-900 dark:text-white mb-4"
+                    >
+                        Recent Activity
+                    </h3>
+                    <div class="space-y-4">
+                        <div
+                            v-for="activity in recentActivities"
+                            :key="activity.id"
+                            class="flex items-start space-x-3"
+                        >
+                            <div class="flex-shrink-0">
+                                <div
+                                    :class="[
+                                        'w-8 h-8 rounded-full flex items-center justify-center text-white text-sm',
+                                        activity.type === 'user'
+                                            ? 'bg-blue-500'
+                                            : activity.type === 'order'
+                                            ? 'bg-green-500'
+                                            : activity.type === 'system'
+                                            ? 'bg-gray-500'
+                                            : 'bg-indigo-500',
+                                    ]"
+                                >
+                                    {{
+                                        activity.type === "user"
+                                            ? "U"
+                                            : activity.type === "order"
+                                            ? "O"
+                                            : "S"
+                                    }}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p
+                                    class="text-sm text-gray-900 dark:text-white"
+                                >
+                                    {{ activity.description }}
+                                </p>
+                                <p
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ activity.time }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <h3
+                        class="text-lg font-medium text-gray-900 dark:text-white mb-4"
+                    >
+                        Quick Actions
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button
+                            v-for="action in quickActions"
+                            :key="action.name"
+                            @click="handleQuickAction(action.action)"
+                            class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                        >
+                            <div
+                                :class="[
+                                    'w-8 h-8 rounded-md flex items-center justify-center mb-2',
+                                    action.color,
+                                ]"
+                            >
+                                <svg
+                                    class="w-5 h-5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        :d="action.icon"
+                                    />
+                                </svg>
+                            </div>
+                            <span
+                                class="text-sm font-medium text-gray-900 dark:text-white text-center"
+                            >
+                                {{ action.name }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div
+            class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+        >
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3
+                        class="text-lg font-medium text-gray-900 dark:text-white"
+                    >
+                        Recent Users
+                    </h3>
+                    <button
+                        class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                        View all
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table
+                        class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+                    >
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                >
+                                    User
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                >
+                                    Email
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                >
+                                    Status
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                >
+                                    Joined
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody
+                            class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+                        >
+                            <tr v-for="user in recentUsers" :key="user.id">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img
+                                                class="h-10 w-10 rounded-full"
+                                                :src="user.avatar"
+                                                :alt="user.name"
+                                            />
+                                        </div>
+                                        <div class="ml-4">
+                                            <div
+                                                class="text-sm font-medium text-gray-900 dark:text-white"
+                                            >
+                                                {{ user.name }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ user.email }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span
+                                        :class="[
+                                            'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+                                            user.status === 'active'
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                : user.status === 'inactive'
+                                                ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                                        ]"
+                                    >
+                                        {{ user.status }}
+                                    </span>
+                                </td>
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ user.joined }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useAuthStore } from "../../stores/auth";
+
+const authStore = useAuthStore();
+
+// Current date and time
+const currentTime = ref(new Date());
+let timeInterval = null;
+
+const currentDateTime = computed(() => {
+    return currentTime.value.toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+});
+
+// Mock data
+const stats = ref({
+    totalUsers: 12543,
+    revenue: 89430,
+    orders: 2156,
+    growthRate: 23.5,
+});
+
+const recentActivities = ref([
+    {
+        id: 1,
+        type: "user",
+        description: "New user registered: John Doe",
+        time: "2 minutes ago",
+    },
+    {
+        id: 2,
+        type: "order",
+        description: "Order #1234 completed successfully",
+        time: "5 minutes ago",
+    },
+    {
+        id: 3,
+        type: "system",
+        description: "System backup completed",
+        time: "10 minutes ago",
+    },
+    {
+        id: 4,
+        type: "user",
+        description: "User profile updated: Jane Smith",
+        time: "15 minutes ago",
+    },
+]);
+
+const quickActions = ref([
+    {
+        name: "Add User",
+        action: "add-user",
+        icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-14a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
+        color: "bg-blue-500",
+    },
+    {
+        name: "Generate Report",
+        action: "generate-report",
+        icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+        color: "bg-green-500",
+    },
+    {
+        name: "System Settings",
+        action: "system-settings",
+        icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+        color: "bg-indigo-500",
+    },
+    {
+        name: "View Analytics",
+        action: "view-analytics",
+        icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
+        color: "bg-yellow-500",
+    },
+]);
+
+const recentUsers = ref([
+    {
+        id: 1,
+        name: "John Doe",
+        email: "john@example.com",
+        status: "active",
+        joined: "Dec 25, 2024",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    },
+    {
+        id: 2,
+        name: "Jane Smith",
+        email: "jane@example.com",
+        status: "active",
+        joined: "Dec 24, 2024",
+        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    },
+    {
+        id: 3,
+        name: "Mike Johnson",
+        email: "mike@example.com",
+        status: "inactive",
+        joined: "Dec 23, 2024",
+        avatar: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    },
+]);
+
+const handleQuickAction = (action) => {
+    // Handle quick actions here
+    switch (action) {
+        case "add-user":
+            console.log("Add user action triggered");
+            break;
+        case "generate-report":
+            console.log("Generate report action triggered");
+            break;
+        case "system-settings":
+            console.log("System settings action triggered");
+            break;
+        case "view-analytics":
+            console.log("View analytics action triggered");
+            break;
+        default:
+            console.log("Unknown action:", action);
+    }
+};
+
+onMounted(() => {
+    // Update time every minute
+    timeInterval = setInterval(() => {
+        currentTime.value = new Date();
+    }, 60000);
+});
+
+onUnmounted(() => {
+    if (timeInterval) {
+        clearInterval(timeInterval);
+    }
+});
+</script>

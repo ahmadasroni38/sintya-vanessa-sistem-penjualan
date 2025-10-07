@@ -1,0 +1,24 @@
+{
+  "env": {
+    "ANTHROPIC_MODEL": "glm-4.5"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(php artisan make:model:*)",
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan make:controller:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(composer:*)",
+      "Bash(find:*)",
+      "Bash(php artisan migrate:rollback:*)",
+      "Bash(php artisan:*)",
+      "Bash(mysql:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
