@@ -40,40 +40,40 @@ export const useNotificationStore = defineStore("notification", () => {
         }
     };
 
-    const success = (message, options = {}) => {
+    const success = (title, message = "", options = {}) => {
         return addNotification(
             "success",
-            "Success",
+            title || "Success",
             message,
             options.duration || 3000,
             options.closable !== false
         );
     };
 
-    const error = (message, options = {}) => {
+    const error = (title, message = "", options = {}) => {
         return addNotification(
             "error",
-            "Error",
+            title || "Error",
             message,
             options.duration || 5000,
             options.closable !== false
         );
     };
 
-    const warning = (message, options = {}) => {
+    const warning = (title, message = "", options = {}) => {
         return addNotification(
             "warning",
-            "Warning",
+            title || "Warning",
             message,
             options.duration || 4000,
             options.closable !== false
         );
     };
 
-    const info = (message, options = {}) => {
+    const info = (title, message = "", options = {}) => {
         return addNotification(
             "info",
-            "Info",
+            title || "Info",
             message,
             options.duration || 3000,
             options.closable !== false

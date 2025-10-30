@@ -78,29 +78,29 @@ const buttonClasses = computed(() => {
 
     const variantClasses = {
         primary: props.outline
-            ? "text-red-600 border-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
-            : "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+            ? "text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500 dark:text-blue-400 dark:border-blue-400 dark:hover:text-blue-50"
+            : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700",
         secondary: props.outline
-            ? "text-gray-600 border-gray-600 hover:bg-gray-600 hover:text-white focus:ring-gray-500"
-            : "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
+            ? "text-gray-600 border-gray-600 hover:bg-gray-600 hover:text-white focus:ring-gray-500 dark:text-gray-400 dark:border-gray-400 dark:hover:text-gray-50"
+            : "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500 dark:bg-gray-600 dark:hover:bg-gray-700",
         success: props.outline
-            ? "text-green-600 border-green-600 hover:bg-green-600 hover:text-white focus:ring-green-500"
-            : "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+            ? "text-green-600 border-green-600 hover:bg-green-600 hover:text-white focus:ring-green-500 dark:text-green-400 dark:border-green-400 dark:hover:text-green-50"
+            : "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 dark:bg-green-600 dark:hover:bg-green-700",
         danger: props.outline
-            ? "text-red-600 border-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
-            : "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+            ? "text-red-600 border-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500 dark:text-red-400 dark:border-red-400 dark:hover:text-red-50"
+            : "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-600 dark:hover:bg-red-700",
         warning: props.outline
-            ? "text-yellow-600 border-yellow-600 hover:bg-yellow-600 hover:text-white focus:ring-yellow-500"
-            : "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500",
+            ? "text-yellow-600 border-yellow-600 hover:bg-yellow-600 hover:text-white focus:ring-yellow-500 dark:text-yellow-400 dark:border-yellow-400 dark:hover:text-yellow-50"
+            : "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500 dark:bg-yellow-600 dark:hover:bg-yellow-700",
         info: props.outline
-            ? "text-red-600 border-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
-            : "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+            ? "text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500 dark:text-blue-400 dark:border-blue-400 dark:hover:text-blue-50"
+            : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700",
         light: props.outline
-            ? "text-gray-800 border-gray-300 hover:bg-gray-100 focus:ring-gray-500"
-            : "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-500",
+            ? "text-gray-800 border-gray-300 hover:bg-gray-100 focus:ring-gray-500 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+            : "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600",
         dark: props.outline
-            ? "text-gray-900 border-gray-900 hover:bg-gray-900 hover:text-white focus:ring-gray-500"
-            : "bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500",
+            ? "text-gray-900 border-gray-900 hover:bg-gray-900 hover:text-white focus:ring-gray-500 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-300"
+            : "bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700",
     };
 
     const sizeClasses = {

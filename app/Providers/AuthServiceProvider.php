@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use App\Http\Policies\ChartOfAccountPolicy;
+use App\Http\Policies\ProductPolicy;
+use App\Models\ChartOfAccount;
+use App\Models\Product;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,7 +17,8 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        // ChartOfAccount::class => ChartOfAccountPolicy::class,
+        // Product::class => ProductPolicy::class,
     ];
 
     /**

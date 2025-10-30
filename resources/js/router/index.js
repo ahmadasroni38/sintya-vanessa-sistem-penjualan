@@ -17,10 +17,29 @@ import Assets from "../views/Dashboard/Assets.vue";
 import Locations from "../views/Dashboard/Locations.vue";
 import Vendors from "../views/Dashboard/Vendors.vue";
 
+// Warehouse Management Views
+import Products from "../views/Dashboard/Warehouse/Products.vue";
+import StockMasuk from "../views/Dashboard/Warehouse/StockMasuk.vue";
+import Mutasi from "../views/Dashboard/Warehouse/Mutasi.vue";
+import Adjustment from "../views/Dashboard/Warehouse/Adjustment.vue";
+import Stockopname from "../views/Dashboard/Warehouse/Stockopname.vue";
+import BukuStock from "../views/Dashboard/Warehouse/BukuStock.vue";
+
 // Maintenance Management Views
 import WorkOrders from "../views/Dashboard/WorkOrders.vue";
 import PreventiveMaintenance from "../views/Dashboard/PreventiveMaintenance.vue";
 import RepairRequests from "../views/Dashboard/RepairRequests.vue";
+
+// Accounting Views
+import ChartOfAccounts from "../views/Dashboard/ChartOfAccounts.vue";
+import JournalEntries from "../views/Dashboard/JournalEntries.vue";
+
+// Report Views
+import NeracaLajur from "../views/Dashboard/Reports/NeracaLajur.vue";
+import Neraca from "../views/Dashboard/Reports/Neraca.vue";
+import LabaRugi from "../views/Dashboard/Reports/LabaRugi.vue";
+import PerubahanModal from "../views/Dashboard/Reports/PerubahanModal.vue";
+import ArusKas from "../views/Dashboard/Reports/ArusKas.vue";
 
 // Public Views
 import NotFound from "../views/Errors/NotFound.vue";
@@ -94,6 +113,37 @@ const routes = [
                 name: "vendors.index",
                 component: Vendors,
             },
+            // Warehouse Management Routes
+            {
+                path: "/products",
+                name: "products.index",
+                component: Products,
+            },
+            {
+                path: "/stock-masuk",
+                name: "stock-masuk.index",
+                component: StockMasuk,
+            },
+            {
+                path: "/mutasi",
+                name: "mutasi.index",
+                component: Mutasi,
+            },
+            {
+                path: "/adjustment",
+                name: "adjustment.index",
+                component: Adjustment,
+            },
+            {
+                path: "/stockopname",
+                name: "stockopname.index",
+                component: Stockopname,
+            },
+            {
+                path: "/buku-stock",
+                name: "buku-stock.index",
+                component: BukuStock,
+            },
             {
                 path: "/work-orders",
                 name: "work-orders",
@@ -108,6 +158,43 @@ const routes = [
                 path: "/repair-requests",
                 name: "repair-requests",
                 component: RepairRequests,
+            },
+            // Accounting Routes
+            {
+                path: "/chart-of-accounts",
+                name: "chart-of-accounts",
+                component: ChartOfAccounts,
+            },
+            {
+                path: "/journal-entries",
+                name: "journal-entries",
+                component: JournalEntries,
+            },
+            // Report Routes
+            {
+                path: "/reports/neraca-lajur",
+                name: "reports.neraca-lajur",
+                component: NeracaLajur,
+            },
+            {
+                path: "/reports/neraca",
+                name: "reports.neraca",
+                component: Neraca,
+            },
+            {
+                path: "/reports/laba-rugi",
+                name: "reports.laba-rugi",
+                component: LabaRugi,
+            },
+            {
+                path: "/reports/perubahan-modal",
+                name: "reports.perubahan-modal",
+                component: PerubahanModal,
+            },
+            {
+                path: "/reports/arus-kas",
+                name: "reports.arus-kas",
+                component: ArusKas,
             },
         ],
     },
@@ -127,27 +214,58 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
 
-    // Check if route requires authentication
-    if (to.meta.requiresAuth) {
-        if (!authStore.isAuthenticated) {
-            next({ name: "Login", query: { redirect: to.fullPath } });
-            return;
-        }
+    console.log("Router guard - navigating to:", to.name, "from:", from.name);
+    console.log("Auth state:", {
+        isAuthenticated: authStore.isAuthenticated,
+        hasToken: !!authStore.token,
+    });
 
-        // Verify token is still valid
-        const isValid = await authStore.checkAuth();
-        if (!isValid) {
-            next({ name: "Login", query: { redirect: to.fullPath } });
-            return;
-        }
-    }
-
-    // Check if route requires guest (not authenticated)
-    if (to.meta.requiresGuest && authStore.isAuthenticated) {
-        next({ name: "Dashboard" });
+    // Allow public routes
+    if (to.meta.public) {
+        console.log("Public route, allowing access");
+        next();
         return;
     }
 
+    // Check if route requires guest (not authenticated)
+    if (to.meta.requiresGuest) {
+        if (authStore.isAuthenticated) {
+            console.log("User is authenticated, redirecting to Dashboard");
+            next({ name: "Dashboard" });
+            return;
+        }
+        console.log("Guest route, allowing access");
+        next();
+        return;
+    }
+
+    // Check if route requires authentication
+    if (to.meta.requiresAuth) {
+        if (!authStore.isAuthenticated) {
+            console.log("Not authenticated, redirecting to Login");
+            next({ name: "login", query: { redirect: to.fullPath } });
+            return;
+        }
+
+        // Verify token is still valid (only if not coming from login page to avoid extra API call)
+        if (from.name !== "login") {
+            console.log("Verifying token validity");
+            try {
+                const isValid = await authStore.checkAuth();
+                if (!isValid) {
+                    console.log("Token invalid, redirecting to Login");
+                    next({ name: "login", query: { redirect: to.fullPath } });
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking auth:", error);
+                next({ name: "login", query: { redirect: to.fullPath } });
+                return;
+            }
+        }
+    }
+
+    console.log("Navigation allowed");
     next();
 });
 

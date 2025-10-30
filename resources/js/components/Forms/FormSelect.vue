@@ -49,7 +49,7 @@
                                 v-model="searchQuery"
                                 type="text"
                                 placeholder="Search..."
-                                class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                                class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                                 @input="handleSearch"
                             />
                         </div>
@@ -70,9 +70,9 @@
                             class="relative cursor-default select-none py-2 pl-3 pr-9"
                             :class="[
                                 active
-                                    ? 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100'
+                                    ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100'
                                     : 'text-gray-900 dark:text-white',
-                                selected ? 'bg-red-50 dark:bg-red-950' : '',
+                                selected ? 'bg-blue-50 dark:bg-blue-950' : '',
                             ]"
                         >
                             <div class="flex items-center">
@@ -192,7 +192,7 @@ const selectedValue = ref(props.modelValue);
 
 const searchQuery = ref("");
 
-const hasSearch = computed(() => props.searchable && props.options.length > 5);
+const hasSearch = computed(() => props.searchable);
 
 const filteredOptions = computed(() => {
     if (!searchQuery.value) {
@@ -215,17 +215,17 @@ const selectedLabel = computed(() => {
 
 const buttonClasses = computed(() => {
     const baseClasses =
-        "relative w-full cursor-default rounded-lg bg-white py-3 pl-3 pr-10 text-left shadow-sm border focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white";
+        "block w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-white cursor-default text-left";
 
     const sizeClasses = {
-        sm: "py-2 pl-3 pr-10 text-xs",
-        md: "py-3 pl-3 pr-10 text-sm",
-        lg: "py-4 pl-3 pr-10 text-base",
+        sm: "px-2.5 py-1.5 text-xs",
+        md: "px-3 py-2 text-sm",
+        lg: "px-4 py-3 text-base",
     };
 
     const variantClasses = props.error
-        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-        : "border-gray-300 focus:border-red-500 focus:ring-red-500 dark:border-gray-600 dark:focus:border-red-500 dark:focus:ring-red-500";
+        ? "border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500"
+        : "border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-500";
 
     const disabledClasses = props.disabled
         ? "cursor-not-allowed opacity-50 bg-gray-50 dark:bg-gray-700"

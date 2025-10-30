@@ -20,9 +20,9 @@
                 class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
             >
                 <div class="flex items-center">
-                    <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
                         <ShieldCheckIcon
-                            class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -42,10 +42,10 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"
+                        class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
                     >
                         <CheckCircleIcon
-                            class="w-6 h-6 text-green-600 dark:text-green-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -86,10 +86,10 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg"
+                        class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
                     >
                         <KeyIcon
-                            class="w-6 h-6 text-indigo-600 dark:text-indigo-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -137,7 +137,7 @@
             <template #column-name="{ item }">
                 <div class="flex items-center">
                     <div
-                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3"
+                        class="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center mr-3"
                     >
                         <ShieldCheckIcon class="w-4 h-4 text-white" />
                     </div>
@@ -160,7 +160,7 @@
                     <div
                         :class="[
                             'w-2 h-2 rounded-full mr-2',
-                            item.is_active ? 'bg-green-500' : 'bg-red-500',
+                            item.is_active ? 'bg-red-500' : 'bg-red-500',
                         ]"
                     ></div>
                     <span
@@ -188,14 +188,14 @@
                 <div class="flex items-center justify-end gap-2">
                     <button
                         @click="handleViewRole(item)"
-                        class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
+                        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                         title="View Details"
                     >
                         <EyeIcon class="w-4 h-4" />
                     </button>
                     <button
                         @click="handleEditRole(item)"
-                        class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 dark:hover:text-green-400 dark:hover:bg-green-900/20"
+                        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                         title="Edit Role"
                     >
                         <PencilIcon class="w-4 h-4" />
@@ -228,7 +228,7 @@
                         </label>
                         <select
                             v-model="statusFilter"
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         >
                             <option value="">All Status</option>
                             <option value="active">Active</option>
@@ -239,7 +239,7 @@
                         <button
                             @click="applyFilters"
                             :disabled="applyingFilters"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <svg
                                 v-if="applyingFilters"
@@ -314,7 +314,7 @@
                             id="is_active"
                             v-model="roleForm.is_active"
                             type="checkbox"
-                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded focus:ring-2"
+                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded focus:ring-2"
                         />
                         <label
                             for="is_active"
@@ -398,7 +398,7 @@
                                     :class="[
                                         'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
                                         selectedRole.is_active
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                                             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
                                     ]"
                                 >
@@ -458,7 +458,7 @@
                         >
                             <div class="flex-shrink-0">
                                 <svg
-                                    class="h-4 w-4 text-green-500"
+                                    class="h-4 w-4 text-red-500"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
@@ -540,7 +540,7 @@
                                 <span
                                     :class="[
                                         selectedRole.is_active
-                                            ? 'text-green-600'
+                                            ? 'text-red-600'
                                             : 'text-red-600',
                                     ]"
                                 >
@@ -604,11 +604,11 @@
                             data-hs-select='{
                               "hasSearch": true,
                               "searchPlaceholder": "Search groups...",
-                              "searchClasses": "block w-full sm:text-sm border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 before:absolute before:inset-0 before:z-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 py-1.5 sm:py-2 px-3",
+                              "searchClasses": "block w-full sm:text-sm border-gray-200 rounded-lg focus:border-red-500 focus:ring-red-500 before:absolute before:inset-0 before:z-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 py-1.5 sm:py-2 px-3",
                               "searchWrapperClasses": "bg-white p-2 -mx-1 sticky top-0 dark:bg-neutral-900",
                               "placeholder": "All groups...",
                               "toggleTag": "<button type=\"button\" aria-expanded=\"false\"><span class=\"me-2\" data-icon></span><span class=\"text-gray-800 dark:text-neutral-200 \" data-title></span></button>",
-                              "toggleClasses": "hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50 relative py-3 ps-4 pe-9 flex gap-x-2 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:outline-hidden dark:focus:ring-1 dark:focus:ring-neutral-600",
+                              "toggleClasses": "hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50 relative py-3 ps-4 pe-9 flex gap-x-2 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:outline-hidden dark:focus:ring-1 dark:focus:ring-neutral-600",
                               "dropdownClasses": "mt-2 max-h-72 pb-1 px-1 space-y-0.5 z-20 w-full bg-white border border-gray-200 rounded-lg overflow-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 dark:bg-neutral-900 dark:border-neutral-700",
                               "optionClasses": "py-2 px-4 w-full text-sm text-gray-800 cursor-pointer hover:bg-gray-100 rounded-lg focus:outline-hidden focus:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-200 dark:focus:bg-neutral-800",
                               "optionTemplate": "<div><div class=\"flex items-center\"><div class=\"me-2\" data-icon></div><div class=\"text-gray-800 dark:text-neutral-200 \" data-title></div></div></div>",
@@ -635,7 +635,7 @@
                         :class="[
                             'flex items-center p-2 rounded-md border',
                             selectedPermissions.includes(permission.id)
-                                ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700'
+                                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
                                 : 'bg-white dark:bg-gray-600 border-gray-200 dark:border-gray-500',
                         ]"
                     >
@@ -644,7 +644,7 @@
                             v-model="selectedPermissions"
                             :value="permission.id"
                             type="checkbox"
-                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                         />
                         <label
                             :for="'perm-' + permission.id"
@@ -666,7 +666,7 @@
                                         (p) => p.id === permission.id
                                     )
                                 "
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 mt-1"
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 mt-1"
                             >
                                 Currently Assigned
                             </span>

@@ -88,7 +88,7 @@
                             ]"
                         >
                             <UserIcon
-                                class="w-4 h-4 group-hover:text-blue-500 transition-colors"
+                                class="w-4 h-4 group-hover:text-primary-500 transition-colors"
                             />
                             <span>My Profile</span>
                             <kbd

@@ -20,9 +20,9 @@
                 class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
             >
                 <div class="flex items-center">
-                    <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
                         <TruckIcon
-                            class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -42,10 +42,10 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"
+                        class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
                     >
                         <CheckCircleIcon
-                            class="w-6 h-6 text-green-600 dark:text-green-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -65,10 +65,10 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg"
+                        class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
                     >
                         <BuildingOfficeIcon
-                            class="w-6 h-6 text-purple-600 dark:text-purple-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -205,7 +205,7 @@
                     <div
                         :class="[
                             'w-2 h-2 rounded-full mr-2',
-                            item.is_active ? 'bg-green-500' : 'bg-red-500',
+                            item.is_active ? 'bg-red-500' : 'bg-red-500',
                         ]"
                     ></div>
                     <span
@@ -220,7 +220,7 @@
                 <div class="flex items-center justify-end gap-2">
                     <button
                         @click="handleEditVendor(item)"
-                        class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 dark:hover:text-green-400 dark:hover:bg-green-900/20"
+                        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                         title="Edit Vendor"
                     >
                         <PencilIcon class="w-4 h-4" />
@@ -231,7 +231,7 @@
                             'p-1.5 rounded-lg transition-colors duration-200',
                             item.is_active
                                 ? 'text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:text-orange-400 dark:hover:bg-orange-900/20'
-                                : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20',
+                                : 'text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20',
                         ]"
                         :title="
                             item.is_active
@@ -311,11 +311,11 @@
                                     data-hs-select='{
                                       "hasSearch": true,
                                       "searchPlaceholder": "Search vendor types...",
-                                      "searchClasses": "block w-full sm:text-sm border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 before:absolute before:inset-0 before:z-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 py-1.5 sm:py-2 px-3",
+                                      "searchClasses": "block w-full sm:text-sm border-gray-200 rounded-lg focus:border-red-500 focus:ring-red-500 before:absolute before:inset-0 before:z-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 py-1.5 sm:py-2 px-3",
                                       "searchWrapperClasses": "bg-white p-2 -mx-1 sticky top-0 dark:bg-neutral-900",
                                       "placeholder": "Select vendor type",
                                       "toggleTag": "<button type=\"button\" aria-expanded=\"false\"><span class=\"me-2\" data-icon></span><span class=\"text-gray-800 dark:text-neutral-200 \" data-title></span></button>",
-                                      "toggleClasses": "hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50 relative py-3 ps-4 pe-9 flex gap-x-2 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:outline-hidden dark:focus:ring-1 dark:focus:ring-neutral-600",
+                                      "toggleClasses": "hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50 relative py-3 ps-4 pe-9 flex gap-x-2 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:outline-hidden dark:focus:ring-1 dark:focus:ring-neutral-600",
                                       "dropdownClasses": "mt-2 max-h-72 pb-1 px-1 space-y-0.5 z-20 w-full bg-white border border-gray-200 rounded-lg overflow-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 dark:bg-neutral-900 dark:border-neutral-700",
                                       "optionClasses": "py-2 px-4 w-full text-sm text-gray-800 cursor-pointer hover:bg-gray-100 rounded-lg focus:outline-hidden focus:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-200 dark:focus:bg-neutral-800",
                                       "optionTemplate": "<div><div class=\"flex items-center\"><div class=\"me-2\" data-icon></div><div class=\"text-gray-800 dark:text-neutral-200 \" data-title></div></div></div>",
@@ -473,11 +473,11 @@
                                     data-hs-select='{
                                       "hasSearch": true,
                                       "searchPlaceholder": "Search payment terms...",
-                                      "searchClasses": "block w-full sm:text-sm border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 before:absolute before:inset-0 before:z-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 py-1.5 sm:py-2 px-3",
+                                      "searchClasses": "block w-full sm:text-sm border-gray-200 rounded-lg focus:border-red-500 focus:ring-red-500 before:absolute before:inset-0 before:z-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 py-1.5 sm:py-2 px-3",
                                       "searchWrapperClasses": "bg-white p-2 -mx-1 sticky top-0 dark:bg-neutral-900",
                                       "placeholder": "Select payment terms",
                                       "toggleTag": "<button type=\"button\" aria-expanded=\"false\"><span class=\"me-2\" data-icon></span><span class=\"text-gray-800 dark:text-neutral-200 \" data-title></span></button>",
-                                      "toggleClasses": "hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50 relative py-3 ps-4 pe-9 flex gap-x-2 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:outline-hidden dark:focus:ring-1 dark:focus:ring-neutral-600",
+                                      "toggleClasses": "hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50 relative py-3 ps-4 pe-9 flex gap-x-2 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:outline-hidden dark:focus:ring-1 dark:focus:ring-neutral-600",
                                       "dropdownClasses": "mt-2 max-h-72 pb-1 px-1 space-y-0.5 z-20 w-full bg-white border border-gray-200 rounded-lg overflow-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 dark:bg-neutral-900 dark:border-neutral-700",
                                       "optionClasses": "py-2 px-4 w-full text-sm text-gray-800 cursor-pointer hover:bg-gray-100 rounded-lg focus:outline-hidden focus:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-200 dark:focus:bg-neutral-800",
                                       "optionTemplate": "<div><div class=\"flex items-center\"><div class=\"me-2\" data-icon></div><div class=\"text-gray-800 dark:text-neutral-200 \" data-title></div></div></div>",
@@ -1008,9 +1008,9 @@ const handleBulkAction = (selectedItems) => {
 const getVendorTypeBadgeClass = (type) => {
     const classes = {
         supplier:
-            "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+            "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
         service_provider:
-            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+            "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
         contractor:
             "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
         other: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",

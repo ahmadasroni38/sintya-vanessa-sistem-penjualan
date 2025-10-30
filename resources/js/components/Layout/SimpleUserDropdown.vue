@@ -7,7 +7,7 @@
             <!-- User Avatar -->
             <div class="relative">
                 <img
-                    class="w-8 h-8 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200"
+                    class="w-8 h-8 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-red-500 transition-all duration-200"
                     :src="userAvatar"
                     :alt="userName"
                     @error="handleImageError"
@@ -92,7 +92,7 @@
                         class="flex items-center gap-3 p-3 rounded-xl text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200 dark:text-gray-300 dark:hover:bg-gray-700 group"
                     >
                         <UserIcon
-                            class="w-4 h-4 group-hover:text-blue-500 transition-colors"
+                            class="w-4 h-4 group-hover:text-red-500 transition-colors"
                         />
                         <span>My Profile</span>
                         <kbd
@@ -189,11 +189,11 @@ const handleLogout = async () => {
     try {
         await authStore.logout();
         closeDropdown();
-        router.push({ name: "Login" });
+        router.push({ name: "login" });
     } catch (error) {
         console.error("Logout error:", error);
         closeDropdown();
-        router.push({ name: "Login" });
+        router.push({ name: "login" });
     } finally {
         isLoggingOut.value = false;
     }

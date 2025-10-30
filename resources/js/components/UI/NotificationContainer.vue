@@ -1,5 +1,5 @@
 <template>
-    <div class="fixed top-4 right-4 z-50 space-y-2">
+    <div class="fixed top-4 right-4 z-[100] space-y-2">
         <TransitionGroup name="notification" tag="div">
             <div
                 v-for="notification in notificationStore.notifications"
@@ -13,7 +13,7 @@
                             notification.type === 'error',
                         'border-l-4 border-yellow-500':
                             notification.type === 'warning',
-                        'border-l-4 border-blue-500':
+                        'border-l-4 border-red-500':
                             notification.type === 'info',
                     },
                 ]"
@@ -69,7 +69,7 @@
                             <!-- Info Icon -->
                             <svg
                                 v-else
-                                class="h-6 w-6 text-blue-400"
+                                class="h-6 w-6 text-red-400"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -105,7 +105,7 @@
                                         notification.id
                                     )
                                 "
-                                class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                             >
                                 <span class="sr-only">Close</span>
                                 <svg
@@ -132,7 +132,7 @@
                             'bg-green-500': notification.type === 'success',
                             'bg-red-500': notification.type === 'error',
                             'bg-yellow-500': notification.type === 'warning',
-                            'bg-blue-500': notification.type === 'info',
+                            'bg-red-500': notification.type === 'info',
                         },
                     ]"
                     :style="{

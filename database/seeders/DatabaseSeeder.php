@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,11 +11,34 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        $this->command->info('========================================');
+        $this->command->info('   SINTIYA ERP - Database Seeding');
+        $this->command->info('========================================');
+        $this->command->newLine();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // Order is important! Follow the dependency chain
+        $this->call([
+            // 1. Master Data
+            RolePermissionSeeder::class,    // Roles & Permissions
+            UserSeeder::class,               // Users dengan Roles
+            LocationSeeder::class,           // Warehouse Locations
+            ChartOfAccountSeeder::class,     // Chart of Accounts (COA)
+            ProductSeeder::class,            // Products
+            UnitSeeder::class,               // Units
+
+            // 2. Transaction Data
+            StockInSeeder::class,            // Stock In transactions
+            StockMutationSeeder::class,      // Stock Mutation transactions
+        ]);
+
+        $this->command->newLine();
+        $this->command->info('========================================');
+        $this->command->info('   Database Seeding Completed!');
+        $this->command->info('========================================');
+        $this->command->newLine();
+        $this->command->info('You can now login with:');
+        $this->command->info('  Email: admin@sintiya.com');
+        $this->command->info('  Password: admin123');
+        $this->command->newLine();
     }
 }

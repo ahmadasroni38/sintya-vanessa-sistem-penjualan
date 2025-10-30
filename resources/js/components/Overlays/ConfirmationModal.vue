@@ -1,5 +1,10 @@
 <template>
-    <Modal :is-open="isOpen" @close="handleCancel" size="sm">
+    <Modal
+        :is-open="isOpen"
+        @close="handleCancel"
+        size="sm"
+        :close-on-backdrop="!loading"
+    >
         <template #header>
             {{ title }}
         </template>
@@ -108,18 +113,13 @@ const emit = defineEmits(["confirm", "cancel", "close"]);
 
 const notification = useNotificationStore();
 
-const handleConfirm = async () => {
-    try {
-        emit("confirm");
-    } catch (error) {
-        console.error("Confirmation error:", error);
-        notification.error("An error occurred during the operation");
-    }
+const handleConfirm = () => {
+    emit("confirm");
 };
 
 const handleCancel = () => {
+    if (props.loading) return; // Prevent closing while loading
     emit("cancel");
-    emit("close");
 };
 
 // Note: We don't need to watch isOpen here as the parent component manages the state

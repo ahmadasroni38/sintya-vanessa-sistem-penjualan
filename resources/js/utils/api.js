@@ -33,8 +33,10 @@ function createApiInstance() {
         (response) => response,
         (error) => {
             if (error.response?.status === 401) {
-                // Token expired or invalid
+                // Token expired or invalid - refresh page to redirect to login
                 authStore.logout();
+                window.location.reload();
+                return Promise.reject(error);
             }
             return Promise.reject(error);
         }
@@ -71,10 +73,22 @@ export function apiPut(url, data, config = {}) {
 }
 
 /**
-a * DELETE request
+ * DELETE request
  */
 export function apiDelete(url, config = {}) {
     return createApiInstance()
         .delete(url, config)
         .then((response) => response.data);
 }
+
+/**
+ * API object with methods
+ */
+const api = {
+    get: apiGet,
+    post: apiPost,
+    put: apiPut,
+    delete: apiDelete,
+};
+
+export default api;

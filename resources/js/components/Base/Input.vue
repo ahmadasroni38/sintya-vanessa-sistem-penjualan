@@ -50,7 +50,7 @@ const emit = defineEmits(["update:modelValue", "blur", "focus"]);
 
 const inputClasses = computed(() => {
     const baseClasses =
-        "block w-full rounded-md border-gray-200 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500 disabled:pointer-events-none disabled:opacity-50";
+        "block w-full rounded-md border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
     const sizeClasses = {
         sm: "px-2.5 py-1.5 text-xs",
@@ -59,12 +59,15 @@ const inputClasses = computed(() => {
     };
 
     const variantClasses = {
-        default: "border-gray-200 focus:border-red-500 focus:ring-red-500",
-        error: "border-red-500 focus:border-red-500 focus:ring-red-500",
+        default:
+            "border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-500",
+        error: "border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500",
     };
+
+    const hasIconClass = "pr-10";
 
     return `${baseClasses} ${sizeClasses[props.size]} ${
         variantClasses[props.variant]
-    }`;
+    } ${props.$slots?.icon ? hasIconClass : ""}`;
 });
 </script>

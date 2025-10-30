@@ -11,11 +11,18 @@ export default defineConfig({
         vue(),
     ],
     server: {
-        host: 'localhost',
+        host: "localhost",
         port: 5173,
         strictPort: false,
         hmr: {
-            host: 'localhost',
+            host: "localhost",
+        },
+        proxy: {
+            "/api": {
+                target: "http://localhost:8000",
+                changeOrigin: true,
+                secure: false,
+            },
         },
     },
 });

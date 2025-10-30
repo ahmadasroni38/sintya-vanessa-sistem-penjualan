@@ -37,8 +37,7 @@
                     <h1
                         class="text-3xl font-bold text-gray-900 dark:text-white"
                     >
-                        <span class="text-red-600 dark:text-red-400"
-                            >Admin</span
+                        <span class="text-red-600 dark:text-red-400">Admin</span
                         >Panel
                     </h1>
                 </div>
@@ -101,7 +100,7 @@
                                     'block w-full pl-10 rounded-lg border-0 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 sm:text-sm sm:leading-6',
                                     errors.email
                                         ? 'ring-red-300 focus:ring-red-500 dark:ring-red-600 dark:focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
-                                        : 'ring-gray-300 focus:ring-blue-600 dark:bg-gray-700 dark:ring-gray-600 dark:text-white dark:focus:ring-blue-500 hover:ring-gray-400',
+                                        : 'ring-gray-300 focus:ring-blue-600 dark:bg-gray-700 dark:ring-gray-600 dark:text-white dark:focus:ring-primary-500 hover:ring-gray-400',
                                 ]"
                                 placeholder="Enter your email"
                                 aria-describedby="email-error"
@@ -172,7 +171,7 @@
                                     'block w-full pl-10 pr-12 rounded-lg border-0 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 sm:text-sm sm:leading-6',
                                     errors.password
                                         ? 'ring-red-300 focus:ring-red-500 dark:ring-red-600 dark:focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
-                                        : 'ring-gray-300 focus:ring-blue-600 dark:bg-gray-700 dark:ring-gray-600 dark:text-white dark:focus:ring-blue-500 hover:ring-gray-400',
+                                        : 'ring-gray-300 focus:ring-blue-600 dark:bg-gray-700 dark:ring-gray-600 dark:text-white dark:focus:ring-primary-500 hover:ring-gray-400',
                                 ]"
                                 placeholder="Enter your password"
                                 aria-describedby="password-error"
@@ -366,7 +365,7 @@
                                     >
                                     <span
                                         class="text-gray-600 dark:text-gray-400 font-mono"
-                                        >admin@example.com</span
+                                        >admin@sintiya.com</span
                                     >
                                 </div>
                                 <div class="flex justify-between items-center">
@@ -376,7 +375,7 @@
                                     >
                                     <span
                                         class="text-gray-600 dark:text-gray-400 font-mono"
-                                        >password123</span
+                                        >admin123</span
                                     >
                                 </div>
                             </div>
@@ -576,8 +575,8 @@ const handleForgotPassword = () => {
 };
 
 const fillDemoCredentials = () => {
-    form.email = "admin@example.com";
-    form.password = "password123";
+    form.email = "admin@sintiya.com";
+    form.password = "admin123";
     clearErrors();
 
     // Add a subtle animation to indicate the form has been filled

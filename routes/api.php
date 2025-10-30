@@ -17,6 +17,18 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\BarcodeController;
 use App\Http\Controllers\Api\DashboardController;
 
+// Accounting & Warehouse Controllers
+use App\Http\Controllers\ChartOfAccountController;
+use App\Http\Controllers\JournalEntryController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockInController;
+use App\Http\Controllers\StockMutationController;
+use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\StockOpnameController;
+use App\Http\Controllers\StockCardController;
+use App\Http\Controllers\LocationController as WarehouseLocationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -177,4 +189,151 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('profile', [UserController::class, 'getProfile']);
     Route::put('profile', [UserController::class, 'updateProfile']);
     Route::put('profile/password', [UserController::class, 'updatePassword']);
+
+    // =====================================================
+    // ACCOUNTING MODULE
+    // =====================================================
+
+    // Chart of Accounts routes
+    Route::get('chart-of-accounts', [ChartOfAccountController::class, 'index']);
+    Route::post('chart-of-accounts', [ChartOfAccountController::class, 'store']);
+    Route::get('chart-of-accounts/tree', [ChartOfAccountController::class, 'tree']);
+    Route::get('chart-of-accounts/active', [ChartOfAccountController::class, 'active']);
+    Route::get('chart-of-accounts/generate-code', [ChartOfAccountController::class, 'generateCode']);
+    Route::get('chart-of-accounts/{chartOfAccount}', [ChartOfAccountController::class, 'show']);
+    Route::put('chart-of-accounts/{chartOfAccount}', [ChartOfAccountController::class, 'update']);
+    Route::delete('chart-of-accounts/{chartOfAccount}', [ChartOfAccountController::class, 'destroy']);
+    Route::post('chart-of-accounts/{id}/restore', [ChartOfAccountController::class, 'restore']);
+    Route::post('chart-of-accounts/{chartOfAccount}/move', [ChartOfAccountController::class, 'move']);
+    Route::get('chart-of-accounts/{chartOfAccount}/balance', [ChartOfAccountController::class, 'balance']);
+    Route::post('chart-of-accounts/{chartOfAccount}/calculate-balance', [ChartOfAccountController::class, 'calculateBalance']);
+    Route::get('chart-of-accounts/{chartOfAccount}/balance-history', [ChartOfAccountController::class, 'balanceHistory']);
+    Route::get('chart-of-accounts/{chartOfAccount}/audit', [ChartOfAccountController::class, 'audits']);
+    Route::post('chart-of-accounts/export', [ChartOfAccountController::class, 'export']);
+    Route::get('chart-of-accounts/export/{filename}', [ChartOfAccountController::class, 'downloadExport']);
+    Route::get('chart-of-accounts/exports', [ChartOfAccountController::class, 'getExports']);
+
+    // Journal Entry routes
+    Route::get('journal-entries', [JournalEntryController::class, 'index']);
+    Route::post('journal-entries', [JournalEntryController::class, 'store']);
+    Route::get('journal-entries/statistics', [JournalEntryController::class, 'statistics']);
+    Route::get('journal-entries/generate-number', [JournalEntryController::class, 'generateNumber']);
+    Route::get('journal-entries/{journalEntry}', [JournalEntryController::class, 'show']);
+    Route::put('journal-entries/{journalEntry}', [JournalEntryController::class, 'update']);
+    Route::delete('journal-entries/{journalEntry}', [JournalEntryController::class, 'destroy']);
+    Route::post('journal-entries/{journalEntry}/post', [JournalEntryController::class, 'post']);
+    Route::post('journal-entries/{journalEntry}/cancel', [JournalEntryController::class, 'cancel']);
+    Route::post('journal-entries/{journalEntry}/reverse', [JournalEntryController::class, 'reverse']);
+    Route::post('journal-entries/{journalEntry}/duplicate', [JournalEntryController::class, 'duplicate']);
+    Route::post('journal-entries/{id}/restore', [JournalEntryController::class, 'restore']);
+
+    // Financial Reports routes
+    Route::get('reports/neraca-lajur', [ReportController::class, 'neracaLajur']);
+    Route::get('reports/neraca', [ReportController::class, 'neraca']);
+    Route::get('reports/laba-rugi', [ReportController::class, 'labaRugi']);
+    Route::get('reports/perubahan-modal', [ReportController::class, 'perubahanModal']);
+    Route::get('reports/arus-kas', [ReportController::class, 'arusKas']);
+
+    // =====================================================
+    // WAREHOUSE MODULE
+    // =====================================================
+
+    // Warehouse Location routes (distinct from asset management locations)
+    Route::get('warehouse/locations', [WarehouseLocationController::class, 'index']);
+    Route::post('warehouse/locations', [WarehouseLocationController::class, 'store']);
+    Route::get('warehouse/locations/active', [WarehouseLocationController::class, 'active']);
+    Route::get('warehouse/locations/tree', [WarehouseLocationController::class, 'tree']);
+    Route::get('warehouse/locations/{location}', [WarehouseLocationController::class, 'show']);
+    Route::put('warehouse/locations/{location}', [WarehouseLocationController::class, 'update']);
+    Route::delete('warehouse/locations/{location}', [WarehouseLocationController::class, 'destroy']);
+
+    // Unit routes
+    Route::get('units', [App\Http\Controllers\UnitController::class, 'active']);
+    Route::post('units', [App\Http\Controllers\UnitController::class, 'store']);
+    Route::get('units/active', [App\Http\Controllers\UnitController::class, 'active']);
+    Route::get('units/{unit}', [App\Http\Controllers\UnitController::class, 'show']);
+    Route::put('units/{unit}', [App\Http\Controllers\UnitController::class, 'update']);
+    Route::delete('units/{unit}', [App\Http\Controllers\UnitController::class, 'destroy']);
+
+    // Product Category routes
+    Route::get('product-categories', [App\Http\Controllers\ProductCategoryController::class, 'index']);
+    Route::post('product-categories', [App\Http\Controllers\ProductCategoryController::class, 'store']);
+    Route::get('product-categories/active', [App\Http\Controllers\ProductCategoryController::class, 'active']);
+    Route::get('product-categories/tree', [App\Http\Controllers\ProductCategoryController::class, 'tree']);
+    Route::get('product-categories/{category}', [App\Http\Controllers\ProductCategoryController::class, 'show']);
+    Route::put('product-categories/{category}', [App\Http\Controllers\ProductCategoryController::class, 'update']);
+    Route::delete('product-categories/{category}', [App\Http\Controllers\ProductCategoryController::class, 'destroy']);
+
+    // Product routes
+    Route::get('products', [ProductController::class, 'index']);
+    Route::post('products', [ProductController::class, 'store']);
+    Route::get('products/statistics', [ProductController::class, 'statistics']);
+    Route::get('products/active', [ProductController::class, 'active']);
+    Route::get('products/low-stock', [ProductController::class, 'lowStock']);
+    Route::get('products/generate-code', [ProductController::class, 'generateCode']);
+    Route::get('products/export', [ProductController::class, 'export']);
+    Route::get('products/{product}', [ProductController::class, 'show']);
+    Route::put('products/{product}', [ProductController::class, 'update']);
+    Route::delete('products/{product}', [ProductController::class, 'destroy']);
+    Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus']);
+    Route::get('products/{product}/stock', [ProductController::class, 'stock']);
+
+    // Stock In routes
+    Route::get('stock-in', [StockInController::class, 'index']);
+    Route::post('stock-in', [StockInController::class, 'store']);
+    Route::get('stock-in/options', [StockInController::class, 'options']);
+    Route::get('stock-in/statistics', [StockInController::class, 'statistics']);
+    Route::get('stock-in/{stockIn}', [StockInController::class, 'show']);
+    Route::put('stock-in/{stockIn}', [StockInController::class, 'update']);
+    Route::delete('stock-in/{stockIn}', [StockInController::class, 'destroy']);
+    Route::post('stock-in/{stockIn}/post', [StockInController::class, 'post']);
+    Route::post('stock-in/{stockIn}/cancel', [StockInController::class, 'cancel']);
+
+    // Stock Mutation routes
+    Route::get('stock-mutations', [StockMutationController::class, 'index']);
+    Route::post('stock-mutations', [StockMutationController::class, 'store']);
+    Route::get('stock-mutations/options', [StockMutationController::class, 'options']);
+    Route::get('stock-mutations/check-stock', [StockMutationController::class, 'checkStock']);
+    Route::get('stock-mutations/statistics', [StockMutationController::class, 'statistics']);
+    Route::get('stock-mutations/{stockMutation}', [StockMutationController::class, 'show']);
+    Route::put('stock-mutations/{stockMutation}', [StockMutationController::class, 'update']);
+    Route::delete('stock-mutations/{stockMutation}', [StockMutationController::class, 'destroy']);
+    Route::post('stock-mutations/{stockMutation}/submit', [StockMutationController::class, 'submit']);
+    Route::post('stock-mutations/{stockMutation}/approve', [StockMutationController::class, 'approve']);
+    Route::post('stock-mutations/{stockMutation}/complete', [StockMutationController::class, 'complete']);
+    Route::post('stock-mutations/{stockMutation}/cancel', [StockMutationController::class, 'cancel']);
+
+    // Stock Adjustment routes
+    Route::get('stock-adjustments', [StockAdjustmentController::class, 'index']);
+    Route::get('stock-adjustments/create', [StockAdjustmentController::class, 'create']);
+    Route::post('stock-adjustments', [StockAdjustmentController::class, 'store']);
+    Route::get('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'show']);
+    Route::get('stock-adjustments/{stockAdjustment}/edit', [StockAdjustmentController::class, 'edit']);
+    Route::put('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'update']);
+    Route::delete('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'destroy']);
+    Route::post('stock-adjustments/{stockAdjustment}/approve', [StockAdjustmentController::class, 'approve']);
+    Route::post('stock-adjustments/{stockAdjustment}/cancel', [StockAdjustmentController::class, 'cancel']);
+    Route::post('stock-adjustments/calculate-system-quantity', [StockAdjustmentController::class, 'calculateSystemQuantity']);
+
+    // Stock Opname routes
+    Route::get('stock-opnames', [StockOpnameController::class, 'index']);
+    Route::get('stock-opnames/create', [StockOpnameController::class, 'create']);
+    Route::post('stock-opnames', [StockOpnameController::class, 'store']);
+    Route::get('stock-opnames/{stockOpname}', [StockOpnameController::class, 'show']);
+    Route::get('stock-opnames/{stockOpname}/edit', [StockOpnameController::class, 'edit']);
+    Route::put('stock-opnames/{stockOpname}', [StockOpnameController::class, 'update']);
+    Route::delete('stock-opnames/{stockOpname}', [StockOpnameController::class, 'destroy']);
+    Route::post('stock-opnames/{stockOpname}/complete', [StockOpnameController::class, 'complete']);
+    Route::post('stock-opnames/{stockOpname}/cancel', [StockOpnameController::class, 'cancel']);
+    Route::post('stock-opnames/get-products', [StockOpnameController::class, 'getProductsForOpname']);
+
+    // Stock Card routes
+    Route::get('stock-cards', [StockCardController::class, 'index']);
+    Route::get('stock-cards/show', [StockCardController::class, 'show']);
+    Route::get('stock-cards/summary', [StockCardController::class, 'summary']);
+    Route::get('stock-cards/balances', [StockCardController::class, 'balances']);
+    Route::get('stock-cards/export', [StockCardController::class, 'export']);
+
+    // Test route for statistics
+    Route::get('test-statistics', [App\Http\Controllers\TestController::class, 'testStatistics']);
 });

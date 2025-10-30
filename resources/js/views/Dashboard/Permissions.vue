@@ -20,9 +20,9 @@
                 class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
             >
                 <div class="flex items-center">
-                    <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
                         <KeyIcon
-                            class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -42,10 +42,10 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"
+                        class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
                     >
                         <CheckCircleIcon
-                            class="w-6 h-6 text-green-600 dark:text-green-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -86,10 +86,10 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg"
+                        class="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
                     >
                         <ShieldCheckIcon
-                            class="w-6 h-6 text-indigo-600 dark:text-indigo-400"
+                            class="w-6 h-6 text-red-600 dark:text-red-400"
                         />
                     </div>
                     <div class="ml-4">
@@ -137,7 +137,7 @@
             <template #column-name="{ item }">
                 <div class="flex items-center">
                     <div
-                        class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3"
+                        class="w-8 h-8 bg-gradient-to-br from-red-500 to-purple-600 rounded-lg flex items-center justify-center mr-3"
                     >
                         <KeyIcon class="w-4 h-4 text-white" />
                     </div>
@@ -169,7 +169,7 @@
                     <div
                         :class="[
                             'w-2 h-2 rounded-full mr-2',
-                            item.is_active ? 'bg-green-500' : 'bg-red-500',
+                            item.is_active ? 'bg-red-500' : 'bg-red-500',
                         ]"
                     ></div>
                     <span
@@ -185,14 +185,14 @@
                 <div class="flex items-center justify-end gap-2">
                     <button
                         @click="handleViewPermission(item)"
-                        class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
+                        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                         title="View Details"
                     >
                         <EyeIcon class="w-4 h-4" />
                     </button>
                     <button
                         @click="handleEditPermission(item)"
-                        class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 dark:hover:text-green-400 dark:hover:bg-green-900/20"
+                        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                         title="Edit Permission"
                     >
                         <PencilIcon class="w-4 h-4" />
@@ -218,7 +218,7 @@
                         </label>
                         <select
                             v-model="groupFilter"
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         >
                             <option value="">All Groups</option>
                             <option
@@ -238,7 +238,7 @@
                         </label>
                         <select
                             v-model="statusFilter"
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         >
                             <option value="">All Status</option>
                             <option value="active">Active</option>
@@ -249,7 +249,7 @@
                         <button
                             @click="applyFilters"
                             :disabled="applyingFilters"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <svg
                                 v-if="applyingFilters"
@@ -333,7 +333,7 @@
                             id="perm_is_active"
                             v-model="permissionForm.is_active"
                             type="checkbox"
-                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded focus:ring-2"
+                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded focus:ring-2"
                         />
                         <label
                             for="perm_is_active"
@@ -435,7 +435,7 @@
                                     :class="[
                                         'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
                                         selectedPermission.is_active
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                                             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
                                     ]"
                                 >
@@ -500,7 +500,7 @@
                         >
                             <div class="flex-shrink-0">
                                 <svg
-                                    class="h-4 w-4 text-green-500"
+                                    class="h-4 w-4 text-red-500"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
@@ -582,7 +582,7 @@
                                 <span
                                     :class="[
                                         selectedPermission.is_active
-                                            ? 'text-green-600'
+                                            ? 'text-red-600'
                                             : 'text-red-600',
                                     ]"
                                 >

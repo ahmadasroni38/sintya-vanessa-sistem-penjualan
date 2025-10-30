@@ -237,7 +237,8 @@
                                 </p>
                                 <button
                                     v-if="showAddButton"
-                                    @click="$emit('add')"
+                                    type="button"
+                                    @click.stop.prevent="$emit('add')"
                                     class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                                 >
                                     <PlusIcon class="w-4 h-4" />
@@ -350,7 +351,17 @@
                                         ),
                                     ]"
                                 >
-                                    {{ getNestedValue(item, column.key) }}
+                                    {{
+                                        column.formatter
+                                            ? column.formatter(
+                                                  getNestedValue(
+                                                      item,
+                                                      column.key
+                                                  ),
+                                                  item
+                                              )
+                                            : getNestedValue(item, column.key)
+                                    }}
                                 </span>
 
                                 <span
@@ -379,7 +390,17 @@
                                     v-else
                                     class="text-sm text-gray-900 dark:text-white"
                                 >
-                                    {{ getNestedValue(item, column.key) }}
+                                    {{
+                                        column.formatter
+                                            ? column.formatter(
+                                                  getNestedValue(
+                                                      item,
+                                                      column.key
+                                                  ),
+                                                  item
+                                              )
+                                            : getNestedValue(item, column.key)
+                                    }}
                                 </span>
                             </slot>
                         </td>
@@ -394,14 +415,20 @@
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <button
-                                        @click="$emit('edit', item)"
+                                        type="button"
+                                        @click.stop.prevent="
+                                            $emit('edit', item)
+                                        "
                                         class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
                                         title="Edit"
                                     >
                                         <PencilIcon class="w-4 h-4" />
                                     </button>
                                     <button
-                                        @click="$emit('delete', item)"
+                                        type="button"
+                                        @click.stop.prevent="
+                                            $emit('delete', item)
+                                        "
                                         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                                         title="Delete"
                                     >
@@ -417,7 +444,12 @@
 
         <!-- Footer with Pagination -->
         <div
-            v-if="!loading && filteredData.length > 0"
+            v-if="
+                !loading &&
+                (serverSidePagination
+                    ? data.length > 0
+                    : filteredData.length > 0)
+            "
             class="px-6 py-4 border-t border-gray-200 dark:border-gray-700"
         >
             <div
@@ -430,7 +462,12 @@
                         class="text-sm text-gray-700 dark:text-gray-300"
                     >
                         {{ selectedItems.length }} of
-                        {{ filteredData.length }} selected
+                        {{
+                            serverSidePagination
+                                ? data.length
+                                : filteredData.length
+                        }}
+                        selected
                         <button
                             v-if="showBulkActions"
                             @click="$emit('bulk-action', selectedItems)"
@@ -440,14 +477,34 @@
                         </button>
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+                        Showing
                         {{
-                            Math.min(
-                                currentPage * itemsPerPage,
-                                filteredData.length
-                            )
+                            serverSidePagination
+                                ? (pagination.current_page - 1) *
+                                      pagination.per_page +
+                                  1
+                                : (currentPage - 1) * itemsPerPage + 1
                         }}
-                        of {{ filteredData.length }} results
+                        to
+                        {{
+                            serverSidePagination
+                                ? Math.min(
+                                      pagination.current_page *
+                                          pagination.per_page,
+                                      pagination.total
+                                  )
+                                : Math.min(
+                                      currentPage * itemsPerPage,
+                                      filteredData.length
+                                  )
+                        }}
+                        of
+                        {{
+                            serverSidePagination
+                                ? pagination.total
+                                : filteredData.length
+                        }}
+                        results
                     </div>
                 </div>
 
@@ -460,7 +517,7 @@
                         >
                         <select
                             v-model="itemsPerPage"
-                            class="text-sm border border-gray-300 rounded-lg px-2 py-1 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            class="text-sm border border-gray-300 rounded-lg px-5 py-1 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option
                                 v-for="size in pageSizes"
@@ -475,7 +532,11 @@
                     <!-- Pagination Controls -->
                     <div class="flex items-center gap-1">
                         <button
-                            @click="currentPage = 1"
+                            @click="
+                                serverSidePagination
+                                    ? $emit('page-change', 1)
+                                    : (currentPage = 1)
+                            "
                             :disabled="currentPage === 1"
                             class="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-500 dark:hover:text-gray-300"
                             title="First page"
@@ -483,7 +544,11 @@
                             <ChevronDoubleLeftIcon class="w-4 h-4" />
                         </button>
                         <button
-                            @click="currentPage--"
+                            @click="
+                                serverSidePagination
+                                    ? $emit('page-change', currentPage - 1)
+                                    : currentPage--
+                            "
                             :disabled="currentPage === 1"
                             class="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-500 dark:hover:text-gray-300"
                             title="Previous page"
@@ -495,7 +560,11 @@
                             <button
                                 v-for="page in visiblePages"
                                 :key="page"
-                                @click="currentPage = page"
+                                @click="
+                                    serverSidePagination
+                                        ? $emit('page-change', page)
+                                        : (currentPage = page)
+                                "
                                 :class="[
                                     'px-3 py-1 text-sm rounded-lg transition-colors duration-200',
                                     page === currentPage
@@ -508,7 +577,11 @@
                         </div>
 
                         <button
-                            @click="currentPage++"
+                            @click="
+                                serverSidePagination
+                                    ? $emit('page-change', currentPage + 1)
+                                    : currentPage++
+                            "
                             :disabled="currentPage === totalPages"
                             class="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-500 dark:hover:text-gray-300"
                             title="Next page"
@@ -516,7 +589,11 @@
                             <ChevronRightIcon class="w-4 h-4" />
                         </button>
                         <button
-                            @click="currentPage = totalPages"
+                            @click="
+                                serverSidePagination
+                                    ? $emit('page-change', totalPages)
+                                    : (currentPage = totalPages)
+                            "
                             :disabled="currentPage === totalPages"
                             class="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-500 dark:hover:text-gray-300"
                             title="Last page"
@@ -623,6 +700,19 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    serverSidePagination: {
+        type: Boolean,
+        default: false,
+    },
+    pagination: {
+        type: Object,
+        default: () => ({
+            current_page: 1,
+            per_page: 10,
+            total: 0,
+            last_page: 1,
+        }),
+    },
 });
 
 // Emits
@@ -643,7 +733,7 @@ const sortOrder = ref("asc");
 const selectedItems = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
-const pageSizes = ref([5, 10, 25, 50, 100]);
+const pageSizes = ref([5, 10, 15, 25, 50, 100]);
 
 // Computed properties
 const totalColumns = computed(() => {
@@ -654,6 +744,10 @@ const totalColumns = computed(() => {
 });
 
 const filteredData = computed(() => {
+    if (props.serverSidePagination) {
+        return props.data;
+    }
+
     let filtered = [...props.data];
 
     // Apply search filter
@@ -688,10 +782,16 @@ const filteredData = computed(() => {
 });
 
 const totalPages = computed(() => {
+    if (props.serverSidePagination) {
+        return props.pagination.last_page || 1;
+    }
     return Math.ceil(filteredData.value.length / itemsPerPage.value);
 });
 
 const paginatedData = computed(() => {
+    if (props.serverSidePagination) {
+        return props.data;
+    }
     const start = (currentPage.value - 1) * itemsPerPage.value;
     const end = start + itemsPerPage.value;
     return filteredData.value.slice(start, end);
@@ -733,6 +833,8 @@ const toggleSort = (key) => {
         sortKey.value = key;
         sortOrder.value = "asc";
     }
+
+    emit("sort", key, sortOrder.value);
 };
 
 const toggleSelectAll = () => {
@@ -767,16 +869,18 @@ const getBadgeClasses = (value, colors = {}) => {
 
     const colorMap = { ...defaultColors, ...colors };
     return (
-        colorMap[value?.toLowerCase()] ||
+        colorMap[value] ||
         "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
     );
 };
 
 const formatCurrency = (value) => {
-    if (!value) return "$0.00";
-    return new Intl.NumberFormat("en-US", {
+    if (!value) return "Rp 0";
+    return new Intl.NumberFormat("id-ID", {
         style: "currency",
-        currency: "USD",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(value);
 };
 
@@ -803,12 +907,29 @@ watch(
 );
 
 watch(itemsPerPage, () => {
-    currentPage.value = 1;
+    if (!props.serverSidePagination) {
+        currentPage.value = 1;
+    } else {
+        emit("page-change", 1, itemsPerPage);
+    }
 });
 
 watch(searchQuery, () => {
-    currentPage.value = 1;
+    if (!props.serverSidePagination) {
+        currentPage.value = 1;
+    }
 });
+
+watch(
+    () => props.pagination,
+    (newPagination) => {
+        if (props.serverSidePagination) {
+            currentPage.value = newPagination.current_page || 1;
+            itemsPerPage.value = newPagination.per_page || 10;
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <style scoped>

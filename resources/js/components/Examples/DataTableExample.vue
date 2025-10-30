@@ -53,7 +53,7 @@
 
                 <!-- Custom Price Column -->
                 <template #column-price="{ item }">
-                    <span class="text-lg font-semibold text-green-600 dark:text-green-400">
+                    <span class="text-lg font-semibold text-red-600 dark:text-red-400">
                         ${{ item.price.toFixed(2) }}
                     </span>
                 </template>
@@ -63,8 +63,8 @@
                     <span
                         :class="[
                             'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                            item.stock > 10 ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                            item.stock > 0 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                            item.stock > 10 ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                            item.stock > 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
                             'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                         ]"
                     >
@@ -77,21 +77,21 @@
                     <div class="flex items-center justify-end gap-2">
                         <button
                             @click="handleQuickEdit(item)"
-                            class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
+                            class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                             title="Quick Edit"
                         >
                             <PencilSquareIcon class="w-4 h-4" />
                         </button>
                         <button
                             @click="handleDuplicate(item)"
-                            class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 dark:hover:text-green-400 dark:hover:bg-green-900/20"
+                            class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                             title="Duplicate"
                         >
                             <DocumentDuplicateIcon class="w-4 h-4" />
                         </button>
                         <button
                             @click="handleArchive(item)"
-                            class="p-1.5 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200 dark:hover:text-yellow-400 dark:hover:bg-yellow-900/20"
+                            class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                             title="Archive"
                         >
                             <ArchiveBoxIcon class="w-4 h-4" />
@@ -133,15 +133,15 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stock Status</label>
                             <div class="space-y-2">
                                 <label class="flex items-center">
-                                    <input v-model="stockFilters.inStock" type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <input v-model="stockFilters.inStock" type="checkbox" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">In Stock</span>
                                 </label>
                                 <label class="flex items-center">
-                                    <input v-model="stockFilters.lowStock" type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <input v-model="stockFilters.lowStock" type="checkbox" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Low Stock</span>
                                 </label>
                                 <label class="flex items-center">
-                                    <input v-model="stockFilters.outOfStock" type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <input v-model="stockFilters.outOfStock" type="checkbox" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Out of Stock</span>
                                 </label>
                             </div>
@@ -149,7 +149,7 @@
                         <div class="pt-2 border-t border-gray-200 dark:border-gray-600 flex gap-2">
                             <button
                                 @click="applyFilters"
-                                class="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                                class="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
                             >
                                 Apply
                             </button>

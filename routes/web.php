@@ -15,5 +15,5 @@ use Illuminate\Support\Facades\Route;
 
 // Catch all routes and serve the Vue app
 Route::get('/{any}', function () {
-    return view('welcome');
+    return view('app');
 })->where('any', '.*');

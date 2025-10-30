@@ -58,7 +58,7 @@
                 <div class="max-h-80 overflow-y-auto">
                     <!-- Loading State -->
                     <div v-if="isLoading" class="p-4 text-center">
-                        <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent mx-auto"></div>
+                        <div class="animate-spin rounded-full h-6 w-6 border-2 border-primary-500 border-t-transparent mx-auto"></div>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading notifications...</p>
                     </div>
 

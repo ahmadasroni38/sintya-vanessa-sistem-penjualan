@@ -16,7 +16,11 @@
       "Bash(php artisan migrate:rollback:*)",
       "Bash(php artisan:*)",
       "Bash(mysql:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(awk:*)",
+      "Bash(cat:*)",
+      "Read(//c/Users/Asroni/Desktop/Project/**)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

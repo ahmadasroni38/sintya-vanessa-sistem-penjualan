@@ -36,7 +36,7 @@
                     aria-label="Brand"
                 >
                     <div
-                        class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:from-blue-600 group-hover:to-indigo-700 transition-all duration-200"
+                        class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center group-hover:from-primary-500 group-hover:to-primary-700 transition-all duration-200"
                         :class="
                             sidebarState === 'desktop-collapsed'
                                 ? 'lg:w-10 lg:h-10'
@@ -54,7 +54,7 @@
                     </div>
                     <span
                         v-if="sidebarState !== 'desktop-collapsed'"
-                        class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400 transition-opacity duration-300"
+                        class="bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-500 transition-opacity duration-300"
                         >AdminPanel</span
                     >
                 </a>
@@ -98,7 +98,7 @@
                         v-model="searchQuery"
                         @input="handleSidebarSearch"
                         type="text"
-                        class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-400 transition-all duration-200"
+                        class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-400 transition-all duration-200"
                         placeholder="Search menu..."
                     />
                 </div>
@@ -129,7 +129,7 @@
                                     :class="[
                                         'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
                                         $route.name === item.routeName
-                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+                                            ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
                                         sidebarState === 'desktop-collapsed'
                                             ? 'lg:justify-center lg:px-4'
@@ -169,10 +169,10 @@
                         </ul>
                     </div>
 
-                    <!-- Maintenance Management Section -->
+                    <!-- Manajemen Accounting Section -->
                     <div
                         v-if="
-                            filteredMenuSections.maintenanceManagement.items
+                            filteredMenuSections.accountingManagement.items
                                 .length > 0
                         "
                     >
@@ -180,12 +180,12 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            Maintenance Management
+                            Manajemen Accounting
                         </h3>
                         <ul class="space-y-1">
                             <li
                                 v-for="item in filteredMenuSections
-                                    .maintenanceManagement.items"
+                                    .accountingManagement.items"
                                 :key="item.route"
                                 class="relative group"
                             >
@@ -194,7 +194,7 @@
                                     :class="[
                                         'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
                                         $route.name === item.routeName
-                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+                                            ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
                                         sidebarState === 'desktop-collapsed'
                                             ? 'lg:justify-center lg:px-4'
@@ -234,23 +234,23 @@
                         </ul>
                     </div>
 
-                    <!-- Asset Management Section -->
+                    <!-- Warehouse Management Section -->
                     <div
                         v-if="
-                            filteredMenuSections.assetManagement.items.length >
-                            0
+                            filteredMenuSections.warehouseManagement.items
+                                .length > 0
                         "
                     >
                         <h3
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            Asset Management
+                            Warehouse Management
                         </h3>
                         <ul class="space-y-1">
                             <li
                                 v-for="item in filteredMenuSections
-                                    .assetManagement.items"
+                                    .warehouseManagement.items"
                                 :key="item.route"
                                 class="relative group"
                             >
@@ -259,7 +259,7 @@
                                     :class="[
                                         'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
                                         $route.name === item.routeName
-                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+                                            ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
                                         sidebarState === 'desktop-collapsed'
                                             ? 'lg:justify-center lg:px-4'
@@ -323,7 +323,7 @@
                                     :class="[
                                         'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
                                         $route.name === item.routeName
-                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+                                            ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
                                         sidebarState === 'desktop-collapsed'
                                             ? 'lg:justify-center lg:px-4'
@@ -371,7 +371,7 @@
                 :class="sidebarState === 'desktop-collapsed' ? 'lg:px-2' : ''"
             >
                 <div
-                    class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-700"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 dark:from-gray-700 dark:to-gray-700"
                     :class="
                         sidebarState === 'desktop-collapsed'
                             ? 'lg:justify-center'
@@ -379,7 +379,7 @@
                     "
                 >
                     <div
-                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"
+                        class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0"
                         :class="
                             sidebarState === 'desktop-collapsed'
                                 ? 'lg:w-6 lg:h-6'
@@ -453,12 +453,12 @@
                         href="#"
                     >
                         <div
-                            class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md flex items-center justify-center"
+                            class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 rounded-md flex items-center justify-center"
                         >
                             <BuildingOffice2Icon class="w-5 h-5 text-white" />
                         </div>
                         <span
-                            class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400"
+                            class="bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-500"
                             >AdminPanel</span
                         >
                     </a>
@@ -506,7 +506,7 @@
                         <div class="flex items-center gap-4">
                             <div class="flex items-center gap-2">
                                 <div
-                                    class="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md flex items-center justify-center"
+                                    class="w-6 h-6 bg-gradient-to-br from-primary-400 to-primary-600 rounded-md flex items-center justify-center"
                                 >
                                     <BuildingOffice2Icon
                                         class="w-4 h-4 text-white"
@@ -575,9 +575,15 @@ import {
     TruckIcon,
     MapPinIcon,
     ArchiveBoxIcon,
-    WrenchScrewdriverIcon,
-    ClockIcon,
-    ExclamationTriangleIcon,
+    BookOpenIcon,
+    BanknotesIcon,
+    DocumentTextIcon,
+    ChartBarIcon,
+    CurrencyDollarIcon,
+    ArrowsRightLeftIcon,
+    ClipboardDocumentListIcon,
+    AdjustmentsHorizontalIcon,
+    DocumentDuplicateIcon,
 } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
@@ -622,32 +628,97 @@ const menuSections = {
             },
         ],
     },
-    assetManagement: {
-        title: "Asset Management",
+    accountingManagement: {
+        title: "Manajemen Accounting",
         items: [
             {
-                text: "Assets",
-                route: "/assets",
-                routeName: "assets.index",
-                icon: ArchiveBoxIcon,
+                text: "Jurnal Umum",
+                route: "/journal-entries",
+                routeName: "journal-entries.index",
+                icon: BookOpenIcon,
             },
             {
-                text: "Asset Categories",
-                route: "/asset-categories",
-                routeName: "asset-categories.index",
+                text: "Chart of Accounts (COA)",
+                route: "/chart-of-accounts",
+                routeName: "coa.index",
+                icon: ClipboardDocumentListIcon,
+            },
+            {
+                text: "Neraca Lajur",
+                route: "/reports/neraca-lajur",
+                routeName: "reports.neraca-lajur",
+                icon: DocumentDuplicateIcon,
+            },
+            {
+                text: "Neraca",
+                route: "/reports/neraca",
+                routeName: "reports.neraca",
+                icon: DocumentTextIcon,
+            },
+            {
+                text: "Laba Rugi",
+                route: "/reports/laba-rugi",
+                routeName: "reports.laba-rugi",
+                icon: ChartBarIcon,
+            },
+            {
+                text: "Perubahan Modal",
+                route: "/reports/perubahan-modal",
+                routeName: "reports.perubahan-modal",
+                icon: CurrencyDollarIcon,
+            },
+            {
+                text: "Arus Kas",
+                route: "/reports/arus-kas",
+                routeName: "reports.arus-kas",
+                icon: BanknotesIcon,
+            },
+        ],
+    },
+    warehouseManagement: {
+        title: "Warehouse Management",
+        items: [
+            {
+                text: "Products",
+                route: "/products",
+                routeName: "products.index",
                 icon: TagIcon,
             },
             {
-                text: "Locations",
+                text: "Lokasi",
                 route: "/locations",
                 routeName: "locations.index",
                 icon: MapPinIcon,
             },
             {
-                text: "Vendors",
-                route: "/vendors",
-                routeName: "vendors.index",
-                icon: TruckIcon,
+                text: "Stock Masuk",
+                route: "/stock-masuk",
+                routeName: "stock-masuk.index",
+                icon: ArchiveBoxIcon,
+            },
+            {
+                text: "Mutasi",
+                route: "/mutasi",
+                routeName: "mutasi.index",
+                icon: ArrowsRightLeftIcon,
+            },
+            {
+                text: "Adjustment",
+                route: "/adjustment",
+                routeName: "adjustment.index",
+                icon: AdjustmentsHorizontalIcon,
+            },
+            {
+                text: "Stockopname",
+                route: "/stockopname",
+                routeName: "stockopname.index",
+                icon: ClipboardDocumentListIcon,
+            },
+            {
+                text: "Buku Stock",
+                route: "/buku-stock",
+                routeName: "buku-stock.index",
+                icon: BookOpenIcon,
             },
         ],
     },
@@ -671,29 +742,6 @@ const menuSections = {
                 route: "/permissions",
                 routeName: "Permissions",
                 icon: KeyIcon,
-            },
-        ],
-    },
-    maintenanceManagement: {
-        title: "Maintenance Management",
-        items: [
-            {
-                text: "Work Orders",
-                route: "/work-orders",
-                routeName: "work-orders.index",
-                icon: WrenchScrewdriverIcon,
-            },
-            {
-                text: "Preventive Maintenance",
-                route: "/preventive-maintenance",
-                routeName: "preventive-maintenance.index",
-                icon: ClockIcon,
-            },
-            {
-                text: "Repair Requests",
-                route: "/repair-requests",
-                routeName: "repair-requests.index",
-                icon: ExclamationTriangleIcon,
             },
         ],
     },
@@ -749,13 +797,19 @@ const getPageTitle = () => {
         Users: "Users",
         Roles: "Roles",
         Permissions: "Permissions",
-        "assets.index": "Assets",
-        "asset-categories.index": "Asset Categories",
+        "journal-entries.index": "Jurnal Umum",
+        "coa.index": "Chart of Accounts (COA)",
+        "reports.neraca-lajur": "Neraca Lajur",
+        "reports.neraca": "Neraca",
+        "reports.laba-rugi": "Laba Rugi",
+        "reports.perubahan-modal": "Perubahan Modal",
+        "reports.arus-kas": "Arus Kas",
         "locations.index": "Locations",
-        "vendors.index": "Vendors",
-        "work-orders.index": "Work Orders",
-        "preventive-maintenance.index": "Preventive Maintenance",
-        "repair-requests.index": "Repair Requests",
+        "stock-masuk.index": "Stock Masuk",
+        "mutasi.index": "Mutasi",
+        "adjustment.index": "Adjustment",
+        "stockopname.index": "Stockopname",
+        "buku-stock.index": "Buku Stock",
     };
     return titles[route.name] || "Dashboard";
 };

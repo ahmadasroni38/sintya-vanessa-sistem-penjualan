@@ -430,7 +430,7 @@
                     </button>
                     <button
                         @click="handlePrintQRCode(item)"
-                        class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 dark:hover:text-indigo-400 dark:hover:bg-indigo-900/20"
+                        class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-100 rounded-lg transition-colors duration-200 dark:hover:text-primary-400 dark:hover:bg-indigo-900/20"
                         title="Print QR Code"
                     >
                         <PrinterIcon class="w-4 h-4" />

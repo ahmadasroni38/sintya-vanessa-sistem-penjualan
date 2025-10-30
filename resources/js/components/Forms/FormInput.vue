@@ -8,21 +8,25 @@
             {{ label }}
             <span v-if="required" class="text-red-500">*</span>
         </label>
-        <BaseInput
-            :id="inputId"
-            v-model="inputValue"
-            :type="type"
-            :placeholder="placeholder"
-            :disabled="disabled"
-            :size="size"
-            :variant="error ? 'error' : 'default'"
-            @blur="handleBlur"
-            @focus="handleFocus"
-        >
-            <template #icon>
+        <div class="relative">
+            <BaseInput
+                :id="inputId"
+                v-model="inputValue"
+                :type="type"
+                :placeholder="placeholder"
+                :disabled="disabled"
+                :size="size"
+                :variant="error ? 'error' : 'default'"
+                @blur="handleBlur"
+                @focus="handleFocus"
+            />
+            <div
+                v-if="$slots.icon"
+                class="absolute inset-y-0 right-0 flex items-center pr-3"
+            >
                 <slot name="icon" />
-            </template>
-        </BaseInput>
+            </div>
+        </div>
         <p v-if="error" class="text-sm text-red-600 dark:text-red-400">
             {{ error }}
         </p>
