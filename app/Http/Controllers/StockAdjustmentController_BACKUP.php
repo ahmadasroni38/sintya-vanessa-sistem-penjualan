@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\StockAdjustment;
-use App\Models\StockAdjustmentDetail;
 use App\Models\Product;
 use App\Models\Location;
 use Illuminate\Http\Request;
@@ -13,16 +12,21 @@ use Inertia\Inertia;
 class StockAdjustmentController extends Controller
 {
     /**
-     * Display a listing of stock adjustments (Master-Detail).
+     * Display a listing of stock adjustments.
      */
     public function index(Request $request)
     {
         $query = StockAdjustment::query()
-            ->with(['location', 'creator', 'approver', 'details.product']);
+            ->with(['product', 'location', 'creator', 'approver']);
 
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Filter by adjustment type
+        if ($request->filled('adjustment_type')) {
+            $query->where('adjustment_type', $request->adjustment_type);
         }
 
         // Filter by location
@@ -30,18 +34,9 @@ class StockAdjustmentController extends Controller
             $query->where('location_id', $request->location_id);
         }
 
-        // Filter by product (search in details)
+        // Filter by product
         if ($request->filled('product_id')) {
-            $query->whereHas('details', function ($q) use ($request) {
-                $q->where('product_id', $request->product_id);
-            });
-        }
-
-        // Filter by adjustment type (search in details)
-        if ($request->filled('adjustment_type')) {
-            $query->whereHas('details', function ($q) use ($request) {
-                $q->where('adjustment_type', $request->adjustment_type);
-            });
+            $query->where('product_id', $request->product_id);
         }
 
         // Filter by date range
@@ -49,13 +44,12 @@ class StockAdjustmentController extends Controller
             $query->whereBetween('adjustment_date', [$request->start_date, $request->end_date]);
         }
 
-        // Search by adjustment number or description
+        // Search by adjustment number
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('adjustment_number', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
+                    ->orWhere('reason', 'like', "%{$search}%");
             });
         }
 
@@ -85,91 +79,75 @@ class StockAdjustmentController extends Controller
     }
 
     /**
-     * Store a newly created stock adjustment with multiple products.
+     * Show the form for creating a new stock adjustment.
+     */
+    public function create()
+    {
+        $products = Product::active()->orderBy('product_code')->get();
+        $locations = Location::active()->orderBy('code')->get();
+
+        return Inertia::render('Dashboard/StockAdjustmentForm', [
+            'products' => $products,
+            'locations' => $locations,
+        ]);
+    }
+
+    /**
+     * Store a newly created stock adjustment.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'adjustment_date' => 'required|date',
+            'product_id' => 'required|exists:products,id',
             'location_id' => 'required|exists:locations,id',
-            'description' => 'nullable|string',
+            'system_quantity' => 'required|numeric|min:0',
+            'actual_quantity' => 'required|numeric|min:0',
+            'reason' => 'required|string',
             'notes' => 'nullable|string',
-            'details' => 'required|array|min:1',
-            'details.*.product_id' => 'required|exists:products,id',
-            'details.*.system_quantity' => 'required|numeric|min:0',
-            'details.*.actual_quantity' => 'required|numeric|min:0',
-            'details.*.reason' => 'nullable|string',
-            'details.*.notes' => 'nullable|string',
         ]);
 
-        DB::beginTransaction();
-        try {
-            // Create master adjustment
-            $adjustment = StockAdjustment::create([
-                'adjustment_date' => $validated['adjustment_date'],
-                'location_id' => $validated['location_id'],
-                'total_items' => count($validated['details']),
-                'description' => $validated['description'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'status' => 'draft',
-                'created_by' => auth()->id(),
-            ]);
+        // Calculate difference and type
+        $difference = $validated['actual_quantity'] - $validated['system_quantity'];
+        $adjustmentType = $difference >= 0 ? 'increase' : 'decrease';
 
-            // Create details
-            foreach ($validated['details'] as $detailData) {
-                $difference = $detailData['actual_quantity'] - $detailData['system_quantity'];
-                $type = $difference >= 0 ? 'increase' : 'decrease';
+        $adjustment = StockAdjustment::create([
+            'adjustment_date' => $validated['adjustment_date'],
+            'product_id' => $validated['product_id'],
+            'location_id' => $validated['location_id'],
+            'system_quantity' => $validated['system_quantity'],
+            'actual_quantity' => $validated['actual_quantity'],
+            'difference_quantity' => abs($difference),
+            'adjustment_type' => $adjustmentType,
+            'reason' => $validated['reason'],
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'draft',
+            'created_by' => auth()->id(),
+        ]);
 
-                StockAdjustmentDetail::create([
-                    'stock_adjustment_id' => $adjustment->id,
-                    'product_id' => $detailData['product_id'],
-                    'system_quantity' => $detailData['system_quantity'],
-                    'actual_quantity' => $detailData['actual_quantity'],
-                    'difference_quantity' => $difference,
-                    'adjustment_type' => $type,
-                    'reason' => $detailData['reason'] ?? null,
-                    'notes' => $detailData['notes'] ?? null,
-                ]);
-            }
+        $adjustment->load(['product', 'location', 'creator']);
 
-            DB::commit();
-
-            $adjustment->load(['location', 'creator', 'details.product']);
-
-            // Return JSON for API requests
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Stock Adjustment created successfully.',
-                    'data' => $adjustment,
-                ], 201);
-            }
-
-            return redirect()->route('stock-adjustments.index')
-                ->with('success', 'Stock Adjustment created successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Failed to create adjustment: ' . $e->getMessage(),
-                ], 422);
-            }
-
-            return redirect()->back()
-                ->withErrors(['error' => $e->getMessage()])
-                ->withInput();
+        // Return JSON for API requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Stock Adjustment created successfully.',
+                'data' => $adjustment,
+            ], 201);
         }
+
+        return redirect()->route('stock-adjustments.index')
+            ->with('success', 'Stock Adjustment created successfully.');
     }
 
     /**
      * Display the specified stock adjustment.
      */
-    public function show(Request $request, StockAdjustment $stockAdjustment)
+    public function show(StockAdjustment $stockAdjustment)
     {
-        $stockAdjustment->load(['location', 'creator', 'approver', 'details.product']);
+        $stockAdjustment->load(['product', 'location', 'creator', 'approver']);
 
         // Return JSON for API requests
-        if ($request->expectsJson()) {
+        if (request()->expectsJson()) {
             return response()->json([
                 'data' => $stockAdjustment,
             ]);
@@ -181,7 +159,28 @@ class StockAdjustmentController extends Controller
     }
 
     /**
-     * Update the specified stock adjustment (draft only).
+     * Show the form for editing the specified stock adjustment.
+     */
+    public function edit(StockAdjustment $stockAdjustment)
+    {
+        // Only draft adjustments can be edited
+        if ($stockAdjustment->status !== 'draft') {
+            return redirect()->back()->withErrors(['error' => 'Only draft adjustments can be edited.']);
+        }
+
+        $stockAdjustment->load('product', 'location');
+        $products = Product::active()->orderBy('product_code')->get();
+        $locations = Location::active()->orderBy('code')->get();
+
+        return Inertia::render('Dashboard/StockAdjustmentForm', [
+            'adjustment' => $stockAdjustment,
+            'products' => $products,
+            'locations' => $locations,
+        ]);
+    }
+
+    /**
+     * Update the specified stock adjustment.
      */
     public function update(Request $request, StockAdjustment $stockAdjustment)
     {
@@ -197,80 +196,46 @@ class StockAdjustmentController extends Controller
 
         $validated = $request->validate([
             'adjustment_date' => 'required|date',
+            'product_id' => 'required|exists:products,id',
             'location_id' => 'required|exists:locations,id',
-            'description' => 'nullable|string',
+            'system_quantity' => 'required|numeric|min:0',
+            'actual_quantity' => 'required|numeric|min:0',
+            'reason' => 'required|string',
             'notes' => 'nullable|string',
-            'details' => 'required|array|min:1',
-            'details.*.id' => 'nullable|exists:stock_adjustment_details,id',
-            'details.*.product_id' => 'required|exists:products,id',
-            'details.*.system_quantity' => 'required|numeric|min:0',
-            'details.*.actual_quantity' => 'required|numeric|min:0',
-            'details.*.reason' => 'nullable|string',
-            'details.*.notes' => 'nullable|string',
         ]);
 
-        DB::beginTransaction();
-        try {
-            // Update master
-            $stockAdjustment->update([
-                'adjustment_date' => $validated['adjustment_date'],
-                'location_id' => $validated['location_id'],
-                'total_items' => count($validated['details']),
-                'description' => $validated['description'] ?? null,
-                'notes' => $validated['notes'] ?? null,
+        // Calculate difference and type
+        $difference = $validated['actual_quantity'] - $validated['system_quantity'];
+        $adjustmentType = $difference >= 0 ? 'increase' : 'decrease';
+
+        $stockAdjustment->update([
+            'adjustment_date' => $validated['adjustment_date'],
+            'product_id' => $validated['product_id'],
+            'location_id' => $validated['location_id'],
+            'system_quantity' => $validated['system_quantity'],
+            'actual_quantity' => $validated['actual_quantity'],
+            'difference_quantity' => abs($difference),
+            'adjustment_type' => $adjustmentType,
+            'reason' => $validated['reason'],
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        $stockAdjustment->load(['product', 'location', 'creator']);
+
+        // Return JSON for API requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Stock Adjustment updated successfully.',
+                'data' => $stockAdjustment,
             ]);
-
-            // Delete old details
-            $stockAdjustment->details()->delete();
-
-            // Create new details
-            foreach ($validated['details'] as $detailData) {
-                $difference = $detailData['actual_quantity'] - $detailData['system_quantity'];
-                $type = $difference >= 0 ? 'increase' : 'decrease';
-
-                StockAdjustmentDetail::create([
-                    'stock_adjustment_id' => $stockAdjustment->id,
-                    'product_id' => $detailData['product_id'],
-                    'system_quantity' => $detailData['system_quantity'],
-                    'actual_quantity' => $detailData['actual_quantity'],
-                    'difference_quantity' => $difference,
-                    'adjustment_type' => $type,
-                    'reason' => $detailData['reason'] ?? null,
-                    'notes' => $detailData['notes'] ?? null,
-                ]);
-            }
-
-            DB::commit();
-
-            $stockAdjustment->load(['location', 'creator', 'details.product']);
-
-            // Return JSON for API requests
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Stock Adjustment updated successfully.',
-                    'data' => $stockAdjustment,
-                ]);
-            }
-
-            return redirect()->route('stock-adjustments.index')
-                ->with('success', 'Stock Adjustment updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Failed to update adjustment: ' . $e->getMessage(),
-                ], 422);
-            }
-
-            return redirect()->back()
-                ->withErrors(['error' => $e->getMessage()])
-                ->withInput();
         }
+
+        return redirect()->route('stock-adjustments.index')
+            ->with('success', 'Stock Adjustment updated successfully.');
     }
 
     /**
-     * Remove the specified stock adjustment (draft only).
+     * Remove the specified stock adjustment.
      */
     public function destroy(Request $request, StockAdjustment $stockAdjustment)
     {
@@ -284,45 +249,26 @@ class StockAdjustmentController extends Controller
             return redirect()->back()->withErrors(['error' => 'Only draft adjustments can be deleted.']);
         }
 
-        DB::beginTransaction();
-        try {
-            // Delete details first (cascade should handle this, but explicit for clarity)
-            $stockAdjustment->details()->delete();
+        $stockAdjustment->delete();
 
-            // Delete master
-            $stockAdjustment->delete();
-
-            DB::commit();
-
-            // Return JSON for API requests
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Stock Adjustment deleted successfully.',
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Stock Adjustment deleted successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Failed to delete adjustment: ' . $e->getMessage(),
-                ], 422);
-            }
-
-            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        // Return JSON for API requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Stock Adjustment deleted successfully.',
+            ]);
         }
+
+        return redirect()->back()->with('success', 'Stock Adjustment deleted successfully.');
     }
 
     /**
-     * Approve the specified stock adjustment and create stock cards.
+     * Approve the specified stock adjustment.
      */
     public function approve(Request $request, StockAdjustment $stockAdjustment)
     {
         try {
             $stockAdjustment->post(auth()->id());
-            $stockAdjustment->load(['location', 'creator', 'approver', 'details.product']);
+            $stockAdjustment->load(['product', 'location', 'creator', 'approver']);
 
             // Return JSON for API requests
             if ($request->expectsJson()) {
@@ -348,9 +294,25 @@ class StockAdjustmentController extends Controller
      */
     public function cancel(Request $request, StockAdjustment $stockAdjustment)
     {
+        if ($stockAdjustment->status !== 'posted') {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Only posted adjustments can be cancelled.',
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['error' => 'Only posted adjustments can be cancelled.']);
+        }
+
+        DB::beginTransaction();
         try {
-            $stockAdjustment->cancel();
-            $stockAdjustment->load(['location', 'creator', 'approver', 'details.product']);
+            // Remove the stock card entry
+            $stockAdjustment->stockCard()->delete();
+
+            $stockAdjustment->update(['status' => 'cancelled']);
+
+            DB::commit();
+
+            $stockAdjustment->load(['product', 'location', 'creator', 'approver']);
 
             // Return JSON for API requests
             if ($request->expectsJson()) {
@@ -362,6 +324,7 @@ class StockAdjustmentController extends Controller
 
             return redirect()->back()->with('success', 'Stock Adjustment cancelled successfully.');
         } catch (\Exception $e) {
+            DB::rollBack();
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $e->getMessage(),
@@ -399,23 +362,15 @@ class StockAdjustmentController extends Controller
 
         $totalThisMonth = StockAdjustment::whereBetween('adjustment_date', [$startDate, $endDate])->count();
         $pending = StockAdjustment::where('status', 'draft')->count();
-
-        // Count by checking details for type
-        $increaseCount = StockAdjustmentDetail::whereHas('stockAdjustment', function($q) {
-            $q->where('status', '!=', 'cancelled');
-        })->where('adjustment_type', 'increase')->count();
-
-        $decreaseCount = StockAdjustmentDetail::whereHas('stockAdjustment', function($q) {
-            $q->where('status', '!=', 'cancelled');
-        })->where('adjustment_type', 'decrease')->count();
-
+        $increase = StockAdjustment::where('adjustment_type', 'increase')->count();
+        $decrease = StockAdjustment::where('adjustment_type', 'decrease')->count();
         $posted = StockAdjustment::where('status', 'posted')->count();
 
         return response()->json([
             'total_this_month' => $totalThisMonth,
             'pending' => $pending,
-            'increase' => $increaseCount,
-            'decrease' => $decreaseCount,
+            'increase' => $increase,
+            'decrease' => $decrease,
             'posted' => $posted,
         ]);
     }
@@ -501,7 +456,6 @@ class StockAdjustmentController extends Controller
                     continue;
                 }
 
-                $adjustment->details()->delete();
                 $adjustment->delete();
                 $deleted++;
             }
@@ -522,16 +476,20 @@ class StockAdjustmentController extends Controller
     }
 
     /**
-     * Export adjustments to CSV (Master-Detail).
+     * Export adjustments to Excel/CSV.
      */
     public function export(Request $request)
     {
         $query = StockAdjustment::query()
-            ->with(['location', 'creator', 'approver', 'details.product']);
+            ->with(['product', 'location', 'creator', 'approver']);
 
         // Apply same filters as index
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        if ($request->filled('adjustment_type')) {
+            $query->where('adjustment_type', $request->adjustment_type);
         }
 
         if ($request->filled('location_id')) {
@@ -539,9 +497,7 @@ class StockAdjustmentController extends Controller
         }
 
         if ($request->filled('product_id')) {
-            $query->whereHas('details', function ($q) use ($request) {
-                $q->where('product_id', $request->product_id);
-            });
+            $query->where('product_id', $request->product_id);
         }
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -569,42 +525,38 @@ class StockAdjustmentController extends Controller
             fputcsv($file, [
                 'Adjustment Number',
                 'Date',
-                'Location',
                 'Product Code',
                 'Product Name',
-                'System Qty',
-                'Actual Qty',
+                'Location',
+                'System Quantity',
+                'Actual Quantity',
                 'Difference',
                 'Type',
-                'Item Reason',
+                'Reason',
                 'Status',
-                'Description',
                 'Created By',
                 'Approved By',
                 'Notes',
             ]);
 
-            // Data - one row per detail
+            // Data
             foreach ($adjustments as $adjustment) {
-                foreach ($adjustment->details as $detail) {
-                    fputcsv($file, [
-                        $adjustment->adjustment_number,
-                        $adjustment->adjustment_date,
-                        $adjustment->location->name ?? '',
-                        $detail->product->product_code ?? '',
-                        $detail->product->product_name ?? '',
-                        $detail->system_quantity,
-                        $detail->actual_quantity,
-                        $detail->difference_quantity,
-                        $detail->adjustment_type,
-                        $detail->reason ?? '',
-                        $adjustment->status,
-                        $adjustment->description ?? '',
-                        $adjustment->creator->name ?? '',
-                        $adjustment->approver->name ?? '',
-                        $adjustment->notes ?? '',
-                    ]);
-                }
+                fputcsv($file, [
+                    $adjustment->adjustment_number,
+                    $adjustment->adjustment_date,
+                    $adjustment->product->product_code ?? '',
+                    $adjustment->product->product_name ?? '',
+                    $adjustment->location->name ?? '',
+                    $adjustment->system_quantity,
+                    $adjustment->actual_quantity,
+                    $adjustment->difference_quantity,
+                    $adjustment->adjustment_type,
+                    $adjustment->reason,
+                    $adjustment->status,
+                    $adjustment->creator->name ?? '',
+                    $adjustment->approver->name ?? '',
+                    $adjustment->notes ?? '',
+                ]);
             }
 
             fclose($file);

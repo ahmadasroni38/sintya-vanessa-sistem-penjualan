@@ -267,20 +267,114 @@
         />
 
         <!-- Cancel Confirmation Modal -->
-        <ConfirmationModal
+        <Modal
             :is-open="showCancelModal"
             title="Cancel Mutation"
-            :message="
-                cancellingMutation
-                    ? `Are you sure you want to cancel mutation ${cancellingMutation.transaction_number}? This will revert the mutation status and cannot be undone.`
-                    : 'Are you sure you want to cancel this mutation?'
-            "
-            confirm-text="Cancel Mutation"
-            cancel-text="Cancel"
-            :loading="cancelling"
-            @confirm="confirmCancelMutation"
-            @cancel="showCancelModal = false"
-        />
+            size="medium"
+            @close="closeCancelModal"
+        >
+            <div class="space-y-4">
+                <div
+                    class="bg-yellow-50 border-l-4 border-yellow-400 p-4 dark:bg-yellow-900/20 dark:border-yellow-600"
+                >
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg
+                                class="h-5 w-5 text-yellow-400"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M8.485 3.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 3.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                <span v-if="cancellingMutation">
+                                    Are you sure you want to cancel mutation
+                                    <strong>{{
+                                        cancellingMutation.transaction_number
+                                    }}</strong
+                                    >? This action cannot be undone.
+                                </span>
+                                <span v-else>
+                                    Are you sure you want to cancel this
+                                    mutation?
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label
+                        for="cancellation-reason"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Cancellation Reason
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <textarea
+                        id="cancellation-reason"
+                        v-model="cancellationReason"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="Enter the reason for cancelling this mutation..."
+                        :disabled="cancelling"
+                    ></textarea>
+                    <p
+                        v-if="cancellationReasonError"
+                        class="mt-1 text-sm text-red-600 dark:text-red-400"
+                    >
+                        {{ cancellationReasonError }}
+                    </p>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button
+                        type="button"
+                        @click="closeCancelModal"
+                        :disabled="cancelling"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        @click="confirmCancelMutation"
+                        :disabled="cancelling || !cancellationReason.trim()"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-transparent rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg
+                            v-if="cancelling"
+                            class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                            ></circle>
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                        </svg>
+                        {{ cancelling ? "Cancelling..." : "Confirm Cancellation" }}
+                    </button>
+                </div>
+            </div>
+        </Modal>
 
         <!-- Delete Confirmation Modal -->
         <ConfirmationModal
@@ -364,6 +458,8 @@ const completing = ref(false);
 const showCancelModal = ref(false);
 const cancellingMutation = ref(null);
 const cancelling = ref(false);
+const cancellationReason = ref("");
+const cancellationReasonError = ref("");
 const showDetailsModal = ref(false);
 const selectedMutation = ref(null);
 const loadingDetails = ref(false);
@@ -743,12 +839,21 @@ const cancelMutation = (mutation) => {
 const confirmCancelMutation = async () => {
     if (!cancellingMutation.value) return;
 
+    // Validate reason
+    cancellationReasonError.value = "";
+    if (!cancellationReason.value.trim()) {
+        cancellationReasonError.value = "Cancellation reason is required";
+        return;
+    }
+
     cancelling.value = true;
     try {
-        await cancelStockMutation(cancellingMutation.value.id);
+        await cancelStockMutation(
+            cancellingMutation.value.id,
+            cancellationReason.value.trim()
+        );
         notificationStore.success("Mutation cancelled successfully");
-        showCancelModal.value = false;
-        cancellingMutation.value = null;
+        closeCancelModal();
         await loadMutations();
         await loadStatistics();
     } catch (error) {
@@ -802,11 +907,20 @@ const closeModal = () => {
     showCancelModal.value = false;
     cancellingMutation.value = null;
     cancelling.value = false;
+    cancellationReason.value = "";
+    cancellationReasonError.value = "";
     showDeleteModal.value = false;
     deletingMutation.value = null;
     deleting.value = false;
     errors.value = {};
     products.value = options.value?.products || [];
+};
+
+const closeCancelModal = () => {
+    showCancelModal.value = false;
+    cancellingMutation.value = null;
+    cancellationReason.value = "";
+    cancellationReasonError.value = "";
 };
 
 const closeDetailsModal = () => {

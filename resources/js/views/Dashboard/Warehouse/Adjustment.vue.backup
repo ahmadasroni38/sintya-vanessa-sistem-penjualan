@@ -41,11 +41,21 @@
             :showFilters="false"
             :server-side-pagination="true"
         >
-            <template #column-total_items="{ value }">
+            <template #column-adjustment_type="{ value }">
                 <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                    :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        value === 'increase'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+                    ]"
                 >
-                    {{ value || 0 }} product(s)
+                    <ArrowTrendingUpIcon
+                        v-if="value === 'increase'"
+                        class="w-3 h-3 mr-1"
+                    />
+                    <ArrowTrendingDownIcon v-else class="w-3 h-3 mr-1" />
+                    {{ value }}
                 </span>
             </template>
 
@@ -116,30 +126,13 @@
             @close="showDetailsModal = false"
         />
 
-        <!-- Approve Confirmation Modal -->
-        <ConfirmationModal
-            :is-open="showApproveModal"
-            title="Approve Adjustment"
-            :message="
-                approvingAdjustment
-                    ? `Are you sure you want to approve adjustment ${approvingAdjustment.adjustment_number}? This will finalize the stock adjustment and create stock card entries.`
-                    : 'Are you sure you want to approve this adjustment?'
-            "
-            confirm-text="Approve Adjustment"
-            cancel-text="Cancel"
-            :loading="approving"
-            @confirm="confirmApprove"
-            @cancel="showApproveModal = false"
-        />
-
         <!-- Delete Confirmation Modal -->
         <ConfirmationModal
-            :is-open="showDeleteModal"
+            v-if="showDeleteModal"
             title="Delete Adjustment"
             message="Are you sure you want to delete this stock adjustment? This action cannot be undone."
             confirm-text="Delete"
             cancel-text="Cancel"
-            :loading="deleting"
             @confirm="confirmDelete"
             @cancel="showDeleteModal = false"
         />
@@ -158,6 +151,8 @@ import AdjustmentDetails from "../../../components/Warehouse/AdjustmentDetails.v
 import {
     PlusIcon,
     ArrowDownTrayIcon,
+    ArrowTrendingUpIcon,
+    ArrowTrendingDownIcon,
     EyeIcon,
     PencilIcon,
     CheckIcon,
@@ -182,14 +177,10 @@ const showAddModal = ref(false);
 const editingAdjustment = ref(null);
 const showDeleteModal = ref(false);
 const deletingAdjustment = ref(null);
-const deleting = ref(false);
-const showApproveModal = ref(false);
-const approvingAdjustment = ref(null);
-const approving = ref(false);
 const showDetailsModal = ref(false);
 const selectedAdjustment = ref(null);
 
-// Table columns - Updated for Master-Detail structure
+// Table columns
 const columns = [
     {
         key: "adjustment_number",
@@ -203,18 +194,28 @@ const columns = [
         type: "date",
     },
     {
+        key: "product.product_name",
+        label: "Product",
+        sortable: true,
+    },
+    {
         key: "location.name",
         label: "Location",
         sortable: true,
     },
     {
-        key: "total_items",
-        label: "Total Items",
+        key: "adjustment_type",
+        label: "Type",
         sortable: true,
     },
     {
-        key: "description",
-        label: "Description",
+        key: "difference_quantity",
+        label: "Difference",
+        sortable: true,
+    },
+    {
+        key: "reason",
+        label: "Reason",
         sortable: true,
     },
     {
@@ -264,27 +265,8 @@ const loadLocations = async () => {
     }
 };
 
-const editAdjustment = async (adjustment) => {
-    try {
-        console.log(
-            "[Edit] Fetching full adjustment data for ID:",
-            adjustment.id
-        );
-
-        // Fetch full adjustment data with details
-        const response = await stockAdjustmentService.getById(adjustment.id);
-        const fullAdjustment = response.data || response;
-
-        console.log("[Edit] Full adjustment data:", fullAdjustment);
-
-        // Set to editing state with full data including details
-        editingAdjustment.value = fullAdjustment;
-    } catch (error) {
-        console.error("Failed to load adjustment for edit:", error);
-        notificationStore.error(
-            error.response?.data?.message || "Failed to load adjustment data"
-        );
-    }
+const editAdjustment = (adjustment) => {
+    editingAdjustment.value = adjustment;
 };
 
 const deleteAdjustment = (adjustment) => {
@@ -294,64 +276,32 @@ const deleteAdjustment = (adjustment) => {
 
 const viewDetails = async (adjustment) => {
     try {
-        console.log("Fetching details for adjustment ID:", adjustment.id);
         const response = await stockAdjustmentService.getById(adjustment.id);
-        console.log("API Response:", response);
-
-        // Extract data from response
-        const adjustmentData = response.data || response;
-        console.log("Adjustment Data:", adjustmentData);
-
-        selectedAdjustment.value = adjustmentData;
+        selectedAdjustment.value = response.data || response;
         showDetailsModal.value = true;
-
-        console.log(
-            "Modal should be visible now, showDetailsModal:",
-            showDetailsModal.value
-        );
     } catch (error) {
         console.error("Failed to load adjustment details:", error);
-        console.error("Error details:", error.response?.data);
-        notificationStore.error(
-            error.response?.data?.message || "Failed to load adjustment details"
-        );
+        notificationStore.error("Failed to load adjustment details");
     }
 };
 
-const approveAdjustment = (adjustment) => {
-    approvingAdjustment.value = adjustment;
-    showApproveModal.value = true;
-};
-
-const confirmApprove = async () => {
-    if (!approvingAdjustment.value) return;
-
-    approving.value = true;
+const approveAdjustment = async (adjustment) => {
     try {
-        await stockAdjustmentService.approve(approvingAdjustment.value.id);
+        await stockAdjustmentService.approve(adjustment.id);
         notificationStore.success("Adjustment approved successfully");
-        showApproveModal.value = false;
-        approvingAdjustment.value = null;
         await loadAdjustments();
     } catch (error) {
         console.error("Failed to approve adjustment:", error);
         notificationStore.error(
             error.response?.data?.message || "Failed to approve adjustment"
         );
-    } finally {
-        approving.value = false;
     }
 };
 
 const confirmDelete = async () => {
-    if (!deletingAdjustment.value) return;
-
-    deleting.value = true;
     try {
         await stockAdjustmentService.delete(deletingAdjustment.value.id);
         notificationStore.success("Adjustment deleted successfully");
-        showDeleteModal.value = false;
-        deletingAdjustment.value = null;
         await loadAdjustments();
     } catch (error) {
         console.error("Failed to delete adjustment:", error);
@@ -359,11 +309,8 @@ const confirmDelete = async () => {
             error.response?.data?.message || "Failed to delete adjustment"
         );
     } finally {
-        deleting.value = false;
-        if (showDeleteModal.value) {
-            showDeleteModal.value = false;
-            deletingAdjustment.value = null;
-        }
+        showDeleteModal.value = false;
+        deletingAdjustment.value = null;
     }
 };
 
@@ -410,12 +357,6 @@ const handleGetSystemQuantity = async ({ productId, locationId, callback }) => {
 const closeModal = () => {
     showAddModal.value = false;
     editingAdjustment.value = null;
-    showApproveModal.value = false;
-    approvingAdjustment.value = null;
-    approving.value = false;
-    showDeleteModal.value = false;
-    deletingAdjustment.value = null;
-    deleting.value = false;
 };
 
 const getStatusBadgeClass = (status) => {
@@ -431,24 +372,8 @@ const getStatusBadgeClass = (status) => {
     );
 };
 
-const exportData = async () => {
-    try {
-        const blob = await stockAdjustmentService.export();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `stock_adjustments_${
-            new Date().toISOString().split("T")[0]
-        }.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        notificationStore.success("Export completed successfully");
-    } catch (error) {
-        console.error("Failed to export adjustments:", error);
-        notificationStore.error("Failed to export data");
-    }
+const exportData = () => {
+    notificationStore.info("Export feature coming soon");
 };
 
 onMounted(async () => {

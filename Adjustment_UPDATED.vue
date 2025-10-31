@@ -7,11 +7,30 @@
         >
             <template #actions>
                 <button
-                    @click="exportData"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+                    @click="toggleFilters"
+                    :class="[
+                        'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
+                        showFilters
+                            ? 'text-white bg-blue-600 hover:bg-blue-700'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600',
+                    ]"
+                >
+                    <FunnelIcon class="w-4 h-4" />
+                    Filters
+                    <span
+                        v-if="hasActiveFilters"
+                        class="px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full"
+                    >
+                        {{ activeFilterCount }}
+                    </span>
+                </button>
+                <button
+                    @click="handleExport"
+                    :disabled="exporting"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <ArrowDownTrayIcon class="w-4 h-4" />
-                    Export
+                    {{ exporting ? "Exporting..." : "Export" }}
                 </button>
                 <button
                     @click="showAddModal = true"
@@ -25,6 +44,15 @@
 
         <!-- Stats Cards -->
         <AdjustmentStats :adjustments="adjustmentList" />
+
+        <!-- Filters -->
+        <AdjustmentFilters
+            v-if="showFilters"
+            :filters="filters"
+            :products="products"
+            :locations="locations"
+            @update:filters="handleFiltersUpdate"
+        />
 
         <!-- Adjustments Table -->
         <DataTable
@@ -40,12 +68,39 @@
             :showExport="false"
             :showFilters="false"
             :server-side-pagination="true"
+            :selectable="true"
+            @selection-change="handleSelectionChange"
         >
-            <template #column-total_items="{ value }">
+            <template #column-adjustment_type="{ value }">
                 <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                    :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        value === 'increase'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+                    ]"
                 >
-                    {{ value || 0 }} product(s)
+                    <ArrowTrendingUpIcon
+                        v-if="value === 'increase'"
+                        class="w-3 h-3 mr-1"
+                    />
+                    <ArrowTrendingDownIcon v-else class="w-3 h-3 mr-1" />
+                    {{ value }}
+                </span>
+            </template>
+
+            <template #column-difference_quantity="{ value }">
+                <span
+                    :class="[
+                        'font-semibold',
+                        value > 0
+                            ? 'text-green-600 dark:text-green-400'
+                            : value < 0
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-gray-900 dark:text-white',
+                    ]"
+                >
+                    {{ value > 0 ? "+" : "" }}{{ value }}
                 </span>
             </template>
 
@@ -97,6 +152,16 @@
             </template>
         </DataTable>
 
+        <!-- Bulk Actions Bar -->
+        <BulkActionsBar
+            :selected-items="selectedItems"
+            :processing="bulkProcessing"
+            @clear-selection="clearSelection"
+            @bulk-approve="handleBulkApprove"
+            @bulk-delete="handleBulkDelete"
+            @bulk-export="handleBulkExport"
+        />
+
         <!-- Add/Edit Adjustment Modal -->
         <AdjustmentFormModal
             :show="showAddModal || !!editingAdjustment"
@@ -116,38 +181,32 @@
             @close="showDetailsModal = false"
         />
 
-        <!-- Approve Confirmation Modal -->
-        <ConfirmationModal
-            :is-open="showApproveModal"
-            title="Approve Adjustment"
-            :message="
-                approvingAdjustment
-                    ? `Are you sure you want to approve adjustment ${approvingAdjustment.adjustment_number}? This will finalize the stock adjustment and create stock card entries.`
-                    : 'Are you sure you want to approve this adjustment?'
-            "
-            confirm-text="Approve Adjustment"
-            cancel-text="Cancel"
-            :loading="approving"
-            @confirm="confirmApprove"
-            @cancel="showApproveModal = false"
-        />
-
         <!-- Delete Confirmation Modal -->
         <ConfirmationModal
-            :is-open="showDeleteModal"
+            v-if="showDeleteModal"
             title="Delete Adjustment"
             message="Are you sure you want to delete this stock adjustment? This action cannot be undone."
             confirm-text="Delete"
             cancel-text="Cancel"
-            :loading="deleting"
             @confirm="confirmDelete"
             @cancel="showDeleteModal = false"
+        />
+
+        <!-- Bulk Delete Confirmation Modal -->
+        <ConfirmationModal
+            v-if="showBulkDeleteModal"
+            title="Delete Multiple Adjustments"
+            :message="`Are you sure you want to delete ${selectedItems.length} adjustment(s)? This action cannot be undone.`"
+            confirm-text="Delete All"
+            cancel-text="Cancel"
+            @confirm="confirmBulkDelete"
+            @cancel="showBulkDeleteModal = false"
         />
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useNotificationStore } from "../../../stores/notification";
 import DataTable from "../../../components/UI/DataTable.vue";
 import ConfirmationModal from "../../../components/Overlays/ConfirmationModal.vue";
@@ -155,13 +214,18 @@ import PageHeader from "../../../components/Warehouse/PageHeader.vue";
 import AdjustmentStats from "../../../components/Warehouse/AdjustmentStats.vue";
 import AdjustmentFormModal from "../../../components/Warehouse/AdjustmentFormModal.vue";
 import AdjustmentDetails from "../../../components/Warehouse/AdjustmentDetails.vue";
+import AdjustmentFilters from "../../../components/Warehouse/AdjustmentFilters.vue";
+import BulkActionsBar from "../../../components/Warehouse/BulkActionsBar.vue";
 import {
     PlusIcon,
     ArrowDownTrayIcon,
+    ArrowTrendingUpIcon,
+    ArrowTrendingDownIcon,
     EyeIcon,
     PencilIcon,
     CheckIcon,
     TrashIcon,
+    FunnelIcon,
 } from "@heroicons/vue/24/outline";
 import {
     stockAdjustmentService,
@@ -175,6 +239,8 @@ const notificationStore = useNotificationStore();
 const loading = ref(false);
 const refreshing = ref(false);
 const saving = ref(false);
+const exporting = ref(false);
+const bulkProcessing = ref(false);
 const adjustmentList = ref([]);
 const products = ref([]);
 const locations = ref([]);
@@ -182,14 +248,24 @@ const showAddModal = ref(false);
 const editingAdjustment = ref(null);
 const showDeleteModal = ref(false);
 const deletingAdjustment = ref(null);
-const deleting = ref(false);
-const showApproveModal = ref(false);
-const approvingAdjustment = ref(null);
-const approving = ref(false);
 const showDetailsModal = ref(false);
 const selectedAdjustment = ref(null);
+const showFilters = ref(false);
+const showBulkDeleteModal = ref(false);
+const selectedItems = ref([]);
 
-// Table columns - Updated for Master-Detail structure
+// Filters
+const filters = ref({
+    status: "",
+    adjustment_type: "",
+    location_id: "",
+    product_id: "",
+    start_date: "",
+    end_date: "",
+    search: "",
+});
+
+// Table columns
 const columns = [
     {
         key: "adjustment_number",
@@ -203,18 +279,28 @@ const columns = [
         type: "date",
     },
     {
+        key: "product.product_name",
+        label: "Product",
+        sortable: true,
+    },
+    {
         key: "location.name",
         label: "Location",
         sortable: true,
     },
     {
-        key: "total_items",
-        label: "Total Items",
+        key: "adjustment_type",
+        label: "Type",
         sortable: true,
     },
     {
-        key: "description",
-        label: "Description",
+        key: "difference_quantity",
+        label: "Difference",
+        sortable: true,
+    },
+    {
+        key: "reason",
+        label: "Reason",
         sortable: true,
     },
     {
@@ -224,11 +310,21 @@ const columns = [
     },
 ];
 
+// Computed
+const hasActiveFilters = computed(() => {
+    return Object.values(filters.value).some((value) => value !== "");
+});
+
+const activeFilterCount = computed(() => {
+    return Object.values(filters.value).filter((value) => value !== "").length;
+});
+
 // Methods
 const loadAdjustments = async () => {
     loading.value = true;
     try {
-        const response = await stockAdjustmentService.getAll();
+        const params = { ...filters.value };
+        const response = await stockAdjustmentService.getAll(params);
         adjustmentList.value = Array.isArray(response)
             ? response
             : response.data || [];
@@ -264,27 +360,25 @@ const loadLocations = async () => {
     }
 };
 
-const editAdjustment = async (adjustment) => {
-    try {
-        console.log(
-            "[Edit] Fetching full adjustment data for ID:",
-            adjustment.id
-        );
+const toggleFilters = () => {
+    showFilters.value = !showFilters.value;
+};
 
-        // Fetch full adjustment data with details
-        const response = await stockAdjustmentService.getById(adjustment.id);
-        const fullAdjustment = response.data || response;
+const handleFiltersUpdate = (newFilters) => {
+    filters.value = { ...newFilters };
+    loadAdjustments();
+};
 
-        console.log("[Edit] Full adjustment data:", fullAdjustment);
+const handleSelectionChange = (items) => {
+    selectedItems.value = items;
+};
 
-        // Set to editing state with full data including details
-        editingAdjustment.value = fullAdjustment;
-    } catch (error) {
-        console.error("Failed to load adjustment for edit:", error);
-        notificationStore.error(
-            error.response?.data?.message || "Failed to load adjustment data"
-        );
-    }
+const clearSelection = () => {
+    selectedItems.value = [];
+};
+
+const editAdjustment = (adjustment) => {
+    editingAdjustment.value = adjustment;
 };
 
 const deleteAdjustment = (adjustment) => {
@@ -294,64 +388,32 @@ const deleteAdjustment = (adjustment) => {
 
 const viewDetails = async (adjustment) => {
     try {
-        console.log("Fetching details for adjustment ID:", adjustment.id);
         const response = await stockAdjustmentService.getById(adjustment.id);
-        console.log("API Response:", response);
-
-        // Extract data from response
-        const adjustmentData = response.data || response;
-        console.log("Adjustment Data:", adjustmentData);
-
-        selectedAdjustment.value = adjustmentData;
+        selectedAdjustment.value = response.data || response;
         showDetailsModal.value = true;
-
-        console.log(
-            "Modal should be visible now, showDetailsModal:",
-            showDetailsModal.value
-        );
     } catch (error) {
         console.error("Failed to load adjustment details:", error);
-        console.error("Error details:", error.response?.data);
-        notificationStore.error(
-            error.response?.data?.message || "Failed to load adjustment details"
-        );
+        notificationStore.error("Failed to load adjustment details");
     }
 };
 
-const approveAdjustment = (adjustment) => {
-    approvingAdjustment.value = adjustment;
-    showApproveModal.value = true;
-};
-
-const confirmApprove = async () => {
-    if (!approvingAdjustment.value) return;
-
-    approving.value = true;
+const approveAdjustment = async (adjustment) => {
     try {
-        await stockAdjustmentService.approve(approvingAdjustment.value.id);
+        await stockAdjustmentService.approve(adjustment.id);
         notificationStore.success("Adjustment approved successfully");
-        showApproveModal.value = false;
-        approvingAdjustment.value = null;
         await loadAdjustments();
     } catch (error) {
         console.error("Failed to approve adjustment:", error);
         notificationStore.error(
             error.response?.data?.message || "Failed to approve adjustment"
         );
-    } finally {
-        approving.value = false;
     }
 };
 
 const confirmDelete = async () => {
-    if (!deletingAdjustment.value) return;
-
-    deleting.value = true;
     try {
         await stockAdjustmentService.delete(deletingAdjustment.value.id);
         notificationStore.success("Adjustment deleted successfully");
-        showDeleteModal.value = false;
-        deletingAdjustment.value = null;
         await loadAdjustments();
     } catch (error) {
         console.error("Failed to delete adjustment:", error);
@@ -359,11 +421,8 @@ const confirmDelete = async () => {
             error.response?.data?.message || "Failed to delete adjustment"
         );
     } finally {
-        deleting.value = false;
-        if (showDeleteModal.value) {
-            showDeleteModal.value = false;
-            deletingAdjustment.value = null;
-        }
+        showDeleteModal.value = false;
+        deletingAdjustment.value = null;
     }
 };
 
@@ -407,15 +466,120 @@ const handleGetSystemQuantity = async ({ productId, locationId, callback }) => {
     }
 };
 
+const handleExport = async () => {
+    exporting.value = true;
+    try {
+        const params = { ...filters.value };
+        const blob = await stockAdjustmentService.export(params);
+
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `stock_adjustments_${
+            new Date().toISOString().split("T")[0]
+        }.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        notificationStore.success("Export completed successfully");
+    } catch (error) {
+        console.error("Failed to export:", error);
+        notificationStore.error("Failed to export data");
+    } finally {
+        exporting.value = false;
+    }
+};
+
+const handleBulkApprove = async () => {
+    bulkProcessing.value = true;
+    try {
+        const ids = selectedItems.value.map((item) => item.id);
+        const response = await stockAdjustmentService.bulkApprove(ids);
+
+        if (response.failed && response.failed.length > 0) {
+            notificationStore.warning(
+                `${response.approved} approved, ${response.failed.length} failed`
+            );
+        } else {
+            notificationStore.success(response.message);
+        }
+
+        clearSelection();
+        await loadAdjustments();
+    } catch (error) {
+        console.error("Failed to bulk approve:", error);
+        notificationStore.error(
+            error.response?.data?.message || "Failed to approve adjustments"
+        );
+    } finally {
+        bulkProcessing.value = false;
+    }
+};
+
+const handleBulkDelete = () => {
+    showBulkDeleteModal.value = true;
+};
+
+const confirmBulkDelete = async () => {
+    bulkProcessing.value = true;
+    try {
+        const ids = selectedItems.value.map((item) => item.id);
+        const response = await stockAdjustmentService.bulkDelete(ids);
+
+        if (response.failed && response.failed.length > 0) {
+            notificationStore.warning(
+                `${response.deleted} deleted, ${response.failed.length} failed`
+            );
+        } else {
+            notificationStore.success(response.message);
+        }
+
+        clearSelection();
+        await loadAdjustments();
+    } catch (error) {
+        console.error("Failed to bulk delete:", error);
+        notificationStore.error(
+            error.response?.data?.message || "Failed to delete adjustments"
+        );
+    } finally {
+        bulkProcessing.value = false;
+        showBulkDeleteModal.value = false;
+    }
+};
+
+const handleBulkExport = async () => {
+    exporting.value = true;
+    try {
+        const ids = selectedItems.value.map((item) => item.id);
+        const blob = await stockAdjustmentService.export({ ids });
+
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `stock_adjustments_selected_${
+            new Date().toISOString().split("T")[0]
+        }.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        notificationStore.success("Export completed successfully");
+    } catch (error) {
+        console.error("Failed to export:", error);
+        notificationStore.error("Failed to export selected items");
+    } finally {
+        exporting.value = false;
+    }
+};
+
 const closeModal = () => {
     showAddModal.value = false;
     editingAdjustment.value = null;
-    showApproveModal.value = false;
-    approvingAdjustment.value = null;
-    approving.value = false;
-    showDeleteModal.value = false;
-    deletingAdjustment.value = null;
-    deleting.value = false;
 };
 
 const getStatusBadgeClass = (status) => {
@@ -429,26 +593,6 @@ const getStatusBadgeClass = (status) => {
         classes[status] ||
         "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
     );
-};
-
-const exportData = async () => {
-    try {
-        const blob = await stockAdjustmentService.export();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `stock_adjustments_${
-            new Date().toISOString().split("T")[0]
-        }.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        notificationStore.success("Export completed successfully");
-    } catch (error) {
-        console.error("Failed to export adjustments:", error);
-        notificationStore.error("Failed to export data");
-    }
 };
 
 onMounted(async () => {

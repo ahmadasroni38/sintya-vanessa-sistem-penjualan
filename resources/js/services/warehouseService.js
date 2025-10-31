@@ -3,32 +3,32 @@ import api from "../utils/api";
 // Products Service
 export const productService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/products", { params });
+        const response = await api.get("/products", { params });
         return response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/products/${id}`);
+        const response = await api.get(`/products/${id}`);
         return response.data;
     },
 
     create: async (data) => {
-        const response = await api.post("/api/products", data);
+        const response = await api.post("/products", data);
         return response.data;
     },
 
     update: async (id, data) => {
-        const response = await api.put(`/api/products/${id}`, data);
+        const response = await api.put(`/products/${id}`, data);
         return response.data;
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/api/products/${id}`);
+        const response = await api.delete(`/products/${id}`);
         return response.data;
     },
 
     getStock: async (productId) => {
-        const response = await api.get(`/api/products/${productId}/stock`);
+        const response = await api.get(`/products/${productId}/stock`);
         return response.data;
     },
 };
@@ -36,37 +36,37 @@ export const productService = {
 // Stock In Service
 export const stockInService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/stock-in", { params });
+        const response = await api.get("/stock-in", { params });
         return response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/stock-in/${id}`);
+        const response = await api.get(`/stock-in/${id}`);
         return response.data;
     },
 
     create: async (data) => {
-        const response = await api.post("/api/stock-in", data);
+        const response = await api.post("/stock-in", data);
         return response.data;
     },
 
     update: async (id, data) => {
-        const response = await api.put(`/api/stock-in/${id}`, data);
+        const response = await api.put(`/stock-in/${id}`, data);
         return response.data;
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/api/stock-in/${id}`);
+        const response = await api.delete(`/stock-in/${id}`);
         return response.data;
     },
 
     approve: async (id) => {
-        const response = await api.post(`/api/stock-in/${id}/approve`);
+        const response = await api.post(`/stock-in/${id}/approve`);
         return response.data;
     },
 
     reject: async (id, reason) => {
-        const response = await api.post(`/api/stock-in/${id}/reject`, {
+        const response = await api.post(`/stock-in/${id}/reject`, {
             reason,
         });
         return response.data;
@@ -76,68 +76,68 @@ export const stockInService = {
 // Stock Mutation Service
 export const stockMutationService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/stock-mutations", { params });
+        const response = await api.get("/stock-mutations", { params });
         return response.data.data || response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/stock-mutations/${id}`);
+        const response = await api.get(`/stock-mutations/${id}`);
         return response.data.data || response.data;
     },
 
     create: async (data) => {
-        const response = await api.post("/api/stock-mutations", data);
+        const response = await api.post("/stock-mutations", data);
         return response.data.data || response.data;
     },
 
     update: async (id, data) => {
-        const response = await api.put(`/api/stock-mutations/${id}`, data);
+        const response = await api.put(`/stock-mutations/${id}`, data);
         return response.data.data || response.data;
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/api/stock-mutations/${id}`);
+        const response = await api.delete(`/stock-mutations/${id}`);
         return response.data;
     },
 
     submit: async (id) => {
-        const response = await api.post(`/api/stock-mutations/${id}/submit`);
+        const response = await api.post(`/stock-mutations/${id}/submit`);
         return response.data.data || response.data;
     },
 
     approve: async (id) => {
-        const response = await api.post(`/api/stock-mutations/${id}/approve`);
+        const response = await api.post(`/stock-mutations/${id}/approve`);
         return response.data.data || response.data;
     },
 
     complete: async (id) => {
-        const response = await api.post(`/api/stock-mutations/${id}/complete`);
+        const response = await api.post(`/stock-mutations/${id}/complete`);
         return response.data.data || response.data;
     },
 
     cancel: async (id, reason) => {
-        const response = await api.post(`/api/stock-mutations/${id}/cancel`, {
+        const response = await api.post(`/stock-mutations/${id}/cancel`, {
             reason,
         });
         return response.data.data || response.data;
     },
 
     checkStock: async (productId, locationId) => {
-        const response = await api.get("/api/stock-mutations/check-stock", {
+        const response = await api.get("/stock-mutations/check-stock", {
             params: { product_id: productId, location_id: locationId },
         });
         return response.data;
     },
 
     getOptions: async (params = {}) => {
-        const response = await api.get("/api/stock-mutations/options", {
+        const response = await api.get("/stock-mutations/options", {
             params,
         });
         return response.data;
     },
 
     getStatistics: async (params = {}) => {
-        const response = await api.get("/api/stock-mutations/statistics", {
+        const response = await api.get("/stock-mutations/statistics", {
             params,
         });
         return response.data;
@@ -147,38 +147,78 @@ export const stockMutationService = {
 // Stock Adjustment Service
 export const stockAdjustmentService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/stock-adjustments", { params });
-        return response.data;
+        const response = await api.get("/stock-adjustments", { params });
+        return response.data.data || response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/stock-adjustments/${id}`);
-        return response.data;
+        const response = await api.get(`/stock-adjustments/${id}`);
+        return response.data.data || response.data;
     },
 
     create: async (data) => {
-        const response = await api.post("/api/stock-adjustments", data);
-        return response.data;
+        const response = await api.post("/stock-adjustments", data);
+        return response.data.data || response.data;
     },
 
     update: async (id, data) => {
-        const response = await api.put(`/api/stock-adjustments/${id}`, data);
-        return response.data;
+        const response = await api.put(`/stock-adjustments/${id}`, data);
+        return response.data.data || response.data;
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/api/stock-adjustments/${id}`);
+        const response = await api.delete(`/stock-adjustments/${id}`);
         return response.data;
     },
 
     approve: async (id) => {
-        const response = await api.post(`/api/stock-adjustments/${id}/approve`);
+        const response = await api.post(`/stock-adjustments/${id}/approve`);
+        return response.data.data || response.data;
+    },
+
+    cancel: async (id, reason) => {
+        const response = await api.post(`/stock-adjustments/${id}/cancel`, {
+            reason,
+        });
+        return response.data.data || response.data;
+    },
+
+    calculateSystemQuantity: async (productId, locationId) => {
+        const response = await api.post(
+            "/stock-adjustments/calculate-system-quantity",
+            {
+                product_id: productId,
+                location_id: locationId,
+            }
+        );
+        return response;
+    },
+
+    getStatistics: async (params = {}) => {
+        const response = await api.get("/stock-adjustments/statistics", {
+            params,
+        });
         return response.data;
     },
 
-    reject: async (id, reason) => {
-        const response = await api.post(`/api/stock-adjustments/${id}/reject`, {
-            reason,
+    bulkApprove: async (ids) => {
+        const response = await api.post("/stock-adjustments/bulk-approve", {
+            ids,
+        });
+        return response.data;
+    },
+
+    bulkDelete: async (ids) => {
+        const response = await api.post("/stock-adjustments/bulk-delete", {
+            ids,
+        });
+        return response.data;
+    },
+
+    export: async (params = {}) => {
+        const response = await api.get("/stock-adjustments/export", {
+            params,
+            responseType: "blob",
         });
         return response.data;
     },
@@ -187,41 +227,38 @@ export const stockAdjustmentService = {
 // Stock Opname Service
 export const stockOpnameService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/stock-opnames", { params });
+        const response = await api.get("/stock-opnames", { params });
         return response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/stock-opnames/${id}`);
+        const response = await api.get(`/stock-opnames/${id}`);
         return response.data;
     },
 
     create: async (data) => {
-        const response = await api.post("/api/stock-opnames", data);
+        const response = await api.post("/stock-opnames", data);
         return response.data;
     },
 
     update: async (id, data) => {
-        const response = await api.put(`/api/stock-opnames/${id}`, data);
+        const response = await api.put(`/stock-opnames/${id}`, data);
         return response.data;
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/api/stock-opnames/${id}`);
+        const response = await api.delete(`/stock-opnames/${id}`);
         return response.data;
     },
 
     addDetail: async (id, detail) => {
-        const response = await api.post(
-            `/api/stock-opnames/${id}/details`,
-            detail
-        );
+        const response = await api.post(`/stock-opnames/${id}/details`, detail);
         return response.data;
     },
 
     updateDetail: async (id, detailId, detail) => {
         const response = await api.put(
-            `/api/stock-opnames/${id}/details/${detailId}`,
+            `/stock-opnames/${id}/details/${detailId}`,
             detail
         );
         return response.data;
@@ -229,23 +266,23 @@ export const stockOpnameService = {
 
     deleteDetail: async (id, detailId) => {
         const response = await api.delete(
-            `/api/stock-opnames/${id}/details/${detailId}`
+            `/stock-opnames/${id}/details/${detailId}`
         );
         return response.data;
     },
 
     finalize: async (id) => {
-        const response = await api.post(`/api/stock-opnames/${id}/finalize`);
+        const response = await api.post(`/stock-opnames/${id}/finalize`);
         return response.data;
     },
 
     approve: async (id) => {
-        const response = await api.post(`/api/stock-opnames/${id}/approve`);
+        const response = await api.post(`/stock-opnames/${id}/approve`);
         return response.data;
     },
 
     reject: async (id, reason) => {
-        const response = await api.post(`/api/stock-opnames/${id}/reject`, {
+        const response = await api.post(`/stock-opnames/${id}/reject`, {
             reason,
         });
         return response.data;
@@ -255,33 +292,31 @@ export const stockOpnameService = {
 // Stock Card Service
 export const stockCardService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/stock-cards", { params });
+        const response = await api.get("/stock-cards", { params });
         return response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/stock-cards/${id}`);
+        const response = await api.get(`/stock-cards/${id}`);
         return response.data;
     },
 
     getByProduct: async (productId, params = {}) => {
-        const response = await api.get(
-            `/api/stock-cards/product/${productId}`,
-            { params }
-        );
+        const response = await api.get(`/stock-cards/product/${productId}`, {
+            params,
+        });
         return response.data;
     },
 
     getByLocation: async (locationId, params = {}) => {
-        const response = await api.get(
-            `/api/stock-cards/location/${locationId}`,
-            { params }
-        );
+        const response = await api.get(`/stock-cards/location/${locationId}`, {
+            params,
+        });
         return response.data;
     },
 
     export: async (params = {}) => {
-        const response = await api.get("/api/stock-cards/export", {
+        const response = await api.get("/stock-cards/export", {
             params,
             responseType: "blob",
         });
@@ -292,32 +327,32 @@ export const stockCardService = {
 // Location Service
 export const locationService = {
     getAll: async (params = {}) => {
-        const response = await api.get("/api/locations", { params });
+        const response = await api.get("/locations", { params });
         return response.data;
     },
 
     getById: async (id) => {
-        const response = await api.get(`/api/locations/${id}`);
+        const response = await api.get(`/locations/${id}`);
         return response.data;
     },
 
     create: async (data) => {
-        const response = await api.post("/api/locations", data);
+        const response = await api.post("/locations", data);
         return response.data;
     },
 
     update: async (id, data) => {
-        const response = await api.put(`/api/locations/${id}`, data);
+        const response = await api.put(`/locations/${id}`, data);
         return response.data;
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/api/locations/${id}`);
+        const response = await api.delete(`/locations/${id}`);
         return response.data;
     },
 
     getStock: async (locationId) => {
-        const response = await api.get(`/api/locations/${locationId}/stock`);
+        const response = await api.get(`/locations/${locationId}/stock`);
         return response.data;
     },
 };
@@ -325,36 +360,36 @@ export const locationService = {
 // Reports Service
 export const warehouseReportService = {
     stockSummary: async (params = {}) => {
-        const response = await api.get("/api/reports/stock-summary", {
+        const response = await api.get("/reports/stock-summary", {
             params,
         });
         return response.data;
     },
 
     stockMovement: async (params = {}) => {
-        const response = await api.get("/api/reports/stock-movement", {
+        const response = await api.get("/reports/stock-movement", {
             params,
         });
         return response.data;
     },
 
     mutationReport: async (params = {}) => {
-        const response = await api.get("/api/reports/mutation", { params });
+        const response = await api.get("/reports/mutation", { params });
         return response.data;
     },
 
     adjustmentReport: async (params = {}) => {
-        const response = await api.get("/api/reports/adjustment", { params });
+        const response = await api.get("/reports/adjustment", { params });
         return response.data;
     },
 
     opnameReport: async (params = {}) => {
-        const response = await api.get("/api/reports/opname", { params });
+        const response = await api.get("/reports/opname", { params });
         return response.data;
     },
 
     exportStockCard: async (params = {}) => {
-        const response = await api.get("/api/reports/stock-card/export", {
+        const response = await api.get("/reports/stock-card/export", {
             params,
             responseType: "blob",
         });

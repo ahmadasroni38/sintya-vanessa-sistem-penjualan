@@ -304,6 +304,11 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::post('stock-mutations/{stockMutation}/cancel', [StockMutationController::class, 'cancel']);
 
     // Stock Adjustment routes
+    Route::get('stock-adjustments/statistics', [StockAdjustmentController::class, 'statistics']);
+    Route::get('stock-adjustments/export', [StockAdjustmentController::class, 'export']);
+    Route::post('stock-adjustments/bulk-approve', [StockAdjustmentController::class, 'bulkApprove']);
+    Route::post('stock-adjustments/bulk-delete', [StockAdjustmentController::class, 'bulkDelete']);
+    Route::post('stock-adjustments/calculate-system-quantity', [StockAdjustmentController::class, 'calculateSystemQuantity']);
     Route::get('stock-adjustments', [StockAdjustmentController::class, 'index']);
     Route::get('stock-adjustments/create', [StockAdjustmentController::class, 'create']);
     Route::post('stock-adjustments', [StockAdjustmentController::class, 'store']);
@@ -313,7 +318,6 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::delete('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'destroy']);
     Route::post('stock-adjustments/{stockAdjustment}/approve', [StockAdjustmentController::class, 'approve']);
     Route::post('stock-adjustments/{stockAdjustment}/cancel', [StockAdjustmentController::class, 'cancel']);
-    Route::post('stock-adjustments/calculate-system-quantity', [StockAdjustmentController::class, 'calculateSystemQuantity']);
 
     // Stock Opname routes
     Route::get('stock-opnames', [StockOpnameController::class, 'index']);

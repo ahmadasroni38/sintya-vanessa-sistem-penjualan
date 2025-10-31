@@ -24,6 +24,9 @@ import {
     ClockIcon,
     CheckCircleIcon,
     CubeIcon,
+    ArrowTrendingUpIcon,
+    ArrowTrendingDownIcon,
+    AdjustmentsHorizontalIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -38,7 +41,7 @@ const props = defineProps({
     icon: {
         type: String,
         default: 'cube',
-        validator: (value) => ['archive', 'clock', 'check', 'cube'].includes(value),
+        validator: (value) => ['archive', 'clock', 'check', 'cube', 'arrow-up', 'arrow-down', 'adjustments'].includes(value),
     },
     color: {
         type: String,
@@ -53,6 +56,9 @@ const iconComponent = computed(() => {
         clock: ClockIcon,
         check: CheckCircleIcon,
         cube: CubeIcon,
+        'arrow-up': ArrowTrendingUpIcon,
+        'arrow-down': ArrowTrendingDownIcon,
+        adjustments: AdjustmentsHorizontalIcon,
     };
     return icons[props.icon] || CubeIcon;
 });

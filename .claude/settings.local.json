@@ -20,7 +20,11 @@
       "Bash(awk:*)",
       "Bash(cat:*)",
       "Read(//c/Users/Asroni/Desktop/Project/**)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(node --version:*)",
+      "Bash(npm --version:*)",
+      "Bash(npx vite build)"
     ],
     "deny": [],
     "ask": []
