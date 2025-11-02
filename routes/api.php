@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\RepairRequestController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\BarcodeController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\SettingController;
 
 // Accounting & Warehouse Controllers
 use App\Http\Controllers\ChartOfAccountController;
@@ -44,6 +45,9 @@ use App\Http\Controllers\StockBookController;
 // Public routes (no auth required)
 Route::get('assets/{identifier}/public', [AssetController::class, 'showPublic'])
     ->where('identifier', '.*');
+
+// Public settings route (no auth required for login page)
+Route::get('settings', [SettingController::class, 'index']);
 
 // Auth routes
 Route::group(['prefix' => 'auth'], function () {
@@ -190,6 +194,9 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('profile', [UserController::class, 'getProfile']);
     Route::put('profile', [UserController::class, 'updateProfile']);
     Route::put('profile/password', [UserController::class, 'updatePassword']);
+
+    // System Settings routes (update only - index is public)
+    Route::put('settings', [SettingController::class, 'update']);
 
     // =====================================================
     // ACCOUNTING MODULE

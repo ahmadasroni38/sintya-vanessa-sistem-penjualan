@@ -8,7 +8,7 @@ import Login from "../views/Auth/Login.vue";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import Dashboard from "../views/Dashboard/Dashboard.vue";
 import Profile from "../views/Dashboard/Profile.vue";
-import Settings from "../views/Dashboard/Settings.vue";
+import SystemSetting from "../views/Settings/SystemSetting.vue";
 import Users from "../views/Dashboard/Users.vue";
 import Roles from "../views/Dashboard/Roles.vue";
 import Permissions from "../views/Dashboard/Permissions.vue";
@@ -78,7 +78,7 @@ const routes = [
             {
                 path: "/settings",
                 name: "Settings",
-                component: Settings,
+                component: SystemSetting,
             },
             {
                 path: "/users",

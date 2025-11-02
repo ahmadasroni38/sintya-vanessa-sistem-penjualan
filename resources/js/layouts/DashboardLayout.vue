@@ -430,7 +430,51 @@
                 class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 transition-all duration-300"
                 :class="sidebarState === 'desktop-collapsed' ? 'lg:px-2' : ''"
             >
+                <!-- System Settings -->
+                <div class="mb-3">
+                    <router-link
+                        to="/settings"
+                        :class="[
+                            'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                            $route.name === 'Settings'
+                                ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
+                                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
+                            sidebarState === 'desktop-collapsed'
+                                ? 'lg:justify-center lg:px-4'
+                                : '',
+                        ]"
+                    >
+                        <AdjustmentsHorizontalIcon
+                            :class="[
+                                'w-5 h-5 transition-transform duration-200 group-hover:scale-110 flex-shrink-0',
+                                $route.name === 'Settings'
+                                    ? 'text-white'
+                                    : 'text-gray-500 dark:text-gray-400',
+                            ]"
+                        />
+                        <span
+                            v-if="sidebarState !== 'desktop-collapsed'"
+                            class="transition-opacity duration-300"
+                        >
+                            Pengaturan Sistem
+                        </span>
+                    </router-link>
+
+                    <!-- Tooltip for collapsed state -->
+                    <div
+                        v-if="sidebarState === 'desktop-collapsed'"
+                        class="absolute left-full bottom-4 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
+                    >
+                        Pengaturan Sistem
+                        <div
+                            class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- Upgrade to Pro -->
                 <div
+                    v-if="false"
                     class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 dark:from-gray-700 dark:to-gray-700"
                     :class="
                         sidebarState === 'desktop-collapsed'
@@ -581,29 +625,15 @@
                                 class="h-4 w-px bg-gray-300 dark:bg-gray-600"
                             ></div>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
-                                &copy; 2024 AdminPanel. Made with ❤️ for modern
-                                web applications.
+                                &copy; 2025 Nama Perusahaan
                             </p>
                         </div>
                         <div class="flex items-center gap-6">
-                            <a
-                                href="#"
+                            <span
                                 class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
                             >
-                                Privacy Policy
-                            </a>
-                            <a
-                                href="#"
-                                class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
-                            >
-                                Terms of Service
-                            </a>
-                            <a
-                                href="#"
-                                class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
-                            >
-                                Support
-                            </a>
+                                Version 1.0.0
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -884,6 +914,7 @@ const getPageTitle = () => {
         Users: "Pengguna",
         Roles: "Peran",
         Permissions: "Izin",
+        settings: "Pengaturan Sistem",
         "journal-entries.index": "Jurnal Umum",
         "coa.index": "Chart of Accounts (COA)",
         "reports.neraca-lajur": "Neraca Lajur",

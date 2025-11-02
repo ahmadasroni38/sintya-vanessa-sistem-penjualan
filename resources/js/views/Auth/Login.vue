@@ -1,30 +1,39 @@
 <template>
     <div
-        class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300"
+        class="min-h-screen bg-white dark:bg-gray-900 flex transition-colors duration-300"
     >
-        <!-- Background decoration -->
-        <div class="absolute inset-0 overflow-hidden">
-            <div
-                class="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-red-100 dark:bg-red-900/20 opacity-50 blur-3xl"
-            ></div>
-            <div
-                class="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-red-100 dark:bg-red-900/20 opacity-50 blur-3xl"
-            ></div>
-        </div>
+        <!-- Left Side - Branding Section -->
+        <div
+            class="hidden lg:flex lg:w-1/2 bg-primary-600 dark:bg-primary-700 flex-col justify-between p-12 relative overflow-hidden"
+        >
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div
+                    class="absolute inset-0"
+                    style="
+                        background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+                    "
+                ></div>
+            </div>
 
-        <!-- Header -->
-        <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-            <div class="flex justify-center">
-                <div class="flex items-center space-x-2">
+            <!-- Logo & Brand Content -->
+            <div class="relative z-10">
+                <div class="flex items-center space-x-3 mb-8">
                     <div
-                        class="w-10 h-10 rounded-lg bg-red-600 dark:bg-red-500 flex items-center justify-center shadow-lg transform transition-transform hover:scale-105"
+                        class="w-12 h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center"
                     >
+                        <img
+                            v-if="settings.logo_sistem"
+                            :src="`/storage/logo/${settings.logo_sistem}`"
+                            :alt="settings.nama_sistem"
+                            class="w-full h-full object-contain p-1.5"
+                        />
                         <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-6 w-6 text-white"
+                            v-else
+                            class="w-7 h-7 text-white"
                             fill="none"
-                            viewBox="0 0 24 24"
                             stroke="currentColor"
+                            viewBox="0 0 24 24"
                         >
                             <path
                                 stroke-linecap="round"
@@ -34,98 +43,185 @@
                             />
                         </svg>
                     </div>
-                    <h1
-                        class="text-3xl font-bold text-gray-900 dark:text-white"
-                    >
-                        <span class="text-red-600 dark:text-red-400">Admin</span
-                        >Panel
-                    </h1>
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">
+                            {{ settings.nama_sistem || "AdminPanel" }}
+                        </h1>
+                        <p
+                            v-if="settings.nama_perusahaan"
+                            class="text-sm text-white/80"
+                        >
+                            {{ settings.nama_perusahaan }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="max-w-md">
+                    <h2 class="text-3xl font-bold text-white mb-4">
+                        Manage Your Business with Confidence
+                    </h2>
+                    <p class="text-lg text-white/90 leading-relaxed">
+                        {{
+                            settings.deskripsi_sistem ||
+                            "Powerful tools to streamline your operations and drive growth."
+                        }}
+                    </p>
                 </div>
             </div>
-            <h2
-                class="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
+
+            <!-- Footer Info -->
+            <div
+                v-if="
+                    settings.email_perusahaan ||
+                    settings.nomor_telepon ||
+                    settings.alamat_lengkap
+                "
+                class="relative z-10 text-white/80 text-sm space-y-2"
             >
-                Sign in to your account
-            </h2>
-            <p
-                class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400"
-            >
-                Welcome back! Please enter your details.
-            </p>
+                <p v-if="settings.email_perusahaan" class="flex items-center">
+                    <svg
+                        class="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                    </svg>
+                    {{ settings.email_perusahaan }}
+                </p>
+                <p v-if="settings.nomor_telepon" class="flex items-center">
+                    <svg
+                        class="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
+                    </svg>
+                    {{ settings.nomor_telepon }}
+                </p>
+                <p v-if="settings.alamat_lengkap" class="flex items-start">
+                    <svg
+                        class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                    </svg>
+                    <span class="flex-1">{{ settings.alamat_lengkap }}</span>
+                </p>
+            </div>
         </div>
 
-        <!-- Login Form -->
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-            <div
-                class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-2xl"
-            >
-                <form @submit.prevent="handleLogin" class="space-y-6">
+        <!-- Right Side - Login Form -->
+        <div
+            class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12"
+        >
+            <div class="w-full max-w-md">
+                <!-- Mobile Logo (visible on small screens) -->
+                <div class="lg:hidden mb-8 text-center">
+                    <div class="flex justify-center mb-4">
+                        <div
+                            class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-lg flex items-center justify-center"
+                        >
+                            <img
+                                v-if="settings.logo_sistem"
+                                :src="`/storage/logo/${settings.logo_sistem}`"
+                                :alt="settings.nama_sistem"
+                                class="w-full h-full object-contain p-2"
+                            />
+                            <svg
+                                v-else
+                                class="w-8 h-8 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                    <h1
+                        class="text-2xl font-bold text-gray-900 dark:text-white"
+                    >
+                        {{ settings.nama_sistem || "AdminPanel" }}
+                    </h1>
+                    <p
+                        v-if="settings.nama_perusahaan"
+                        class="text-sm text-gray-600 dark:text-gray-400 mt-1"
+                    >
+                        {{ settings.nama_perusahaan }}
+                    </p>
+                </div>
+
+                <!-- Header -->
+                <div class="mb-8">
+                    <h2
+                        class="text-3xl font-bold text-gray-900 dark:text-white"
+                    >
+                        Sign in
+                    </h2>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        Enter your credentials to access your account
+                    </p>
+                </div>
+
+                <form @submit.prevent="handleLogin" class="space-y-5">
                     <!-- Email Field -->
                     <div>
                         <label
                             for="email"
-                            class="block text-sm font-medium leading-6 text-gray-900 dark:text-white transition-colors duration-200"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                         >
                             Email address
                         </label>
-                        <div class="mt-2 relative">
-                            <div
-                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-5 w-5 text-gray-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                    />
-                                </svg>
-                            </div>
-                            <input
-                                id="email"
-                                v-model="form.email"
-                                name="email"
-                                type="email"
-                                autocomplete="email"
-                                required
-                                @input="validateEmail"
-                                @blur="validateEmail"
-                                :class="[
-                                    'block w-full pl-10 rounded-lg border-0 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 sm:text-sm sm:leading-6',
-                                    errors.email
-                                        ? 'ring-red-300 focus:ring-red-500 dark:ring-red-600 dark:focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
-                                        : 'ring-gray-300 focus:ring-blue-600 dark:bg-gray-700 dark:ring-gray-600 dark:text-white dark:focus:ring-primary-500 hover:ring-gray-400',
-                                ]"
-                                placeholder="Enter your email"
-                                aria-describedby="email-error"
-                            />
-                            <div
-                                v-if="errors.email"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center"
-                            >
-                                <svg
-                                    class="h-5 w-5 text-red-500"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                        clip-rule="evenodd"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
+                        <input
+                            id="email"
+                            v-model="form.email"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            required
+                            @input="validateEmail"
+                            @blur="validateEmail"
+                            :class="[
+                                'block w-full px-4 py-3 rounded-lg border text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 transition-colors sm:text-sm',
+                                errors.email
+                                    ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500',
+                            ]"
+                            placeholder="you@example.com"
+                        />
                         <p
                             v-if="errors.email"
-                            id="email-error"
-                            class="mt-2 text-sm text-red-600 dark:text-red-400 animate-fade-in"
+                            class="mt-1.5 text-sm text-red-600 dark:text-red-400"
                         >
                             {{ errors.email }}
                         </p>
@@ -135,29 +231,11 @@
                     <div>
                         <label
                             for="password"
-                            class="block text-sm font-medium leading-6 text-gray-900 dark:text-white transition-colors duration-200"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                         >
                             Password
                         </label>
-                        <div class="mt-2 relative">
-                            <div
-                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-5 w-5 text-gray-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                    />
-                                </svg>
-                            </div>
+                        <div class="relative">
                             <input
                                 id="password"
                                 v-model="form.password"
@@ -168,19 +246,17 @@
                                 @input="validatePassword"
                                 @blur="validatePassword"
                                 :class="[
-                                    'block w-full pl-10 pr-12 rounded-lg border-0 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 sm:text-sm sm:leading-6',
+                                    'block w-full px-4 py-3 pr-11 rounded-lg border text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 transition-colors sm:text-sm',
                                     errors.password
-                                        ? 'ring-red-300 focus:ring-red-500 dark:ring-red-600 dark:focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
-                                        : 'ring-gray-300 focus:ring-blue-600 dark:bg-gray-700 dark:ring-gray-600 dark:text-white dark:focus:ring-primary-500 hover:ring-gray-400',
+                                        ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500',
                                 ]"
-                                placeholder="Enter your password"
-                                aria-describedby="password-error"
+                                placeholder="••••••••"
                             />
                             <button
                                 type="button"
                                 @click="togglePassword"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                                aria-label="Toggle password visibility"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                             >
                                 <svg
                                     v-if="!showPassword"
@@ -217,33 +293,16 @@
                                     />
                                 </svg>
                             </button>
-                            <div
-                                v-if="errors.password"
-                                class="absolute inset-y-0 right-10 pr-3 flex items-center"
-                            >
-                                <svg
-                                    class="h-5 w-5 text-red-500"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                        clip-rule="evenodd"
-                                    />
-                                </svg>
-                            </div>
                         </div>
                         <p
                             v-if="errors.password"
-                            id="password-error"
-                            class="mt-2 text-sm text-red-600 dark:text-red-400 animate-fade-in"
+                            class="mt-1.5 text-sm text-red-600 dark:text-red-400"
                         >
                             {{ errors.password }}
                         </p>
                     </div>
 
-                    <!-- Remember Me -->
+                    <!-- Remember Me & Forgot Password -->
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <input
@@ -251,11 +310,11 @@
                                 v-model="form.remember"
                                 name="remember-me"
                                 type="checkbox"
-                                class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-red-500 transition-colors duration-200"
+                                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-500"
                             />
                             <label
                                 for="remember-me"
-                                class="ml-2 block text-sm text-gray-900 dark:text-white cursor-pointer select-none transition-colors duration-200"
+                                class="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
                             >
                                 Remember me
                             </label>
@@ -265,9 +324,9 @@
                             <a
                                 href="#"
                                 @click.prevent="handleForgotPassword"
-                                class="font-medium text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
+                                class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
                             >
-                                Forgot your password?
+                                Forgot password?
                             </a>
                         </div>
                     </div>
@@ -275,30 +334,23 @@
                     <!-- Error Message -->
                     <div
                         v-if="errors.general"
-                        class="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800/30 animate-fade-in"
+                        class="rounded-lg bg-red-50 dark:bg-red-900/10 p-4 border border-red-200 dark:border-red-800"
                     >
                         <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg
-                                    class="h-5 w-5 text-red-400"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                                >
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                                        clip-rule="evenodd"
-                                    />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p
-                                    class="text-sm font-medium text-red-800 dark:text-red-200"
-                                >
-                                    {{ errors.general }}
-                                </p>
-                            </div>
+                            <svg
+                                class="h-5 w-5 text-red-400 mr-3 flex-shrink-0"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <p class="text-sm text-red-800 dark:text-red-200">
+                                {{ errors.general }}
+                            </p>
                         </div>
                     </div>
 
@@ -307,15 +359,11 @@
                         <button
                             type="submit"
                             :disabled="authStore.isLoading"
-                            class="group relative flex w-full justify-center rounded-lg bg-gradient-to-r from-red-600 to-red-600 px-4 py-3 text-sm font-semibold leading-6 text-white shadow-lg hover:from-red-500 hover:to-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                            class="w-full flex justify-center items-center px-4 py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                            <span
-                                class="absolute inset-0 rounded-lg bg-gradient-to-r from-red-600 to-red-600 opacity-0 transition-opacity duration-300 group-hover:opacity-10"
-                            ></span>
                             <svg
                                 v-if="authStore.isLoading"
-                                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
+                                class="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
                                 fill="none"
                                 viewBox="0 0 24 24"
                             >
@@ -334,115 +382,21 @@
                                 ></path>
                             </svg>
                             {{
-                                authStore.isLoading
-                                    ? "Signing in..."
-                                    : "Sign in"
+                                authStore.isLoading ? "Signing in..." : "Sign in"
                             }}
                         </button>
                     </div>
                 </form>
 
-                <!-- Demo Credentials -->
-                <div
-                    class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6 hidden"
+                <!-- Footer Text -->
+                <p
+                    v-if="settings.footer_text"
+                    class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400"
                 >
-                    <div class="text-center">
-                        <p
-                            class="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium"
-                        >
-                            Demo credentials for testing:
-                        </p>
-                        <div class="space-y-2 text-xs">
-                            <div
-                                class="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 backdrop-blur-sm"
-                            >
-                                <div
-                                    class="flex justify-between items-center mb-1"
-                                >
-                                    <span
-                                        class="font-medium text-gray-700 dark:text-gray-300"
-                                        >Email:</span
-                                    >
-                                    <span
-                                        class="text-gray-600 dark:text-gray-400 font-mono"
-                                        >admin@sintiya.com</span
-                                    >
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span
-                                        class="font-medium text-gray-700 dark:text-gray-300"
-                                        >Password:</span
-                                    >
-                                    <span
-                                        class="text-gray-600 dark:text-gray-400 font-mono"
-                                        >admin123</span
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                        <button
-                            @click="fillDemoCredentials"
-                            type="button"
-                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900/30 dark:hover:bg-red-800/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 transform hover:scale-105"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4 mr-2"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                />
-                            </svg>
-                            Fill demo credentials
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    {{ settings.footer_text }}
+                </p>
 
-        <!-- Theme Toggle (Bottom Right) -->
-        <div class="fixed bottom-4 right-4 z-20 hidden">
-            <button
-                @click="themeStore.toggleTheme"
-                type="button"
-                class="group p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-xl border border-gray-200/50 dark:border-gray-700/50 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                aria-label="Toggle theme"
-            >
-                <svg
-                    v-if="!themeStore.isDark"
-                    class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                    />
-                </svg>
-                <svg
-                    v-else
-                    class="w-5 h-5 group-hover:-rotate-12 transition-transform duration-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                    />
-                </svg>
-            </button>
+            </div>
         </div>
     </div>
 </template>
@@ -453,6 +407,7 @@ import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import { useThemeStore } from "../../stores/theme";
 import { useNotificationStore } from "../../stores/notification";
+import { apiGet } from "../../utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -474,9 +429,34 @@ const errors = reactive({
     general: "",
 });
 
-// Initialize theme on component mount
+const settings = reactive({
+    logo_sistem: "",
+    nama_sistem: "AdminPanel",
+    deskripsi_sistem: "",
+    nama_perusahaan: "",
+    alamat_lengkap: "",
+    email_perusahaan: "",
+    nomor_telepon: "",
+    footer_text: "",
+});
+
+// Fetch system settings
+const fetchSettings = async () => {
+    try {
+        const response = await apiGet("/settings");
+        if (response.success) {
+            Object.assign(settings, response.data);
+        }
+    } catch (error) {
+        console.error("Error fetching settings:", error);
+        // Keep default values if fetch fails
+    }
+};
+
+// Initialize theme and fetch settings on component mount
 onMounted(() => {
     themeStore.loadTheme();
+    fetchSettings();
     fillDemoCredentials();
 });
 
@@ -597,43 +577,10 @@ const fillDemoCredentials = () => {
 </script>
 
 <style scoped>
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Custom focus styles for better accessibility */
-input:focus,
-button:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-}
-
-/* Smooth transitions for all interactive elements */
-input,
-button,
-a {
-    transition: all 0.2s ease;
-}
-
 /* Mobile responsiveness */
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
     .min-h-screen {
         padding: 1rem;
-    }
-
-    .sm\\:rounded-xl {
-        border-radius: 0.5rem;
     }
 }
 </style>
