@@ -138,6 +138,14 @@ class Product extends Model
     }
 
     /**
+     * Get all stock balances for the product.
+     */
+    public function stockBalances(): HasMany
+    {
+        return $this->hasMany(StockBalance::class);
+    }
+
+    /**
      * Get all stock opname details for the product.
      */
     public function stockOpnameDetails(): HasMany

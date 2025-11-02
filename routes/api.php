@@ -28,6 +28,7 @@ use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\StockCardController;
 use App\Http\Controllers\LocationController as WarehouseLocationController;
+use App\Http\Controllers\StockBookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -320,6 +321,11 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::post('stock-adjustments/{stockAdjustment}/cancel', [StockAdjustmentController::class, 'cancel']);
 
     // Stock Opname routes
+    Route::get('stock-opnames/statistics', [StockOpnameController::class, 'statistics']);
+    Route::get('stock-opnames/export', [StockOpnameController::class, 'export']);
+    Route::post('stock-opnames/bulk-complete', [StockOpnameController::class, 'bulkComplete']);
+    Route::post('stock-opnames/bulk-delete', [StockOpnameController::class, 'bulkDelete']);
+    Route::post('stock-opnames/calculate-system-quantity', [StockOpnameController::class, 'calculateSystemQuantity']);
     Route::get('stock-opnames', [StockOpnameController::class, 'index']);
     Route::get('stock-opnames/create', [StockOpnameController::class, 'create']);
     Route::post('stock-opnames', [StockOpnameController::class, 'store']);
@@ -327,9 +333,9 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('stock-opnames/{stockOpname}/edit', [StockOpnameController::class, 'edit']);
     Route::put('stock-opnames/{stockOpname}', [StockOpnameController::class, 'update']);
     Route::delete('stock-opnames/{stockOpname}', [StockOpnameController::class, 'destroy']);
+    Route::post('stock-opnames/{stockOpname}/start', [StockOpnameController::class, 'startCounting']);
     Route::post('stock-opnames/{stockOpname}/complete', [StockOpnameController::class, 'complete']);
     Route::post('stock-opnames/{stockOpname}/cancel', [StockOpnameController::class, 'cancel']);
-    Route::post('stock-opnames/get-products', [StockOpnameController::class, 'getProductsForOpname']);
 
     // Stock Card routes
     Route::get('stock-cards', [StockCardController::class, 'index']);
@@ -338,6 +344,69 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('stock-cards/balances', [StockCardController::class, 'balances']);
     Route::get('stock-cards/export', [StockCardController::class, 'export']);
 
+    // Stock Book routes (Buku Stock)
+    Route::prefix('stock-book')->group(function () {
+        // Main views
+        Route::get('/', [App\Http\Controllers\StockBookController::class, 'index']);
+        Route::get('/ledger', [App\Http\Controllers\StockBookController::class, 'ledger']);
+
+        // Current balances
+        Route::get('/current-balances', [App\Http\Controllers\StockBookController::class, 'currentBalances']);
+        Route::get('/balance-by-date', [App\Http\Controllers\StockBookController::class, 'balanceByDate']);
+
+        // Summaries & Analytics
+        Route::get('/movement-summary', [App\Http\Controllers\StockBookController::class, 'movementSummary']);
+        Route::get('/statistics', [App\Http\Controllers\StockBookController::class, 'statistics']);
+
+        // Utilities
+        Route::get('/products-with-stock', [App\Http\Controllers\StockBookController::class, 'productsWithStock']);
+        Route::get('/locations-with-stock', [App\Http\Controllers\StockBookController::class, 'locationsWithStock']);
+
+        // Export
+        Route::get('/export', [App\Http\Controllers\StockBookController::class, 'export']);
+    });
+
+    // Customer routes
+    Route::get('customers/statistics', [App\Http\Controllers\CustomerController::class, 'statistics']);
+    Route::get('customers/active', [App\Http\Controllers\CustomerController::class, 'active']);
+    Route::get('customers/export', [App\Http\Controllers\CustomerController::class, 'export']);
+    Route::get('customers', [App\Http\Controllers\CustomerController::class, 'index']);
+    Route::post('customers', [App\Http\Controllers\CustomerController::class, 'store']);
+    Route::get('customers/{customer}', [App\Http\Controllers\CustomerController::class, 'show']);
+    Route::put('customers/{customer}', [App\Http\Controllers\CustomerController::class, 'update']);
+    Route::delete('customers/{customer}', [App\Http\Controllers\CustomerController::class, 'destroy']);
+    Route::post('customers/{customer}/toggle-status', [App\Http\Controllers\CustomerController::class, 'toggleStatus']);
+
+    // Soft delete routes for customers
+    Route::get('customers/trashed', [App\Http\Controllers\CustomerController::class, 'trashed']);
+    Route::post('customers/{id}/restore', [App\Http\Controllers\CustomerController::class, 'restore']);
+    Route::delete('customers/{id}/force-delete', [App\Http\Controllers\CustomerController::class, 'forceDelete']);
+
+    // Sales routes
+    Route::get('sales/statistics', [App\Http\Controllers\SalesController::class, 'statistics']);
+    Route::get('sales/options', [App\Http\Controllers\SalesController::class, 'options']);
+    Route::get('sales/export', [App\Http\Controllers\SalesController::class, 'export']);
+    Route::post('sales/bulk-post', [App\Http\Controllers\SalesController::class, 'bulkPost']);
+    Route::post('sales/bulk-delete', [App\Http\Controllers\SalesController::class, 'bulkDelete']);
+    Route::get('sales', [App\Http\Controllers\SalesController::class, 'index']);
+    Route::post('sales', [App\Http\Controllers\SalesController::class, 'store']);
+    Route::get('sales/{sale}', [App\Http\Controllers\SalesController::class, 'show']);
+    Route::put('sales/{sale}', [App\Http\Controllers\SalesController::class, 'update']);
+    Route::delete('sales/{sale}', [App\Http\Controllers\SalesController::class, 'destroy']);
+    Route::post('sales/{sale}/post', [App\Http\Controllers\SalesController::class, 'post']);
+    Route::post('sales/{sale}/cancel', [App\Http\Controllers\SalesController::class, 'cancel']);
+
     // Test route for statistics
     Route::get('test-statistics', [App\Http\Controllers\TestController::class, 'testStatistics']);
+
+    Route::prefix('stock-book')->group(function () {
+        Route::get('/', [StockBookController::class, 'index']);
+        Route::get('/products', [StockBookController::class, 'getProductsWithStock']);
+        Route::get('/locations', [StockBookController::class, 'getLocationsWithStock']);
+        Route::get('/statistics', [StockBookController::class, 'getStatistics']);
+        Route::get('/ledger', [StockBookController::class, 'getLedger']);
+        Route::get('/current-balances', [StockBookController::class, 'getCurrentBalances']);
+        Route::get('/movement-summary', [StockBookController::class, 'getMovementSummary']);
+        Route::get('/export', [StockBookController::class, 'export']);
+    });
 });

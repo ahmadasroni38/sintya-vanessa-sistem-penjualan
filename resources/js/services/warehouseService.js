@@ -228,22 +228,22 @@ export const stockAdjustmentService = {
 export const stockOpnameService = {
     getAll: async (params = {}) => {
         const response = await api.get("/stock-opnames", { params });
-        return response.data;
+        return response.data.data || response.data;
     },
 
     getById: async (id) => {
         const response = await api.get(`/stock-opnames/${id}`);
-        return response.data;
+        return response.data.data || response.data;
     },
 
     create: async (data) => {
         const response = await api.post("/stock-opnames", data);
-        return response.data;
+        return response.data.data || response.data;
     },
 
     update: async (id, data) => {
         const response = await api.put(`/stock-opnames/${id}`, data);
-        return response.data;
+        return response.data.data || response.data;
     },
 
     delete: async (id) => {
@@ -251,39 +251,61 @@ export const stockOpnameService = {
         return response.data;
     },
 
-    addDetail: async (id, detail) => {
-        const response = await api.post(`/stock-opnames/${id}/details`, detail);
+    // Status actions
+    startCounting: async (id) => {
+        const response = await api.post(`/stock-opnames/${id}/start`);
+        return response.data.data || response.data;
+    },
+
+    complete: async (id) => {
+        const response = await api.post(`/stock-opnames/${id}/complete`);
         return response.data;
     },
 
-    updateDetail: async (id, detailId, detail) => {
-        const response = await api.put(
-            `/stock-opnames/${id}/details/${detailId}`,
-            detail
+    cancel: async (id) => {
+        const response = await api.post(`/stock-opnames/${id}/cancel`);
+        return response.data.data || response.data;
+    },
+
+    // Helpers
+    calculateSystemQuantity: async (productId, locationId) => {
+        const response = await api.post(
+            "/stock-opnames/calculate-system-quantity",
+            {
+                product_id: productId,
+                location_id: locationId,
+            }
         );
+        return response;
+    },
+
+    getStatistics: async (params = {}) => {
+        const response = await api.get("/stock-opnames/statistics", {
+            params,
+        });
+        return response;
+    },
+
+    // Bulk operations
+    bulkComplete: async (ids) => {
+        const response = await api.post("/stock-opnames/bulk-complete", {
+            ids,
+        });
         return response.data;
     },
 
-    deleteDetail: async (id, detailId) => {
-        const response = await api.delete(
-            `/stock-opnames/${id}/details/${detailId}`
-        );
+    bulkDelete: async (ids) => {
+        const response = await api.post("/stock-opnames/bulk-delete", {
+            ids,
+        });
         return response.data;
     },
 
-    finalize: async (id) => {
-        const response = await api.post(`/stock-opnames/${id}/finalize`);
-        return response.data;
-    },
-
-    approve: async (id) => {
-        const response = await api.post(`/stock-opnames/${id}/approve`);
-        return response.data;
-    },
-
-    reject: async (id, reason) => {
-        const response = await api.post(`/stock-opnames/${id}/reject`, {
-            reason,
+    // Export
+    export: async (params = {}) => {
+        const response = await api.get("/stock-opnames/export", {
+            params,
+            responseType: "blob",
         });
         return response.data;
     },
@@ -390,6 +412,72 @@ export const warehouseReportService = {
 
     exportStockCard: async (params = {}) => {
         const response = await api.get("/reports/stock-card/export", {
+            params,
+            responseType: "blob",
+        });
+        return response.data;
+    },
+};
+
+// Stock Book Service (Buku Stock)
+export const stockBookService = {
+    // Main list with filters
+    getAll: async (params = {}) => {
+        const response = await api.get("/stock-book", { params });
+        return response.data;
+    },
+
+    // Detailed ledger for product + location
+    getLedger: async (params = {}) => {
+        const response = await api.get("/stock-book/ledger", { params });
+        return response.data;
+    },
+
+    // Current balances - Real-time stock position
+    getCurrentBalances: async (params = {}) => {
+        const response = await api.get("/stock-book/current-balances", {
+            params,
+        });
+        return response.data;
+    },
+
+    // Balance by date - Historical balance
+    getBalanceByDate: async (params = {}) => {
+        const response = await api.get("/stock-book/balance-by-date", {
+            params,
+        });
+        return response.data;
+    },
+
+    // Movement summary - Aggregated data
+    getMovementSummary: async (params = {}) => {
+        const response = await api.get("/stock-book/movement-summary", {
+            params,
+        });
+        return response.data;
+    },
+
+    // Statistics - Dashboard stats
+    getStatistics: async () => {
+        const response = await api.get("/stock-book/statistics");
+        return response.data;
+    },
+
+    // Get products that have stock
+    getProductsWithStock: async () => {
+        const response = await api.get("/stock-book/products-with-stock");
+        return response.data;
+    },
+
+    // Get locations that have stock
+    getLocationsWithStock: async () => {
+        const response = await api.get("/stock-book/locations-with-stock");
+        return response.data;
+    },
+
+    // Export
+    export: async (params = {}) => {
+        const response = await api.get("/stock-book/export", {
             params,
             responseType: "blob",
         });

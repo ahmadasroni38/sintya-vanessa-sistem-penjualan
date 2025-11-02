@@ -344,7 +344,7 @@
 
                 <!-- Demo Credentials -->
                 <div
-                    class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6"
+                    class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6 hidden"
                 >
                     <div class="text-center">
                         <p
@@ -407,7 +407,7 @@
         </div>
 
         <!-- Theme Toggle (Bottom Right) -->
-        <div class="fixed bottom-4 right-4 z-20">
+        <div class="fixed bottom-4 right-4 z-20 hidden">
             <button
                 @click="themeStore.toggleTheme"
                 type="button"
@@ -477,6 +477,7 @@ const errors = reactive({
 // Initialize theme on component mount
 onMounted(() => {
     themeStore.loadTheme();
+    fillDemoCredentials();
 });
 
 const clearErrors = () => {

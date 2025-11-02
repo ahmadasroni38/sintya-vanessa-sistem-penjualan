@@ -155,7 +155,7 @@ class StockAdjustment extends Model
         parent::boot();
         static::creating(function ($adj) {
             if (empty($adj->adjustment_number)) {
-                $last = static::whereYear('created_at', date('Y'))->orderBy('id', 'desc')->first();
+                $last = static::withTrashed()->whereYear('created_at', date('Y'))->orderBy('id', 'desc')->first();
                 $next = $last ? intval(substr($last->adjustment_number, -5)) + 1 : 1;
                 $adj->adjustment_number = 'ADJ-' . date('Y') . str_pad($next, 5, '0', STR_PAD_LEFT);
             }

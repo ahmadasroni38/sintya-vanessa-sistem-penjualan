@@ -33,6 +33,8 @@ import RepairRequests from "../views/Dashboard/RepairRequests.vue";
 // Accounting Views
 import ChartOfAccounts from "../views/Dashboard/ChartOfAccounts.vue";
 import JournalEntries from "../views/Dashboard/JournalEntries.vue";
+import Sales from "../views/Dashboard/Sales.vue";
+import Customers from "../views/Dashboard/Customers.vue";
 
 // Report Views
 import NeracaLajur from "../views/Dashboard/Reports/NeracaLajur.vue";
@@ -169,6 +171,18 @@ const routes = [
                 path: "/journal-entries",
                 name: "journal-entries",
                 component: JournalEntries,
+            },
+            // Sales Routes
+            {
+                path: "/sales",
+                name: "sales.index",
+                component: Sales,
+            },
+            // Customer Routes
+            {
+                path: "/customers",
+                name: "customers.index",
+                component: Customers,
             },
             // Report Routes
             {

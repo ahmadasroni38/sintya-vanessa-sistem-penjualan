@@ -78,6 +78,22 @@ class Location extends Model
     }
 
     /**
+     * Get all stock cards for the location.
+     */
+    public function stockCards(): HasMany
+    {
+        return $this->hasMany(StockCard::class);
+    }
+
+    /**
+     * Get all stock balances for the location.
+     */
+    public function stockBalances(): HasMany
+    {
+        return $this->hasMany(StockBalance::class);
+    }
+
+    /**
      * Get the asset categories associated with this location.
      */
     public function assetCategories(): HasMany

@@ -1,9 +1,9 @@
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
         <!-- Modern Sidebar -->
         <div
             :class="[
-                'hs-overlay hs-overlay-open:translate-x-0 transition-all duration-300 transform fixed top-0 start-0 bottom-0 z-[60] bg-white dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700 hs-overlay-backdrop-open:bg-gray-900/20 dark:hs-overlay-backdrop-open:bg-black/30 lg:block lg:end-auto lg:bottom-0 shadow-xl',
+                'hs-overlay hs-overlay-open:translate-x-0 transition-all duration-300 transform fixed top-0 start-0 bottom-0 z-[60] bg-white dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700 hs-overlay-backdrop-open:bg-gray-900/20 dark:hs-overlay-backdrop-open:bg-black/30 lg:block lg:end-auto lg:bottom-0 shadow-xl flex flex-col',
                 sidebarState === 'mobile-collapsed' ? '-translate-x-full' : '',
                 sidebarState === 'mobile-expanded' ? 'w-72 translate-x-0' : '',
                 sidebarState === 'desktop-collapsed'
@@ -22,7 +22,7 @@
         >
             <!-- Sidebar Header with Toggle -->
             <div
-                class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-700"
+                class="flex items-center justify-between px-6 pt-7 pb-5 border-b border-gray-100 dark:border-gray-700"
                 :class="
                     sidebarState === 'desktop-collapsed'
                         ? 'lg:justify-center lg:px-3'
@@ -72,14 +72,7 @@
                             : 'Collapse Sidebar'
                     "
                 >
-                    <ChevronLeftIcon
-                        class="w-5 h-5"
-                        :class="
-                            sidebarState === 'desktop-collapsed'
-                                ? 'rotate-180'
-                                : ''
-                        "
-                    />
+                    <component :is="toggleIcon" class="w-5 h-5" />
                 </button>
             </div>
 
@@ -99,14 +92,14 @@
                         @input="handleSidebarSearch"
                         type="text"
                         class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-400 transition-all duration-200"
-                        placeholder="Search menu..."
+                        placeholder="Cari menu..."
                     />
                 </div>
             </div>
 
             <!-- Navigation -->
             <nav
-                class="px-6 pb-6 flex-1 overflow-y-auto max-h-[calc(100vh-200px)] transition-all duration-300"
+                class="px-6 pb-6 flex-1 overflow-y-auto max-h-[calc(100vh-250px)] transition-all duration-300"
                 :class="sidebarState === 'desktop-collapsed' ? 'lg:px-3' : ''"
             >
                 <div class="space-y-8">
@@ -116,7 +109,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            Main
+                            {{ filteredMenuSections.main.title }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -158,7 +151,7 @@
                                 <!-- Tooltip for collapsed state -->
                                 <div
                                     v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap lg:block hidden"
+                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
                                     {{ item.text }}
                                     <div
@@ -169,23 +162,23 @@
                         </ul>
                     </div>
 
-                    <!-- Manajemen Accounting Section -->
+                    <!-- Sales Management Section -->
                     <div
                         v-if="
-                            filteredMenuSections.accountingManagement.items
-                                .length > 0
+                            filteredMenuSections.salesManagement.items.length >
+                            0
                         "
                     >
                         <h3
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            Manajemen Accounting
+                            {{ filteredMenuSections.salesManagement.title }}
                         </h3>
                         <ul class="space-y-1">
                             <li
                                 v-for="item in filteredMenuSections
-                                    .accountingManagement.items"
+                                    .salesManagement.items"
                                 :key="item.route"
                                 class="relative group"
                             >
@@ -223,7 +216,7 @@
                                 <!-- Tooltip for collapsed state -->
                                 <div
                                     v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap lg:block hidden"
+                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
                                     {{ item.text }}
                                     <div
@@ -245,7 +238,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            Warehouse Management
+                            {{ filteredMenuSections.warehouseManagement.title }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -288,7 +281,74 @@
                                 <!-- Tooltip for collapsed state -->
                                 <div
                                     v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap lg:block hidden"
+                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
+                                >
+                                    {{ item.text }}
+                                    <div
+                                        class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
+                                    ></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Manajemen Accounting Section -->
+                    <div
+                        v-if="
+                            filteredMenuSections.accountingManagement.items
+                                .length > 0
+                        "
+                    >
+                        <h3
+                            v-if="sidebarState !== 'desktop-collapsed'"
+                            class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
+                        >
+                            {{
+                                filteredMenuSections.accountingManagement.title
+                            }}
+                        </h3>
+                        <ul class="space-y-1">
+                            <li
+                                v-for="item in filteredMenuSections
+                                    .accountingManagement.items"
+                                :key="item.route"
+                                class="relative group"
+                            >
+                                <router-link
+                                    :to="item.route"
+                                    :class="[
+                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                                        $route.name === item.routeName
+                                            ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
+                                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
+                                        sidebarState === 'desktop-collapsed'
+                                            ? 'lg:justify-center lg:px-4'
+                                            : '',
+                                    ]"
+                                >
+                                    <component
+                                        :is="item.icon"
+                                        :class="[
+                                            'w-5 h-5 transition-transform duration-200 group-hover:scale-110 flex-shrink-0',
+                                            $route.name === item.routeName
+                                                ? 'text-white'
+                                                : 'text-gray-500 dark:text-gray-400',
+                                        ]"
+                                    />
+                                    <span
+                                        v-if="
+                                            sidebarState !== 'desktop-collapsed'
+                                        "
+                                        class="transition-opacity duration-300"
+                                    >
+                                        {{ item.text }}
+                                    </span>
+                                </router-link>
+
+                                <!-- Tooltip for collapsed state -->
+                                <div
+                                    v-if="sidebarState === 'desktop-collapsed'"
+                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
                                     {{ item.text }}
                                     <div
@@ -309,7 +369,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            User Management
+                            {{ filteredMenuSections.userManagement.title }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -352,7 +412,7 @@
                                 <!-- Tooltip for collapsed state -->
                                 <div
                                     v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap lg:block hidden"
+                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
                                     {{ item.text }}
                                     <div
@@ -379,7 +439,7 @@
                     "
                 >
                     <div
-                        class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0"
+                        class="w-8 h-7 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0"
                         :class="
                             sidebarState === 'desktop-collapsed'
                                 ? 'lg:w-6 lg:h-6'
@@ -565,6 +625,8 @@ import {
     UsersIcon,
     MagnifyingGlassIcon,
     ChevronLeftIcon,
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon,
     Bars3Icon,
     SparklesIcon,
     MoonIcon,
@@ -584,6 +646,7 @@ import {
     ClipboardDocumentListIcon,
     AdjustmentsHorizontalIcon,
     DocumentDuplicateIcon,
+    ShoppingCartIcon,
 } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
@@ -618,10 +681,10 @@ const handleMouseLeave = () => {
 // Menu data structure
 const menuSections = {
     main: {
-        title: "Main",
+        title: "Utama",
         items: [
             {
-                text: "Dashboard",
+                text: "Dasbor",
                 route: "/",
                 routeName: "Dashboard",
                 icon: HomeIcon,
@@ -629,7 +692,7 @@ const menuSections = {
         ],
     },
     accountingManagement: {
-        title: "Manajemen Accounting",
+        title: "Manajemen Akuntansi",
         items: [
             {
                 text: "Jurnal Umum",
@@ -676,10 +739,10 @@ const menuSections = {
         ],
     },
     warehouseManagement: {
-        title: "Warehouse Management",
+        title: "Manajemen Gudang",
         items: [
             {
-                text: "Products",
+                text: "Produk",
                 route: "/products",
                 routeName: "products.index",
                 icon: TagIcon,
@@ -703,7 +766,7 @@ const menuSections = {
                 icon: ArrowsRightLeftIcon,
             },
             {
-                text: "Adjustment",
+                text: "Penyesuaian",
                 route: "/adjustment",
                 routeName: "adjustment.index",
                 icon: AdjustmentsHorizontalIcon,
@@ -723,25 +786,42 @@ const menuSections = {
         ],
     },
     userManagement: {
-        title: "User Management",
+        title: "Manajemen Pengguna",
         items: [
             {
-                text: "Users",
+                text: "Pengguna",
                 route: "/users",
                 routeName: "Users",
                 icon: UsersIcon,
             },
             {
-                text: "Roles",
+                text: "Peran",
                 route: "/roles",
                 routeName: "Roles",
                 icon: ShieldCheckIcon,
             },
             {
-                text: "Permissions",
+                text: "Izin",
                 route: "/permissions",
                 routeName: "Permissions",
                 icon: KeyIcon,
+            },
+        ],
+    },
+    salesManagement: {
+        title: "Manajemen Penjualan",
+        items: [
+            {
+                text: "Penjualan",
+                route: "/sales",
+                routeName: "sales.index",
+                icon: ShoppingCartIcon,
+            },
+            {
+                text: "Pelanggan",
+                route: "/customers",
+                routeName: "customers.index",
+                icon: UsersIcon,
             },
         ],
     },
@@ -786,6 +866,13 @@ const sidebarState = computed(() => {
     }
 });
 
+// Computed property for toggle icon
+const toggleIcon = computed(() => {
+    return sidebarState.value === "desktop-collapsed"
+        ? ChevronDoubleRightIcon
+        : ChevronDoubleLeftIcon;
+});
+
 // Toggle sidebar function
 const toggleSidebar = () => {
     sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -793,10 +880,10 @@ const toggleSidebar = () => {
 
 const getPageTitle = () => {
     const titles = {
-        Dashboard: "Dashboard",
-        Users: "Users",
-        Roles: "Roles",
-        Permissions: "Permissions",
+        Dashboard: "Dasbor",
+        Users: "Pengguna",
+        Roles: "Peran",
+        Permissions: "Izin",
         "journal-entries.index": "Jurnal Umum",
         "coa.index": "Chart of Accounts (COA)",
         "reports.neraca-lajur": "Neraca Lajur",
@@ -804,14 +891,16 @@ const getPageTitle = () => {
         "reports.laba-rugi": "Laba Rugi",
         "reports.perubahan-modal": "Perubahan Modal",
         "reports.arus-kas": "Arus Kas",
-        "locations.index": "Locations",
+        "locations.index": "Lokasi",
         "stock-masuk.index": "Stock Masuk",
         "mutasi.index": "Mutasi",
-        "adjustment.index": "Adjustment",
+        "adjustment.index": "Penyesuaian",
         "stockopname.index": "Stockopname",
         "buku-stock.index": "Buku Stock",
+        "sales.index": "Penjualan",
+        "products.index": "Produk",
     };
-    return titles[route.name] || "Dashboard";
+    return titles[route.name] || "Dasbor";
 };
 
 const getPageDescription = () => {

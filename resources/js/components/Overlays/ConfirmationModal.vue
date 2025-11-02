@@ -9,14 +9,14 @@
             {{ title }}
         </template>
 
-        <div class="space-y-4">
-            <div class="flex items-start">
+        <div class="space-y-6">
+            <div class="flex items-start space-x-4">
                 <div class="flex-shrink-0">
                     <div
-                        class="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center"
+                        class="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center ring-4 ring-red-100 dark:ring-red-900/30 animate-pulse"
                     >
                         <svg
-                            class="h-5 w-5 text-red-600 dark:text-red-400"
+                            class="h-6 w-6 text-red-600 dark:text-red-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -31,14 +31,19 @@
                         </svg>
                     </div>
                 </div>
-                <div class="ml-4">
+                <div class="flex-1">
                     <h3
-                        class="text-sm font-medium text-gray-900 dark:text-white"
+                        class="text-lg font-semibold text-gray-900 dark:text-white mb-2"
                     >
                         {{ message }}
                     </h3>
-                    <div v-if="description" class="mt-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                    <div
+                        v-if="description"
+                        class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border-l-4 border-red-500"
+                    >
+                        <p
+                            class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                        >
                             {{ description }}
                         </p>
                     </div>

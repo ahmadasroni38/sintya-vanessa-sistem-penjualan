@@ -1,14 +1,18 @@
 <template>
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex items-center justify-between">
-            <div>
+            <div class="flex-1">
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ title }}</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                <p v-if="loading" class="text-2xl font-bold text-gray-400 dark:text-gray-500 mt-1">
+                    <span class="inline-block animate-pulse">...</span>
+                </p>
+                <p v-else class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
                     {{ value }}
                 </p>
             </div>
             <div :class="[
                 'w-12 h-12 rounded-lg flex items-center justify-center',
+                loading ? 'opacity-50' : '',
                 iconBackgroundClass
             ]">
                 <component :is="iconComponent" :class="['w-6 h-6', iconColorClass]" />
@@ -27,6 +31,8 @@ import {
     ArrowTrendingUpIcon,
     ArrowTrendingDownIcon,
     AdjustmentsHorizontalIcon,
+    DocumentTextIcon,
+    CubeTransparentIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -41,12 +47,16 @@ const props = defineProps({
     icon: {
         type: String,
         default: 'cube',
-        validator: (value) => ['archive', 'clock', 'check', 'cube', 'arrow-up', 'arrow-down', 'adjustments'].includes(value),
+        validator: (value) => ['archive', 'clock', 'check', 'cube', 'arrow-up', 'arrow-down', 'adjustments', 'file-text', 'package', 'check-circle'].includes(value),
     },
     color: {
         type: String,
         default: 'blue',
-        validator: (value) => ['blue', 'yellow', 'green', 'purple', 'red'].includes(value),
+        validator: (value) => ['blue', 'yellow', 'green', 'purple', 'red', 'gray'].includes(value),
+    },
+    loading: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -59,6 +69,9 @@ const iconComponent = computed(() => {
         'arrow-up': ArrowTrendingUpIcon,
         'arrow-down': ArrowTrendingDownIcon,
         adjustments: AdjustmentsHorizontalIcon,
+        'file-text': DocumentTextIcon,
+        'package': CubeTransparentIcon,
+        'check-circle': CheckCircleIcon,
     };
     return icons[props.icon] || CubeIcon;
 });
@@ -70,6 +83,7 @@ const iconBackgroundClass = computed(() => {
         green: 'bg-green-100 dark:bg-green-900/20',
         purple: 'bg-purple-100 dark:bg-purple-900/20',
         red: 'bg-red-100 dark:bg-red-900/20',
+        gray: 'bg-gray-100 dark:bg-gray-900/20',
     };
     return colors[props.color] || colors.blue;
 });
@@ -81,6 +95,7 @@ const iconColorClass = computed(() => {
         green: 'text-green-600 dark:text-green-400',
         purple: 'text-purple-600 dark:text-purple-400',
         red: 'text-red-600 dark:text-red-400',
+        gray: 'text-gray-600 dark:text-gray-400',
     };
     return colors[props.color] || colors.blue;
 });
