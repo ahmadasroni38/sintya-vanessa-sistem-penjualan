@@ -12,10 +12,14 @@
                     :alt="userName"
                     @error="handleImageError"
                 />
-                <!-- Online Status Indicator -->
+                <!-- Status Indicator -->
                 <div
-                    class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"
-                    title="Online"
+                    :class="{
+                        'bg-green-500': userStatus === 'active',
+                        'bg-gray-400': userStatus !== 'active',
+                    }"
+                    class="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full"
+                    :title="userStatus === 'active' ? 'Active' : 'Inactive'"
                 ></div>
             </div>
 
@@ -72,11 +76,19 @@
                             </p>
                             <div class="flex items-center gap-2 mt-1">
                                 <div
-                                    class="w-2 h-2 bg-green-500 rounded-full"
+                                    :class="{
+                                        'bg-green-500': userStatus === 'active',
+                                        'bg-gray-400': userStatus !== 'active',
+                                    }"
+                                    class="w-2 h-2 rounded-full"
                                 ></div>
                                 <span
-                                    class="text-xs text-green-600 dark:text-green-400"
-                                    >Online</span
+                                    :class="{
+                                        'text-green-600 dark:text-green-400': userStatus === 'active',
+                                        'text-gray-500 dark:text-gray-400': userStatus !== 'active',
+                                    }"
+                                    class="text-xs"
+                                    >{{ userStatus === 'active' ? 'Active' : 'Inactive' }}</span
                                 >
                             </div>
                         </div>
@@ -139,6 +151,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
+import { apiGet } from "../../utils/api";
 import {
     ChevronDownIcon,
     UserIcon,
@@ -152,22 +165,76 @@ const router = useRouter();
 const authStore = useAuthStore();
 const isLoggingOut = ref(false);
 const isOpen = ref(false);
+const profileData = ref(null);
+const isLoadingProfile = ref(false);
 
 const defaultAvatar =
-    "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80";
+    "https://ui-avatars.com/api/?name=User&size=200&background=ef4444&color=fff&bold=true";
 
-const userName = computed(() => authStore.user?.name || "User");
-const userEmail = computed(() => authStore.user?.email || "user@example.com");
+// Load profile data from backend
+const loadProfile = async () => {
+    if (isLoadingProfile.value) return;
+
+    isLoadingProfile.value = true;
+    try {
+        const response = await apiGet("/profile");
+        if (response.success) {
+            profileData.value = response.data;
+
+            // Update auth store with fresh data
+            authStore.user = {
+                ...authStore.user,
+                ...response.data,
+            };
+
+            // Update local storage
+            localStorage.setItem("user", JSON.stringify(authStore.user));
+        }
+    } catch (error) {
+        console.error("Failed to load profile:", error);
+        // Fallback to auth store data
+        profileData.value = authStore.user;
+    } finally {
+        isLoadingProfile.value = false;
+    }
+};
+
+const userName = computed(() => {
+    return profileData.value?.name || authStore.user?.name || "User";
+});
+
+const userEmail = computed(() => {
+    return profileData.value?.email || authStore.user?.email || "user@example.com";
+});
+
 const userRole = computed(() => {
-    const role = authStore.user?.role || authStore.user?.roles?.[0]?.name;
+    // Try to get active role first
+    if (profileData.value?.active_role) {
+        return profileData.value.active_role.name;
+    }
+
+    // Fallback to auth store
+    const role = authStore.user?.active_role?.name ||
+                 authStore.user?.role ||
+                 authStore.user?.roles?.[0]?.name;
+
     return role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
 });
-const userAvatar = computed(
-    () =>
+
+const userAvatar = computed(() => {
+    // Priority: profileData avatar_url > authStore avatar_url > default
+    return (
+        profileData.value?.avatar_url ||
+        authStore.user?.avatar_url ||
         authStore.user?.avatar ||
         authStore.user?.profile_photo_url ||
         defaultAvatar
-);
+    );
+});
+
+const userStatus = computed(() => {
+    return profileData.value?.status || authStore.user?.status || "active";
+});
 
 const handleImageError = (event) => {
     event.target.src = defaultAvatar;
@@ -235,6 +302,9 @@ const handleKeydown = (e) => {
 };
 
 onMounted(() => {
+    // Load profile data from backend
+    loadProfile();
+
     document.addEventListener("click", handleClickOutside);
     document.addEventListener("keydown", handleKeydown);
 });

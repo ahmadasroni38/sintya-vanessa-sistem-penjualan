@@ -161,7 +161,9 @@ const userRole = computed(() => {
     // Get active role from user
     const activeRole = authStore.user?.active_role;
     if (activeRole) {
-        return activeRole.name.charAt(0).toUpperCase() + activeRole.name.slice(1);
+        return (
+            activeRole.name.charAt(0).toUpperCase() + activeRole.name.slice(1)
+        );
     }
 
     // Fallback to first role

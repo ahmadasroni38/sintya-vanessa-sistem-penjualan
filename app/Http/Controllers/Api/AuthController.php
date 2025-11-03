@@ -4,17 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PasswordResetOtp;
+use App\Notifications\PasswordResetOtp as PasswordResetOtpNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'forgotPassword', 'verifyOtp', 'resetPassword']]);
     }
 
     /**
@@ -142,5 +146,243 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => Auth::guard('api')->factory()->getTTL() * 60
         ]);
+    }
+
+    /**
+     * Send password reset OTP
+     */
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+
+        // Check rate limiting (max 3 requests per hour per email)
+        $recentRequests = PasswordResetOtp::where('email', $email)
+            ->where('created_at', '>', now()->subHour())
+            ->count();
+
+        if ($recentRequests >= 3) {
+            Log::warning('Password reset rate limit exceeded', [
+                'email' => $email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many password reset requests. Please try again later.'
+            ], 429);
+        }
+
+        try {
+            // Generate OTP
+            $otpRecord = PasswordResetOtp::generateForEmail(
+                $email,
+                $request->ip(),
+                $request->userAgent()
+            );
+
+            // Send OTP via email
+            $this->sendOtpEmail($email, $otpRecord->getPlainOtp());
+
+            Log::info('Password reset OTP sent', [
+                'email' => $email,
+                'ip' => $request->ip(),
+                'otp_id' => $otpRecord->id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password reset OTP has been sent to your email.',
+                'expires_in' => 15 * 60 // 15 minutes in seconds
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send password reset OTP', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send password reset email. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Verify OTP
+     */
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        $otp = $request->otp;
+
+        // Find active OTP for this email
+        $otpRecord = PasswordResetOtp::where('email', $email)
+            ->active()
+            ->first();
+
+        if (!$otpRecord) {
+            Log::warning('OTP verification failed - no active OTP', [
+                'email' => $email,
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired OTP.'
+            ], 400);
+        }
+
+        if ($otpRecord->verifyOtp($otp)) {
+            Log::info('OTP verified successfully', [
+                'email' => $email,
+                'otp_id' => $otpRecord->id,
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP verified successfully.',
+                'token' => $otpRecord->id // Use OTP record ID as reset token
+            ]);
+        } else {
+            Log::warning('OTP verification failed - invalid OTP', [
+                'email' => $email,
+                'otp_id' => $otpRecord->id,
+                'attempts' => $otpRecord->attempts,
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP. Please check and try again.'
+            ], 400);
+        }
+    }
+
+    /**
+     * Reset password
+     */
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required|string', // OTP record ID
+            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        $token = $request->token;
+        $password = $request->password;
+
+        // Find the used OTP record
+        $otpRecord = PasswordResetOtp::where('id', $token)
+            ->where('email', $email)
+            ->whereNotNull('used_at')
+            ->first();
+
+        if (!$otpRecord || $otpRecord->isExpired()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired reset token.'
+            ], 400);
+        }
+
+        try {
+            // Update user password
+            $user = User::where('email', $email)->first();
+            $user->update([
+                'password' => Hash::make($password)
+            ]);
+
+            // Clean up used OTPs for this email
+            PasswordResetOtp::where('email', $email)->delete();
+
+            Log::info('Password reset successful', [
+                'email' => $email,
+                'user_id' => $user->id,
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password has been reset successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Password reset failed', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reset password. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Send OTP via email
+     */
+    private function sendOtpEmail(string $email, string $otp)
+    {
+        // Create a temporary user object for notification
+        $tempUser = (object) ['email' => $email];
+
+        try {
+            Notification::route('mail', $email)->notify(new PasswordResetOtpNotification($otp));
+
+            Log::info('Password reset OTP notification sent', [
+                'email' => $email,
+                'otp_id' => null // We'll add this later if needed
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send password reset OTP notification', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            // For development, log the OTP as fallback
+            Log::info('Password Reset OTP (fallback)', [
+                'email' => $email,
+                'otp' => $otp,
+                'expires_in' => '15 minutes'
+            ]);
+        }
     }
 }

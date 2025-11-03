@@ -3,17 +3,29 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\ProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+    protected ProfileService $profileService;
+
+    public function __construct(ProfileService $profileService)
+    {
+        $this->profileService = $profileService;
+    }
+
     /**
      * Display a listing of the users.
      */
@@ -350,118 +362,86 @@ class UserController extends Controller
      */
     public function getProfile(): JsonResponse
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
+            $profileData = $this->profileService->getProfile($user);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'date_of_birth' => $user->date_of_birth,
-                'phone_number' => $user->phone_number,
-                'address' => $user->address,
-                'avatar_url' => $user->avatar_url,
-                'status' => $user->status,
-                'email_verified_at' => $user->email_verified_at,
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
-            ],
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $profileData,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get profile error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve profile',
+            ], 500);
+        }
     }
 
     /**
      * Update authenticated user's profile.
      */
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
+            $updatedUser = $this->profileService->updateProfile($user, $request->validated());
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'date_of_birth' => 'nullable|date|before:today',
-            'phone_number' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
-            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // 2MB max
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => new UserResource($updatedUser),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Update profile error: ' . $e->getMessage());
 
-        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => 'Failed to update profile',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred',
+            ], 500);
         }
-
-        $updateData = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'date_of_birth' => $request->date_of_birth,
-            'phone_number' => $request->phone_number,
-            'address' => $request->address,
-        ];
-
-        // Handle avatar upload
-        if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
-            if ($user->avatar_url) {
-                $oldAvatarPath = str_replace(asset('storage/'), '', $user->avatar_url);
-                Storage::disk('public')->delete($oldAvatarPath);
-            }
-
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $updateData['avatar_url'] = Storage::url($avatarPath);
-        }
-
-        $user->update($updateData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully',
-            'data' => $user->fresh(),
-        ]);
     }
 
     /**
      * Update authenticated user's password.
      */
-    public function updatePassword(Request $request): JsonResponse
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/',
-        ]);
+            $this->profileService->updatePassword(
+                $user,
+                $request->current_password,
+                $request->new_password
+            );
 
-        if ($validator->fails()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Update password error: ' . $e->getMessage());
+
+            // Check if it's a validation error (incorrect current password)
+            if (str_contains($e->getMessage(), 'incorrect')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'errors' => [
+                        'current_password' => [$e->getMessage()]
+                    ],
+                ], 422);
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => 'Failed to update password',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred',
+            ], 500);
         }
-
-        // Verify current password
-        if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Current password is incorrect',
-                'errors' => [
-                    'current_password' => ['The current password is incorrect.']
-                ],
-            ], 422);
-        }
-
-        // Update password
-        $user->update([
-            'password' => Hash::make($request->new_password),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Password updated successfully',
-        ]);
     }
 }

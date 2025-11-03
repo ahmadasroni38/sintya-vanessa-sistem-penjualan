@@ -58,13 +58,11 @@
 
                 <div class="max-w-md">
                     <h2 class="text-3xl font-bold text-white mb-4">
-                        Manage Your Business with Confidence
+                        Reset Your Password
                     </h2>
                     <p class="text-lg text-white/90 leading-relaxed">
-                        {{
-                            settings.deskripsi_sistem ||
-                            "Powerful tools to streamline your operations and drive growth."
-                        }}
+                        Enter your email address and we'll send you a secure OTP
+                        to reset your password.
                     </p>
                 </div>
             </div>
@@ -135,7 +133,7 @@
             </div>
         </div>
 
-        <!-- Right Side - Login Form -->
+        <!-- Right Side - Forgot Password Form -->
         <div
             class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12"
         >
@@ -186,14 +184,14 @@
                     <h2
                         class="text-3xl font-bold text-gray-900 dark:text-white"
                     >
-                        Sign in
+                        Forgot Password
                     </h2>
                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        Enter your credentials to access your account
+                        Enter your email address to receive a password reset OTP
                     </p>
                 </div>
 
-                <form @submit.prevent="handleLogin" class="space-y-5">
+                <form @submit.prevent="handleForgotPassword" class="space-y-5">
                     <!-- Email Field -->
                     <div>
                         <label
@@ -227,110 +225,6 @@
                         </p>
                     </div>
 
-                    <!-- Password Field -->
-                    <div>
-                        <label
-                            for="password"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Password
-                        </label>
-                        <div class="relative">
-                            <input
-                                id="password"
-                                v-model="form.password"
-                                name="password"
-                                :type="showPassword ? 'text' : 'password'"
-                                autocomplete="current-password"
-                                required
-                                @input="validatePassword"
-                                @blur="validatePassword"
-                                :class="[
-                                    'block w-full px-4 py-3 pr-11 rounded-lg border text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 transition-colors sm:text-sm',
-                                    errors.password
-                                        ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500',
-                                ]"
-                                placeholder="••••••••"
-                            />
-                            <button
-                                type="button"
-                                @click="togglePassword"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                            >
-                                <svg
-                                    v-if="!showPassword"
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                </svg>
-                                <svg
-                                    v-else
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                        <p
-                            v-if="errors.password"
-                            class="mt-1.5 text-sm text-red-600 dark:text-red-400"
-                        >
-                            {{ errors.password }}
-                        </p>
-                    </div>
-
-                    <!-- Remember Me & Forgot Password -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <input
-                                id="remember-me"
-                                v-model="form.remember"
-                                name="remember-me"
-                                type="checkbox"
-                                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-500"
-                            />
-                            <label
-                                for="remember-me"
-                                class="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
-                            >
-                                Remember me
-                            </label>
-                        </div>
-
-                        <div class="text-sm">
-                            <a
-                                href="#"
-                                @click.prevent="handleForgotPassword"
-                                class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                            >
-                                Forgot password?
-                            </a>
-                        </div>
-                    </div>
-
                     <!-- Error Message -->
                     <div
                         v-if="errors.general"
@@ -354,15 +248,40 @@
                         </div>
                     </div>
 
+                    <!-- Success Message -->
+                    <div
+                        v-if="successMessage"
+                        class="rounded-lg bg-green-50 dark:bg-green-900/10 p-4 border border-green-200 dark:border-green-800"
+                    >
+                        <div class="flex">
+                            <svg
+                                class="h-5 w-5 text-green-400 mr-3 flex-shrink-0"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L9.53 12.22a.75.75 0 001.214.882l2.236-3.126z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <p
+                                class="text-sm text-green-800 dark:text-green-200"
+                            >
+                                {{ successMessage }}
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <div>
                         <button
                             type="submit"
-                            :disabled="authStore.isLoading"
+                            :disabled="isLoading"
                             class="w-full flex justify-center items-center px-4 py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             <svg
-                                v-if="authStore.isLoading"
+                                v-if="isLoading"
                                 class="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -382,13 +301,21 @@
                                 ></path>
                             </svg>
                             {{
-                                authStore.isLoading
-                                    ? "Signing in..."
-                                    : "Sign in"
+                                isLoading ? "Sending OTP..." : "Send Reset OTP"
                             }}
                         </button>
                     </div>
                 </form>
+
+                <!-- Back to Login -->
+                <div class="mt-8 text-center">
+                    <router-link
+                        to="/login"
+                        class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                    >
+                        ← Back to Login
+                    </router-link>
+                </div>
 
                 <!-- Footer Text -->
                 <p
@@ -404,31 +331,27 @@
 
 <script setup>
 import { reactive, ref, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { useAuthStore } from "../../stores/auth";
+import { useRouter } from "vue-router";
 import { useThemeStore } from "../../stores/theme";
 import { useNotificationStore } from "../../stores/notification";
-import { apiGet } from "../../utils/api";
+import { apiPost, apiGet } from "../../utils/api";
 
 const router = useRouter();
-const route = useRoute();
-const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const notificationStore = useNotificationStore();
 
-const showPassword = ref(false);
+const isLoading = ref(false);
 
 const form = reactive({
     email: "",
-    password: "",
-    remember: false,
 });
 
 const errors = reactive({
     email: "",
-    password: "",
     general: "",
 });
+
+const successMessage = ref("");
 
 const settings = reactive({
     logo_sistem: "",
@@ -458,13 +381,12 @@ const fetchSettings = async () => {
 onMounted(() => {
     themeStore.loadTheme();
     fetchSettings();
-    fillDemoCredentials();
 });
 
 const clearErrors = () => {
     errors.email = "";
-    errors.password = "";
     errors.general = "";
+    successMessage.value = "";
 };
 
 // Real-time email validation
@@ -475,17 +397,6 @@ const validateEmail = () => {
         errors.email = "Please enter a valid email address";
     } else {
         errors.email = "";
-    }
-};
-
-// Real-time password validation
-const validatePassword = () => {
-    if (!form.password) {
-        errors.password = "Password is required";
-    } else if (form.password.length < 6) {
-        errors.password = "Password must be at least 6 characters";
-    } else {
-        errors.password = "";
     }
 };
 
@@ -501,75 +412,59 @@ const validateForm = () => {
         isValid = false;
     }
 
-    if (!form.password) {
-        errors.password = "Password is required";
-        isValid = false;
-    } else if (form.password.length < 6) {
-        errors.password = "Password must be at least 6 characters";
-        isValid = false;
-    }
-
     return isValid;
 };
 
-const togglePassword = () => {
-    showPassword.value = !showPassword.value;
-};
-
-const handleLogin = async () => {
+const handleForgotPassword = async () => {
     if (!validateForm()) return;
 
     clearErrors();
+    isLoading.value = true;
 
-    const result = await authStore.login({
-        email: form.email,
-        password: form.password,
-        remember: form.remember,
-    });
+    try {
+        const response = await apiPost("/auth/forgot-password", {
+            email: form.email,
+        });
 
-    if (result.success) {
-        // Show success notification
-        notificationStore.success(
-            "Login Successful",
-            `Welcome back, ${result.user.name}!`
-        );
+        if (response.success) {
+            successMessage.value = response.message;
 
-        // Redirect with a small delay for better UX
-        const redirectTo = route.query.redirect || "/";
-        setTimeout(() => {
-            router.push(redirectTo);
-        }, 800);
-    } else {
+            // Show success notification
+            notificationStore.success(
+                "OTP Sent",
+                "Please check your email for the password reset OTP."
+            );
+
+            // Redirect to OTP verification after a delay
+            setTimeout(() => {
+                router.push({
+                    path: "/verify-otp",
+                    query: { email: form.email },
+                });
+            }, 2000);
+        } else {
+            // Show error notification
+            notificationStore.error(
+                "Request Failed",
+                response.message || "Failed to send password reset OTP."
+            );
+            errors.general =
+                response.message || "Failed to send password reset OTP.";
+        }
+    } catch (error) {
+        console.error("Forgot password error:", error);
+
         // Show error notification
         notificationStore.error(
-            "Login Failed",
-            result.error || "Invalid email or password. Please try again."
+            "Request Failed",
+            error.response?.data?.message ||
+                "An error occurred. Please try again."
         );
-        errors.general = result.error || "Login failed. Please try again.";
-    }
-};
-
-const handleForgotPassword = () => {
-    router.push("/forgot-password");
-};
-
-const fillDemoCredentials = () => {
-    form.email = "admin@sintiya.com";
-    form.password = "admin123";
-    clearErrors();
-
-    // Add a subtle animation to indicate the form has been filled
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-
-    if (emailInput && passwordInput) {
-        emailInput.classList.add("ring-2", "ring-green-500");
-        passwordInput.classList.add("ring-2", "ring-green-500");
-
-        setTimeout(() => {
-            emailInput.classList.remove("ring-2", "ring-green-500");
-            passwordInput.classList.remove("ring-2", "ring-green-500");
-        }, 1000);
+        errors.general =
+            error.response?.data?.message ||
+            "An error occurred. Please try again.";
+    } finally {
+        isLoading.value = false;
     }
 };
 </script>

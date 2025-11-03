@@ -14,6 +14,89 @@
                 </p>
             </div>
             <div class="flex gap-2">
+                <!-- Export Dropdown -->
+                <div class="relative" ref="exportDropdownRef">
+                    <Button
+                        @click="toggleExportDropdown"
+                        variant="secondary"
+                        size="sm"
+                        :loading="exporting"
+                    >
+                        <svg
+                            class="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                        </svg>
+                        Export
+                        <svg
+                            class="w-4 h-4 ml-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </Button>
+
+                    <!-- Dropdown Menu -->
+                    <div
+                        v-if="showExportDropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg z-10"
+                    >
+                        <button
+                            @click="handleExport('excel')"
+                            class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center rounded-t-lg transition-colors"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-2 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                            Export to Excel
+                        </button>
+                        <button
+                            @click="handleExport('pdf')"
+                            class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center rounded-b-lg transition-colors"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-2 text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                            </svg>
+                            Export to PDF
+                        </button>
+                    </div>
+                </div>
+
                 <Button
                     @click="showTreeView = !showTreeView"
                     variant="secondary"
@@ -308,8 +391,8 @@
             :show-actions="true"
             :show-add-button="true"
             add-button-text="Add Account"
-            :show-filters="true"
-            :show-export="true"
+            :show-filters="false"
+            :show-export="false"
             :show-bulk-actions="false"
             :show-refresh="true"
             :refresh-loading="refreshLoading"
@@ -1628,7 +1711,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import DataTable from "../../components/UI/DataTable.vue";
 import Modal from "../../components/Overlays/Modal.vue";
 import ConfirmationModal from "../../components/Overlays/ConfirmationModal.vue";
@@ -1669,6 +1752,9 @@ const movingAccount = ref(false);
 const loadingTree = ref(false);
 const loadingBalanceHistory = ref(false);
 const loadingAuditTrail = ref(false);
+const exporting = ref(false);
+const showExportDropdown = ref(false);
+const exportDropdownRef = ref(null);
 
 // Tree data
 const treeData = ref([]);
@@ -2227,8 +2313,91 @@ const handleSort = (sortField, sortDirection) => {
     });
 };
 
+// Export methods
+const toggleExportDropdown = () => {
+    showExportDropdown.value = !showExportDropdown.value;
+};
+
+const handleExport = async (format) => {
+    showExportDropdown.value = false;
+    exporting.value = true;
+
+    try {
+        // Build filter params
+        const params = {
+            format: format, // 'excel' or 'pdf'
+        };
+
+        // Add current filters
+        if (typeFilter.value) params.type = typeFilter.value;
+        if (statusFilter.value) params.is_active = statusFilter.value;
+        if (levelFilter.value) params.level = levelFilter.value;
+        if (showDeleted.value) params.with_deleted = true;
+
+        // Make POST request to export endpoint
+        const response = await apiPost("chart-of-accounts/export", params);
+
+        if (response && response.success && response.filename) {
+            notification.success(
+                `Export ${format.toUpperCase()} started. File: ${response.filename}`
+            );
+
+            // Auto-download the file
+            setTimeout(() => {
+                downloadExportFile(response.filename);
+            }, 1500);
+        } else {
+            notification.error("Export failed. Please try again.");
+        }
+    } catch (error) {
+        console.error("Export error:", error);
+        notification.error(
+            error.message || `Failed to export to ${format.toUpperCase()}`
+        );
+    } finally {
+        exporting.value = false;
+    }
+};
+
+const downloadExportFile = async (filename) => {
+    try {
+        // Create download link
+        const token = localStorage.getItem("token");
+        const downloadUrl = `/api/chart-of-accounts/export/${filename}?token=${token}`;
+
+        // Create temporary anchor element for download
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        notification.success("Download started");
+    } catch (error) {
+        console.error("Download error:", error);
+        notification.error("Failed to download file");
+    }
+};
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+    if (
+        exportDropdownRef.value &&
+        !exportDropdownRef.value.contains(event.target)
+    ) {
+        showExportDropdown.value = false;
+    }
+};
+
 // Lifecycle
 onMounted(() => {
     fetchAccounts();
+    // Add click outside listener
+    document.addEventListener("click", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener("click", handleClickOutside);
 });
 </script>

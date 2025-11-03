@@ -56,6 +56,11 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::middleware('throttle.password.reset')->group(function () {
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
+        Route::post('reset-password', [AuthController::class, 'resetPassword']);
+    });
 });
 
 // Protected routes
@@ -192,8 +197,8 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
 
     // Profile management routes
     Route::get('profile', [UserController::class, 'getProfile']);
-    Route::put('profile', [UserController::class, 'updateProfile']);
-    Route::put('profile/password', [UserController::class, 'updatePassword']);
+    Route::post('profile', [UserController::class, 'updateProfile']);
+    Route::post('profile/password', [UserController::class, 'updatePassword']);
 
     // System Settings routes (update only - index is public)
     Route::put('settings', [SettingController::class, 'update']);

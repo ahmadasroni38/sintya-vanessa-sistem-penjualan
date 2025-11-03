@@ -3,6 +3,9 @@ import { useAuthStore } from "../stores/auth";
 
 // Auth Views
 import Login from "../views/Auth/Login.vue";
+import ForgotPassword from "../views/Auth/ForgotPassword.vue";
+import VerifyOTP from "../views/Auth/VerifyOTP.vue";
+import ResetPassword from "../views/Auth/ResetPassword.vue";
 
 // Dashboard Views
 import DashboardLayout from "../layouts/DashboardLayout.vue";
@@ -52,6 +55,24 @@ const routes = [
         path: "/login",
         name: "login",
         component: Login,
+        meta: { requiresGuest: true },
+    },
+    {
+        path: "/forgot-password",
+        name: "forgot-password",
+        component: ForgotPassword,
+        meta: { requiresGuest: true },
+    },
+    {
+        path: "/verify-otp",
+        name: "verify-otp",
+        component: VerifyOTP,
+        meta: { requiresGuest: true },
+    },
+    {
+        path: "/reset-password",
+        name: "reset-password",
+        component: ResetPassword,
         meta: { requiresGuest: true },
     },
     {
