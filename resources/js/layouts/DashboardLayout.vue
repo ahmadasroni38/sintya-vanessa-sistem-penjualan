@@ -68,8 +68,8 @@
                     "
                     :title="
                         sidebarState === 'desktop-collapsed'
-                            ? 'Expand Sidebar'
-                            : 'Collapse Sidebar'
+                            ? $t('sidebar.expandSidebar')
+                            : $t('sidebar.collapseSidebar')
                     "
                 >
                     <component :is="toggleIcon" class="w-5 h-5" />
@@ -92,7 +92,7 @@
                         @input="handleSidebarSearch"
                         type="text"
                         class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-400 transition-all duration-200"
-                        placeholder="Cari menu..."
+                        :placeholder="$t('sidebar.search')"
                     />
                 </div>
             </div>
@@ -109,7 +109,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            {{ filteredMenuSections.main.title }}
+                            {{ $t(filteredMenuSections.main.title) }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -144,7 +144,7 @@
                                         "
                                         class="transition-opacity duration-300"
                                     >
-                                        {{ item.text }}
+                                        {{ $t(item.text) }}
                                     </span>
                                 </router-link>
 
@@ -153,7 +153,7 @@
                                     v-if="sidebarState === 'desktop-collapsed'"
                                     class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
-                                    {{ item.text }}
+                                    {{ $t(item.text) }}
                                     <div
                                         class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
                                     ></div>
@@ -173,7 +173,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            {{ filteredMenuSections.salesManagement.title }}
+                            {{ $t(filteredMenuSections.salesManagement.title) }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -209,7 +209,7 @@
                                         "
                                         class="transition-opacity duration-300"
                                     >
-                                        {{ item.text }}
+                                        {{ $t(item.text) }}
                                     </span>
                                 </router-link>
 
@@ -218,7 +218,7 @@
                                     v-if="sidebarState === 'desktop-collapsed'"
                                     class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
-                                    {{ item.text }}
+                                    {{ $t(item.text) }}
                                     <div
                                         class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
                                     ></div>
@@ -238,7 +238,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            {{ filteredMenuSections.warehouseManagement.title }}
+                            {{ $t(filteredMenuSections.warehouseManagement.title) }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -274,7 +274,7 @@
                                         "
                                         class="transition-opacity duration-300"
                                     >
-                                        {{ item.text }}
+                                        {{ $t(item.text) }}
                                     </span>
                                 </router-link>
 
@@ -283,7 +283,7 @@
                                     v-if="sidebarState === 'desktop-collapsed'"
                                     class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
-                                    {{ item.text }}
+                                    {{ $t(item.text) }}
                                     <div
                                         class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
                                     ></div>
@@ -304,7 +304,7 @@
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
                             {{
-                                filteredMenuSections.accountingManagement.title
+                                $t(filteredMenuSections.accountingManagement.title)
                             }}
                         </h3>
                         <ul class="space-y-1">
@@ -341,7 +341,7 @@
                                         "
                                         class="transition-opacity duration-300"
                                     >
-                                        {{ item.text }}
+                                        {{ $t(item.text) }}
                                     </span>
                                 </router-link>
 
@@ -350,7 +350,7 @@
                                     v-if="sidebarState === 'desktop-collapsed'"
                                     class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
-                                    {{ item.text }}
+                                    {{ $t(item.text) }}
                                     <div
                                         class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
                                     ></div>
@@ -369,7 +369,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
-                            {{ filteredMenuSections.userManagement.title }}
+                            {{ $t(filteredMenuSections.userManagement.title) }}
                         </h3>
                         <ul class="space-y-1">
                             <li
@@ -405,7 +405,7 @@
                                         "
                                         class="transition-opacity duration-300"
                                     >
-                                        {{ item.text }}
+                                        {{ $t(item.text) }}
                                     </span>
                                 </router-link>
 
@@ -414,7 +414,7 @@
                                     v-if="sidebarState === 'desktop-collapsed'"
                                     class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                                 >
-                                    {{ item.text }}
+                                    {{ $t(item.text) }}
                                     <div
                                         class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
                                     ></div>
@@ -456,7 +456,7 @@
                             v-if="sidebarState !== 'desktop-collapsed'"
                             class="transition-opacity duration-300"
                         >
-                            Pengaturan Sistem
+                            {{ $t('sidebar.settings') }}
                         </span>
                     </router-link>
 
@@ -465,7 +465,7 @@
                         v-if="sidebarState === 'desktop-collapsed'"
                         class="absolute left-full bottom-4 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
                     >
-                        Pengaturan Sistem
+                        {{ $t('sidebar.settings') }}
                         <div
                             class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
                         ></div>
@@ -569,6 +569,41 @@
 
                     <!-- Mobile Actions -->
                     <div class="flex items-center gap-2">
+                        <!-- Language Switcher -->
+                        <div class="relative">
+                            <button
+                                @click="showLanguageDropdown = !showLanguageDropdown"
+                                type="button"
+                                class="language-button p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
+                                :title="$t('language.select')"
+                            >
+                                <GlobeAltIcon class="w-5 h-5" />
+                            </button>
+                            <!-- Language Dropdown -->
+                            <div
+                                v-if="showLanguageDropdown"
+                                class="language-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                                @click.stop
+                            >
+                                <div class="py-1">
+                                    <button
+                                        @click="changeLanguage('id')"
+                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+                                        :class="{ 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300': locale === 'id' }"
+                                    >
+                                        🇮🇩 {{ $t('language.indonesian') }}
+                                    </button>
+                                    <button
+                                        @click="changeLanguage('en')"
+                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+                                        :class="{ 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300': locale === 'en' }"
+                                    >
+                                        🇺🇸 {{ $t('language.english') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <button
                             @click="themeStore.toggleTheme"
                             type="button"
@@ -625,14 +660,14 @@
                                 class="h-4 w-px bg-gray-300 dark:bg-gray-600"
                             ></div>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
-                                &copy; 2025 Nama Perusahaan
+                                &copy; 2025 {{ $t('footer.company') }}
                             </p>
                         </div>
                         <div class="flex items-center gap-6">
                             <span
                                 class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
                             >
-                                Version 1.0.0
+                                {{ $t('footer.version') }} 1.0.0
                             </span>
                         </div>
                     </div>
@@ -647,6 +682,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useThemeStore } from "../stores/theme";
 import { useAuthStore } from "../stores/auth";
+import { useI18n } from "vue-i18n";
 import Navbar from "../components/Layout/Navbar.vue";
 import NotificationContainer from "../components/UI/NotificationContainer.vue";
 import {
@@ -677,17 +713,20 @@ import {
     AdjustmentsHorizontalIcon,
     DocumentDuplicateIcon,
     ShoppingCartIcon,
+    GlobeAltIcon,
 } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const router = useRouter();
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
+const { t, locale } = useI18n();
 
 const searchQuery = ref("");
 const sidebarCollapsed = ref(false);
 const isHovering = ref(false);
 const isMobile = ref(false);
+const showLanguageDropdown = ref(false);
 
 // Check if mobile device
 const checkIfMobile = () => {
@@ -711,10 +750,10 @@ const handleMouseLeave = () => {
 // Menu data structure
 const menuSections = {
     main: {
-        title: "Utama",
+        title: "sidebar.main",
         items: [
             {
-                text: "Dasbor",
+                text: "sidebar.dashboard",
                 route: "/",
                 routeName: "Dashboard",
                 icon: HomeIcon,
@@ -722,46 +761,46 @@ const menuSections = {
         ],
     },
     accountingManagement: {
-        title: "Manajemen Akuntansi",
+        title: "sidebar.accountingManagement",
         items: [
             {
-                text: "Jurnal Umum",
+                text: "sidebar.journalEntries",
                 route: "/journal-entries",
                 routeName: "journal-entries.index",
                 icon: BookOpenIcon,
             },
             {
-                text: "Chart of Accounts (COA)",
+                text: "sidebar.coa",
                 route: "/chart-of-accounts",
                 routeName: "coa.index",
                 icon: ClipboardDocumentListIcon,
             },
             {
-                text: "Neraca Lajur",
+                text: "sidebar.neracaLajur",
                 route: "/reports/neraca-lajur",
                 routeName: "reports.neraca-lajur",
                 icon: DocumentDuplicateIcon,
             },
             {
-                text: "Neraca",
+                text: "sidebar.neraca",
                 route: "/reports/neraca",
                 routeName: "reports.neraca",
                 icon: DocumentTextIcon,
             },
             {
-                text: "Laba Rugi",
+                text: "sidebar.labaRugi",
                 route: "/reports/laba-rugi",
                 routeName: "reports.laba-rugi",
                 icon: ChartBarIcon,
             },
             {
-                text: "Perubahan Modal",
+                text: "sidebar.perubahanModal",
                 route: "/reports/perubahan-modal",
                 routeName: "reports.perubahan-modal",
                 icon: CurrencyDollarIcon,
             },
             {
-                text: "Arus Kas",
+                text: "sidebar.arusKas",
                 route: "/reports/arus-kas",
                 routeName: "reports.arus-kas",
                 icon: BanknotesIcon,
@@ -769,46 +808,46 @@ const menuSections = {
         ],
     },
     warehouseManagement: {
-        title: "Manajemen Gudang",
+        title: "sidebar.warehouseManagement",
         items: [
             {
-                text: "Produk",
+                text: "sidebar.products",
                 route: "/products",
                 routeName: "products.index",
                 icon: TagIcon,
             },
             {
-                text: "Lokasi",
+                text: "sidebar.locations",
                 route: "/locations",
                 routeName: "locations.index",
                 icon: MapPinIcon,
             },
             {
-                text: "Stock Masuk",
+                text: "sidebar.stockMasuk",
                 route: "/stock-masuk",
                 routeName: "stock-masuk.index",
                 icon: ArchiveBoxIcon,
             },
             {
-                text: "Mutasi",
+                text: "sidebar.mutasi",
                 route: "/mutasi",
                 routeName: "mutasi.index",
                 icon: ArrowsRightLeftIcon,
             },
             {
-                text: "Penyesuaian",
+                text: "sidebar.adjustment",
                 route: "/adjustment",
                 routeName: "adjustment.index",
                 icon: AdjustmentsHorizontalIcon,
             },
             {
-                text: "Stockopname",
+                text: "sidebar.stockopname",
                 route: "/stockopname",
                 routeName: "stockopname.index",
                 icon: ClipboardDocumentListIcon,
             },
             {
-                text: "Buku Stock",
+                text: "sidebar.bukuStock",
                 route: "/buku-stock",
                 routeName: "buku-stock.index",
                 icon: BookOpenIcon,
@@ -816,22 +855,22 @@ const menuSections = {
         ],
     },
     userManagement: {
-        title: "Manajemen Pengguna",
+        title: "sidebar.userManagement",
         items: [
             {
-                text: "Pengguna",
+                text: "sidebar.users",
                 route: "/users",
                 routeName: "Users",
                 icon: UsersIcon,
             },
             {
-                text: "Peran",
+                text: "sidebar.roles",
                 route: "/roles",
                 routeName: "Roles",
                 icon: ShieldCheckIcon,
             },
             {
-                text: "Izin",
+                text: "sidebar.permissions",
                 route: "/permissions",
                 routeName: "Permissions",
                 icon: KeyIcon,
@@ -839,16 +878,16 @@ const menuSections = {
         ],
     },
     salesManagement: {
-        title: "Manajemen Penjualan",
+        title: "sidebar.salesManagement",
         items: [
             {
-                text: "Penjualan",
+                text: "sidebar.sales",
                 route: "/sales",
                 routeName: "sales.index",
                 icon: ShoppingCartIcon,
             },
             {
-                text: "Pelanggan",
+                text: "sidebar.customers",
                 route: "/customers",
                 routeName: "customers.index",
                 icon: UsersIcon,
@@ -859,28 +898,38 @@ const menuSections = {
 
 // Computed property for filtered menu sections
 const filteredMenuSections = computed(() => {
-    if (!searchQuery.value || !searchQuery.value.trim()) {
-        return menuSections;
-    }
+    try {
+        if (!searchQuery.value || !searchQuery.value.trim()) {
+            return menuSections;
+        }
 
-    const query = searchQuery.value.toLowerCase().trim();
-    const filtered = {};
+        const query = searchQuery.value.toLowerCase().trim();
+        const filtered = {};
 
-    Object.keys(menuSections).forEach((sectionKey) => {
-        const section = menuSections[sectionKey];
-        const filteredItems = section.items.filter((item) =>
-            item.text.toLowerCase().includes(query)
-        );
+        Object.keys(menuSections).forEach((sectionKey) => {
+            const section = menuSections[sectionKey];
+            const filteredItems = section.items.filter((item) => {
+                try {
+                    return t(item.text).toLowerCase().includes(query);
+                } catch (error) {
+                    console.error('Translation error for:', item.text, error);
+                    return false;
+                }
+            });
 
-        if (filteredItems.length > 0) {
+            // Always include the section, even if no items match
             filtered[sectionKey] = {
                 ...section,
                 items: filteredItems,
             };
-        }
-    });
+        });
 
-    return filtered;
+        return filtered;
+    } catch (error) {
+        console.error('Error in filteredMenuSections:', error);
+        // Return the original menuSections as fallback
+        return menuSections;
+    }
 });
 
 // Computed property for sidebar state
@@ -910,28 +959,29 @@ const toggleSidebar = () => {
 
 const getPageTitle = () => {
     const titles = {
-        Dashboard: "Dasbor",
-        Users: "Pengguna",
-        Roles: "Peran",
-        Permissions: "Izin",
-        settings: "Pengaturan Sistem",
-        "journal-entries.index": "Jurnal Umum",
-        "coa.index": "Chart of Accounts (COA)",
-        "reports.neraca-lajur": "Neraca Lajur",
-        "reports.neraca": "Neraca",
-        "reports.laba-rugi": "Laba Rugi",
-        "reports.perubahan-modal": "Perubahan Modal",
-        "reports.arus-kas": "Arus Kas",
-        "locations.index": "Lokasi",
-        "stock-masuk.index": "Stock Masuk",
-        "mutasi.index": "Mutasi",
-        "adjustment.index": "Penyesuaian",
-        "stockopname.index": "Stockopname",
-        "buku-stock.index": "Buku Stock",
-        "sales.index": "Penjualan",
-        "products.index": "Produk",
+        Dashboard: "header.dashboard",
+        Users: "header.users",
+        Roles: "header.roles",
+        Permissions: "header.permissions",
+        settings: "header.settings",
+        "journal-entries.index": "header.journalEntries",
+        "coa.index": "header.coa",
+        "reports.neraca-lajur": "header.neracaLajur",
+        "reports.neraca": "header.neraca",
+        "reports.laba-rugi": "header.labaRugi",
+        "reports.perubahan-modal": "header.perubahanModal",
+        "reports.arus-kas": "header.arusKas",
+        "locations.index": "header.locations",
+        "stock-masuk.index": "header.stockMasuk",
+        "mutasi.index": "header.mutasi",
+        "adjustment.index": "header.adjustment",
+        "stockopname.index": "header.stockopname",
+        "buku-stock.index": "header.bukuStock",
+        "sales.index": "header.sales",
+        "products.index": "header.products",
     };
-    return titles[route.name] || "Dasbor";
+    const key = titles[route.name] || "header.dashboard";
+    return t(key);
 };
 
 const getPageDescription = () => {
@@ -958,6 +1008,13 @@ const handleSidebarSearch = () => {
     console.log("Sidebar search query:", searchQuery.value);
 };
 
+const changeLanguage = (lang) => {
+    locale.value = lang;
+    showLanguageDropdown.value = false;
+    // Store language preference in localStorage
+    localStorage.setItem('language', lang);
+};
+
 const ensureUserData = async () => {
     if (!authStore.user && authStore.token) {
         await authStore.checkAuth();
@@ -972,5 +1029,21 @@ onMounted(async () => {
 
     // Add event listener for window resize
     window.addEventListener("resize", checkIfMobile);
+
+    // Load saved language preference
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'id')) {
+        locale.value = savedLanguage;
+    }
+
+    // Add click outside handler for language dropdown
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        const dropdown = document.querySelector('.language-dropdown');
+        const button = document.querySelector('.language-button');
+        if (!button?.contains(target) && !dropdown?.contains(target)) {
+            showLanguageDropdown.value = false;
+        }
+    });
 });
 </script>

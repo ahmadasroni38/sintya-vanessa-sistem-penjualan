@@ -5,6 +5,7 @@ import App from "./App.vue";
 import router from "./router";
 import { useThemeStore } from "./stores/theme";
 import { useAuthStore } from "./stores/auth";
+import i18n from "./i18n";
 
 // Import Preline
 import "preline/preline.js";
@@ -23,6 +24,7 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
+app.use(i18n);
 
 // Global error handler for Vue
 app.config.errorHandler = (err, instance, info) => {
