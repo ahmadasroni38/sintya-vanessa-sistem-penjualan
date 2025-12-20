@@ -6,10 +6,10 @@
         >
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    Customer Management
+                    {{ $t('customers.title') }}
                 </h1>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">
-                    Manage your customer database and relationships
+                    {{ $t('customers.subtitle') }}
                 </p>
             </div>
             <div class="flex items-center gap-3">
@@ -40,14 +40,14 @@
                         ></path>
                     </svg>
                     <ArrowDownTrayIcon v-else class="w-4 h-4" />
-                    {{ exporting ? "Exporting..." : "Export" }}
+                    {{ exporting ? $t('customers.exporting') : $t('customers.export') }}
                 </button>
                 <button
                     @click="showAddModal = true"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <PlusIcon class="w-4 h-4" />
-                    New Customer
+                    {{ $t('customers.newCustomer') }}
                 </button>
             </div>
         </div>
@@ -57,7 +57,7 @@
 
         <!-- Customers Table -->
         <DataTable
-            title="Customers"
+            :title="$t('customers.customersTable')"
             :data="customers"
             :columns="columns"
             :loading="loading"
@@ -82,7 +82,7 @@
                         type="button"
                         @click.stop.prevent="handleCustomAction('view', item)"
                         class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
-                        title="View Details"
+                        :title="$t('customers.viewDetails')"
                     >
                         <EyeIcon class="w-4 h-4" />
                     </button>
@@ -92,7 +92,7 @@
                         type="button"
                         @click.stop.prevent="handleEdit(item)"
                         class="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-200 dark:hover:text-amber-400 dark:hover:bg-amber-900/20"
-                        title="Edit Customer"
+                        :title="$t('customers.editCustomer')"
                     >
                         <PencilIcon class="w-4 h-4" />
                     </button>
@@ -104,8 +104,8 @@
                         class="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200 dark:hover:text-purple-400 dark:hover:bg-purple-900/20"
                         :title="
                             item.status === 'active'
-                                ? 'Set Inactive'
-                                : 'Set Active'
+                                ? $t('customers.setInactive')
+                                : $t('customers.setActive')
                         "
                     >
                         <ArrowPathIcon class="w-4 h-4" />
@@ -116,7 +116,7 @@
                         type="button"
                         @click.stop.prevent="handleDelete(item)"
                         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
-                        title="Delete Customer"
+                        :title="$t('customers.deleteCustomer')"
                     >
                         <TrashIcon class="w-4 h-4" />
                     </button>
@@ -135,13 +135,13 @@
         <!-- Delete Confirmation Modal -->
         <ConfirmationModal
             :is-open="showDeleteModal"
-            title="Delete Customer"
-            :message="`Are you sure you want to delete ${
-                deletingCustomer?.customer_name || 'this customer'
+            :title="$t('customers.deleteCustomerTitle')"
+            :message="`${$t('customers.deleteCustomerMessage')} ${
+                deletingCustomer?.customer_name || $t('customers.thisCustomer')
             }?`"
-            description="This action cannot be undone. Customers with existing sales cannot be deleted."
-            confirm-text="Delete"
-            cancel-text="Cancel"
+            :description="$t('customers.deleteCustomerDescription')"
+            :confirm-text="$t('customers.delete')"
+            :cancel-text="$t('customers.cancel')"
             :loading="deleting"
             @confirm="confirmDelete"
             @cancel="cancelDelete"
@@ -150,19 +150,19 @@
         <!-- Toggle Status Confirmation Modal -->
         <ConfirmationModal
             :is-open="showToggleStatusModal"
-            :title="`${
+            :title="
                 togglingCustomer?.status === 'active'
-                    ? 'Deactivate Customer'
-                    : 'Activate Customer'
-            }`"
-            :message="`Are you sure you want to ${
+                    ? $t('customers.deactivateCustomer')
+                    : $t('customers.activateCustomer')
+            "
+            :message="`${
                 togglingCustomer?.status === 'active'
-                    ? 'deactivate'
-                    : 'activate'
-            } ${togglingCustomer?.customer_name || 'this customer'}?`"
-            description="This will change the customer's status and affect their ability to make purchases."
-            confirm-text="Confirm"
-            cancel-text="Cancel"
+                    ? $t('customers.deactivateMessage')
+                    : $t('customers.activateMessage')
+            } ${togglingCustomer?.customer_name || $t('customers.thisCustomer')}?`"
+            :description="$t('customers.toggleStatusDescription')"
+            :confirm-text="$t('customers.confirm')"
+            :cancel-text="$t('customers.cancel')"
             :loading="toggleStatusLoading"
             @confirm="confirmToggleStatus"
             @cancel="cancelToggleStatus"
@@ -190,6 +190,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useCustomers } from "@/composables/useCustomers";
 import { useSales } from "@/composables/useSales";
 import DataTable from "@/components/UI/DataTable.vue";
@@ -207,6 +208,8 @@ import {
     ArrowPathIcon,
 } from "@heroicons/vue/24/outline";
 import { useNotificationStore } from "@/stores/notification";
+
+const { t } = useI18n();
 
 // Use Customers Composable
 const {
@@ -257,43 +260,49 @@ const customers = computed(() => customersData.value);
 const pagination = computed(() => paginationData.value);
 
 // Table columns
-const columns = [
+const columns = computed(() => [
     {
         key: "customer_code",
-        label: "Code",
+        label: t("customers.code"),
         sortable: true,
     },
     {
         key: "customer_name",
-        label: "Name",
+        label: t("customers.name"),
         sortable: true,
     },
     {
         key: "phone",
-        label: "Phone",
+        label: t("customers.phone"),
         sortable: false,
         format: (value) => value || "-",
     },
     {
         key: "email",
-        label: "Email",
+        label: t("customers.email"),
         sortable: false,
         format: (value) => value || "-",
     },
     {
         key: "status",
-        label: "Status",
+        label: t("customers.status"),
         sortable: true,
-        format: (value) => value,
+        format: (value) => {
+            const statuses = {
+                active: t("customers.statusActive"),
+                inactive: t("customers.statusInactive"),
+            };
+            return statuses[value] || value;
+        },
         class: (value) => getStatusClass(value),
     },
     {
         key: "created_at",
-        label: "Created",
+        label: t("customers.created"),
         sortable: true,
         format: (value) => formatDate(value),
     },
-];
+]);
 
 // Event Handlers
 const handleRefresh = async () => {
@@ -307,9 +316,9 @@ const handleRefresh = async () => {
         await fetchCustomerStats().then((data) => {
             stats.value = data;
         });
-        notificationStore.success("Customers refreshed successfully");
+        notificationStore.success(t("customers.refreshSuccess"));
     } catch (error) {
-        notificationStore.error("Error refreshing customers", error.message);
+        notificationStore.error(t("customers.refreshError"), error.message);
     } finally {
         refreshing.value = false;
         statsLoading.value = false;
@@ -350,7 +359,7 @@ const handleCustomAction = async (action, customer) => {
             viewingCustomer.value = response.data;
         } catch (error) {
             notificationStore.error(
-                "Error fetching customer details",
+                t("customers.detailsError"),
                 error.message
             );
         } finally {
@@ -371,12 +380,12 @@ const confirmToggleStatus = async () => {
     toggleStatusLoading.value = true;
     try {
         await toggleCustomerStatus(togglingCustomer.value.id);
-        notificationStore.success("Customer status updated successfully");
+        notificationStore.success(t("customers.statusUpdateSuccess"));
         await handleRefresh();
         cancelToggleStatus();
     } catch (error) {
         notificationStore.error(
-            "Error toggling customer status",
+            t("customers.statusError"),
             error.message
         );
     } finally {
@@ -393,9 +402,9 @@ const handleExport = async () => {
     exporting.value = true;
     try {
         await exportCustomers();
-        notificationStore.success("Customers exported successfully");
+        notificationStore.success(t("customers.exportSuccess"));
     } catch (error) {
-        notificationStore.error("Error exporting customers", error.message);
+        notificationStore.error(t("customers.exportError"), error.message);
     } finally {
         exporting.value = false;
     }
@@ -405,15 +414,15 @@ const handleFormSave = async (customerData) => {
     try {
         if (editingCustomer.value) {
             await updateCustomer(editingCustomer.value.id, customerData);
-            notificationStore.success("Customer updated successfully");
+            notificationStore.success(t("customers.updateSuccess"));
         } else {
             await createCustomer(customerData);
-            notificationStore.success("Customer created successfully");
+            notificationStore.success(t("customers.createSuccess"));
         }
         closeModal();
         await handleRefresh();
     } catch (error) {
-        notificationStore.error("Error saving customer", error.message);
+        notificationStore.error(t("customers.saveError"), error.message);
     }
 };
 
@@ -421,12 +430,12 @@ const confirmDelete = async () => {
     deleting.value = true;
     try {
         await deleteCustomerApi(deletingCustomer.value.id);
-        notificationStore.success("Customer deleted successfully");
+        notificationStore.success(t("customers.deleteSuccess"));
         showDeleteModal.value = false;
         deletingCustomer.value = null;
         await handleRefresh();
     } catch (error) {
-        notificationStore.error("Error deleting customer", error.message);
+        notificationStore.error(t("customers.deleteError"), error.message);
     } finally {
         deleting.value = false;
     }
@@ -463,7 +472,7 @@ const handleViewSale = async (sale) => {
         viewingSale.value = fullSale;
         showSalesDetailsModal.value = true;
     } catch (error) {
-        notificationStore.error("Error fetching sale details", error.message);
+        notificationStore.error(t("customers.detailsError"), error.message);
     }
 };
 

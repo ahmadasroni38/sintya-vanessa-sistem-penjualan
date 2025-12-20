@@ -6,10 +6,10 @@
         >
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    Locations
+                    {{ $t('locations.title') }}
                 </h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Manage physical locations and their hierarchical structure
+                    {{ $t('locations.subtitle') }}
                 </p>
             </div>
         </div>
@@ -29,7 +29,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Total Locations
+                            {{ $t('locations.totalLocations') }}
                         </p>
                         <p
                             class="text-2xl font-semibold text-gray-900 dark:text-white"
@@ -52,7 +52,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Active Locations
+                            {{ $t('locations.activeLocations') }}
                         </p>
                         <p
                             class="text-2xl font-semibold text-gray-900 dark:text-white"
@@ -73,7 +73,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Root Locations
+                            {{ $t('locations.rootLocations') }}
                         </p>
                         <p
                             class="text-2xl font-semibold text-gray-900 dark:text-white"
@@ -96,7 +96,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            New This Month
+                            {{ $t('locations.newThisMonth') }}
                         </p>
                         <p
                             class="text-2xl font-semibold text-gray-900 dark:text-white"
@@ -110,22 +110,22 @@
 
         <!-- DataTable -->
         <DataTable
-            title="Locations"
-            description="A list of all physical locations in your system including their hierarchy and status."
+            :title="$t('locations.tableTitle')"
+            :description="$t('locations.tableDescription')"
             :data="locations"
             :columns="columns"
             :loading="loading"
             :selectable="true"
             :show-actions="true"
             :show-add-button="true"
-            add-button-text="Create Location"
+            :add-button-text="$t('locations.createLocation')"
             :show-filters="false"
             :show-bulk-actions="true"
             :show-refresh="true"
             :refresh-loading="refreshLoading"
-            search-placeholder="Search locations..."
-            empty-title="No locations found"
-            empty-description="Get started by creating your first location."
+            :search-placeholder="$t('locations.searchPlaceholder')"
+            :empty-title="$t('locations.emptyTitle')"
+            :empty-description="$t('locations.emptyDescription')"
             @add="handleAddLocation"
             @edit="handleEditLocation"
             @delete="handleDeleteLocation"
@@ -161,7 +161,7 @@
             <template #column-address="{ item }">
                 <div class="max-w-xs">
                     <p class="text-sm text-gray-900 dark:text-white truncate">
-                        {{ item.full_address || "No address" }}
+                        {{ item.full_address || $t('locations.noAddress') }}
                     </p>
                     <p
                         v-if="item.city || item.country"
@@ -188,7 +188,7 @@
                     </span>
                 </div>
                 <span v-else class="text-sm text-gray-500 dark:text-gray-400">
-                    Root Location
+                    {{ $t('locations.rootLocation') }}
                 </span>
             </template>
 
@@ -203,7 +203,7 @@
                     ></div>
                     <span
                         class="text-sm text-gray-900 dark:text-white capitalize"
-                        >{{ item.is_active ? "Active" : "Inactive" }}</span
+                        >{{ item.is_active ? $t('products.statusActive') : $t('products.statusInactive') }}</span
                     >
                 </div>
             </template>
@@ -218,9 +218,7 @@
                             : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
                     ]"
                 >
-                    {{ item.children_count }} child{{
-                        item.children_count !== 1 ? "ren" : ""
-                    }}
+                    {{ item.children_count }} {{ item.children_count !== 1 ? $t('locations.childrenPlural') : $t('locations.child') }}
                 </span>
             </template>
 
@@ -230,7 +228,7 @@
                     <button
                         @click="handleEditLocation(item)"
                         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
-                        title="Edit Location"
+                        :title="$t('locations.editLocation')"
                     >
                         <PencilIcon class="w-4 h-4" />
                     </button>
@@ -244,8 +242,8 @@
                         ]"
                         :title="
                             item.is_active
-                                ? 'Deactivate Location'
-                                : 'Activate Location'
+                                ? $t('locations.deactivateLocation')
+                                : $t('locations.activateLocation')
                         "
                     >
                         <PlayIcon v-if="!item.is_active" class="w-4 h-4" />
@@ -254,7 +252,7 @@
                     <button
                         @click="handleDeleteLocation(item)"
                         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
-                        title="Delete Location"
+                        :title="$t('locations.deleteLocation')"
                     >
                         <TrashIcon class="w-4 h-4" />
                     </button>
@@ -269,7 +267,7 @@
             size="lg"
         >
             <template #title>
-                {{ showCreateModal ? "Create Location" : "Edit Location" }}
+                {{ showCreateModal ? $t('locations.createLocationTitle') : $t('locations.editLocationTitle') }}
             </template>
 
             <form @submit.prevent="saveLocation" class="space-y-6">
@@ -278,27 +276,27 @@
                     <h3
                         class="text-lg font-medium text-gray-900 dark:text-white"
                     >
-                        Basic Information
+                        {{ $t('locations.basicInformation') }}
                     </h3>
                     <FormInput
                         v-model="locationForm.name"
-                        label="Name"
-                        placeholder="Enter location name"
+                        :label="$t('locations.name')"
+                        :placeholder="$t('locations.namePlaceholder')"
                         :error="getFieldError('name')"
                         required
                         @blur="handleFieldBlur('name')"
                     />
                     <FormInput
                         v-model="locationForm.code"
-                        label="Code"
-                        placeholder="Enter location code (optional - auto-generated if empty)"
+                        :label="$t('locations.code')"
+                        :placeholder="$t('locations.codePlaceholder')"
                         :error="getFieldError('code')"
                         @blur="handleFieldBlur('code')"
                     />
                     <FormTextarea
                         v-model="locationForm.description"
-                        label="Description"
-                        placeholder="Enter location description"
+                        :label="$t('locations.description')"
+                        :placeholder="$t('locations.descriptionPlaceholder')"
                         :error="getFieldError('description')"
                         rows="3"
                         @blur="handleFieldBlur('description')"
@@ -306,7 +304,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <FormInput
                             v-model="locationForm.color"
-                            label="Color"
+                            :label="$t('locations.color')"
                             type="color"
                             :error="getFieldError('color')"
                             @blur="handleFieldBlur('color')"
@@ -316,7 +314,7 @@
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                             >
-                                Parent Location
+                                {{ $t('locations.parentLocation') }}
                             </label>
                             <select
                                 v-model="locationForm.parent_id"
@@ -337,7 +335,7 @@
                                 @blur="handleFieldBlur('parent_id')"
                             >
                                 <option value="">
-                                    Select parent location (optional)
+                                    {{ $t('locations.selectParentPlaceholder') }}
                                 </option>
                                 <option
                                     v-for="parent in parentOptions"
@@ -363,12 +361,12 @@
                     <h3
                         class="text-lg font-medium text-gray-900 dark:text-white"
                     >
-                        Address Information
+                        {{ $t('locations.addressInformation') }}
                     </h3>
                     <FormTextarea
                         v-model="locationForm.address"
-                        label="Address"
-                        placeholder="Enter street address"
+                        :label="$t('locations.addressLabel')"
+                        :placeholder="$t('locations.addressPlaceholder')"
                         :error="getFieldError('address')"
                         rows="2"
                         @blur="handleFieldBlur('address')"
@@ -376,15 +374,15 @@
                     <div class="grid grid-cols-2 gap-4">
                         <FormInput
                             v-model="locationForm.city"
-                            label="City"
-                            placeholder="Enter city"
+                            :label="$t('locations.city')"
+                            :placeholder="$t('locations.cityPlaceholder')"
                             :error="getFieldError('city')"
                             @blur="handleFieldBlur('city')"
                         />
                         <FormInput
                             v-model="locationForm.state"
-                            label="State/Province"
-                            placeholder="Enter state or province"
+                            :label="$t('locations.state')"
+                            :placeholder="$t('locations.statePlaceholder')"
                             :error="getFieldError('state')"
                             @blur="handleFieldBlur('state')"
                         />
@@ -392,15 +390,15 @@
                     <div class="grid grid-cols-2 gap-4">
                         <FormInput
                             v-model="locationForm.country"
-                            label="Country"
-                            placeholder="Enter country"
+                            :label="$t('locations.country')"
+                            :placeholder="$t('locations.countryPlaceholder')"
                             :error="getFieldError('country')"
                             @blur="handleFieldBlur('country')"
                         />
                         <FormInput
                             v-model="locationForm.postal_code"
-                            label="Postal Code"
-                            placeholder="Enter postal code"
+                            :label="$t('locations.postalCode')"
+                            :placeholder="$t('locations.postalCodePlaceholder')"
                             :error="getFieldError('postal_code')"
                             @blur="handleFieldBlur('postal_code')"
                         />
@@ -408,19 +406,19 @@
                     <div class="grid grid-cols-2 gap-4">
                         <FormInput
                             v-model="locationForm.latitude"
-                            label="Latitude"
+                            :label="$t('locations.latitude')"
                             type="number"
                             step="any"
-                            placeholder="Enter latitude (-90 to 90)"
+                            :placeholder="$t('locations.latitudePlaceholder')"
                             :error="getFieldError('latitude')"
                             @blur="handleFieldBlur('latitude')"
                         />
                         <FormInput
                             v-model="locationForm.longitude"
-                            label="Longitude"
+                            :label="$t('locations.longitude')"
                             type="number"
                             step="any"
-                            placeholder="Enter longitude (-180 to 180)"
+                            :placeholder="$t('locations.longitudePlaceholder')"
                             :error="getFieldError('longitude')"
                             @blur="handleFieldBlur('longitude')"
                         />
@@ -436,7 +434,7 @@
                         :disabled="saving"
                         class="w-full sm:w-auto"
                     >
-                        Cancel
+                        {{ $t('locations.cancel') }}
                     </Button>
                     <Button
                         type="submit"
@@ -446,8 +444,8 @@
                     >
                         {{
                             showCreateModal
-                                ? "Create Location"
-                                : "Update Location"
+                                ? $t('locations.create')
+                                : $t('locations.update')
                         }}
                     </Button>
                 </div>
@@ -472,6 +470,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import DataTable from "../../components/UI/DataTable.vue";
 import Modal from "../../components/Overlays/Modal.vue";
 import ConfirmationModal from "../../components/Overlays/ConfirmationModal.vue";
@@ -492,6 +491,7 @@ import {
     PlayIcon,
 } from "@heroicons/vue/24/outline";
 
+const { t } = useI18n();
 const notification = useNotificationStore();
 const confirmationModal = useConfirmationModalStore();
 
@@ -533,26 +533,26 @@ const validateField = (field, value) => {
     switch (field) {
         case "name":
             if (!value || value.trim() === "") {
-                errors.push("Name is required");
+                errors.push(t("locations.validationNameRequired"));
             } else if (value.length < 2) {
-                errors.push("Name must be at least 2 characters");
+                errors.push(t("locations.validationNameMinLength"));
             } else if (value.length > 255) {
-                errors.push("Name must be less than 255 characters");
+                errors.push(t("locations.validationNameMaxLength"));
             }
             break;
         case "code":
             if (value && value.length > 20) {
-                errors.push("Code must be less than 20 characters");
+                errors.push(t("locations.validationCodeMaxLength"));
             }
             break;
         case "description":
             if (value && value.length > 1000) {
-                errors.push("Description must be less than 1000 characters");
+                errors.push(t("locations.validationDescriptionMaxLength"));
             }
             break;
         case "address":
             if (value && value.length > 500) {
-                errors.push("Address must be less than 500 characters");
+                errors.push(t("locations.validationAddressMaxLength"));
             }
             break;
         case "city":
@@ -562,18 +562,18 @@ const validateField = (field, value) => {
                 errors.push(
                     `${
                         field.charAt(0).toUpperCase() + field.slice(1)
-                    } must be less than 100 characters`
+                    } ${t("locations.validationFieldMaxLength")}`
                 );
             }
             break;
         case "postal_code":
             if (value && value.length > 20) {
-                errors.push("Postal code must be less than 20 characters");
+                errors.push(t("locations.validationPostalCodeMaxLength"));
             }
             break;
         case "latitude":
             if (value !== null && value !== "" && (value < -90 || value > 90)) {
-                errors.push("Latitude must be between -90 and 90");
+                errors.push(t("locations.validationLatitudeRange"));
             }
             break;
         case "longitude":
@@ -582,12 +582,12 @@ const validateField = (field, value) => {
                 value !== "" &&
                 (value < -180 || value > 180)
             ) {
-                errors.push("Longitude must be between -180 and 180");
+                errors.push(t("locations.validationLongitudeRange"));
             }
             break;
         case "color":
             if (value && !/^#[0-9A-Fa-f]{6}$/.test(value)) {
-                errors.push("Please enter a valid hex color");
+                errors.push(t("locations.validationColorFormat"));
             }
             break;
     }
@@ -622,39 +622,39 @@ const getFieldError = (field) => {
 };
 
 // Table columns configuration
-const columns = [
+const columns = computed(() => [
     {
         key: "name",
-        label: "Location",
+        label: t("locations.location"),
         sortable: true,
     },
     {
         key: "address",
-        label: "Address",
+        label: t("locations.address"),
         sortable: false,
     },
     {
         key: "parent",
-        label: "Parent",
+        label: t("locations.parent"),
         sortable: false,
     },
     {
         key: "children",
-        label: "Children",
+        label: t("locations.children"),
         sortable: false,
     },
     {
         key: "status",
-        label: "Status",
+        label: t("products.status"),
         sortable: false,
     },
     {
         key: "created_at",
-        label: "Created",
+        label: t("locations.created"),
         type: "date",
         sortable: true,
     },
-];
+]);
 
 // Computed properties
 const totalLocations = computed(() => locations.value.length);
@@ -676,10 +676,10 @@ const handleRefreshLocations = async () => {
     refreshLoading.value = true;
     try {
         await loadLocations();
-        notification.success("Locations data refreshed successfully");
+        notification.success(t("locations.refreshSuccess"));
     } catch (error) {
         console.error("Refresh locations error:", error);
-        notification.error("Failed to refresh locations data");
+        notification.error(t("locations.refreshError"));
     } finally {
         refreshLoading.value = false;
     }
@@ -687,7 +687,7 @@ const handleRefreshLocations = async () => {
 
 const saveLocation = async () => {
     if (!validateForm()) {
-        notification.error("Please fix the errors in the form");
+        notification.error(t("locations.formError"));
         return;
     }
 
@@ -709,9 +709,9 @@ const saveLocation = async () => {
 
         if (data.success) {
             notification.success(
-                `Location ${
-                    showCreateModal.value ? "created" : "updated"
-                } successfully`
+                showCreateModal.value
+                    ? t("locations.createSuccess")
+                    : t("locations.updateSuccess")
             );
             closeModals();
             loadLocations();
@@ -719,14 +719,14 @@ const saveLocation = async () => {
         } else {
             if (data.errors) {
                 formErrors.value = data.errors;
-                notification.error("Please check the form for errors");
+                notification.error(t("locations.formCheckError"));
             } else {
-                notification.error(data.message || "Failed to save location");
+                notification.error(data.message || t("locations.saveError"));
             }
         }
     } catch (error) {
         console.error("Save location error:", error);
-        notification.error("Failed to save location. Please try again.");
+        notification.error(t("locations.saveError"));
     } finally {
         saving.value = false;
     }
@@ -783,21 +783,20 @@ const handleEditLocation = (location) => {
 
 const handleDeleteLocation = (location) => {
     confirmationModal.showModal({
-        title: "Delete Location",
-        message: `Are you sure you want to delete "${location.name}"?`,
-        description:
-            "This action cannot be undone. Make sure this location has no child locations or assets assigned to it.",
-        confirmText: "Delete Location",
-        cancelText: "Cancel",
+        title: t("locations.deleteLocationTitle"),
+        message: `${t("locations.deleteLocationMessage")} "${location.name}"?`,
+        description: t("locations.deleteLocationDescription"),
+        confirmText: t("locations.deleteLocation"),
+        cancelText: t("locations.cancelText"),
         onConfirm: async () => {
             const data = await apiDelete(`locations/${location.id}`);
             if (data.success) {
-                notification.success("Location deleted successfully");
+                notification.success(t("locations.deleteSuccess"));
                 loadLocations();
                 loadParentOptions();
                 return data;
             } else {
-                throw new Error(data.message || "Failed to delete location");
+                throw new Error(data.message || t("locations.saveError"));
             }
         },
         onSuccess: (result) => {
@@ -805,42 +804,44 @@ const handleDeleteLocation = (location) => {
         },
         onError: (error) => {
             console.error("Failed to delete location:", error);
-            notification.error(error.message || "Failed to delete location");
+            notification.error(error.message || t("locations.saveError"));
         },
     });
 };
 
 const handleBulkAction = (selectedItems) => {
     if (selectedItems.length === 0) {
-        notification.warning("Please select locations to perform bulk action");
+        notification.warning(t("locations.bulkActionWarning"));
         return;
     }
 
+    const messageText = selectedItems.length === 1
+        ? t("locations.bulkDeleteMessageSingle")
+        : t("locations.bulkDeleteMessagePlural");
+
     confirmationModal.showModal({
-        title: "Bulk Delete Locations",
-        message: `Are you sure you want to delete ${
-            selectedItems.length
-        } location${selectedItems.length === 1 ? "" : "s"}?`,
-        description:
-            "This action cannot be undone. Make sure these locations have no child locations or assets assigned to them.",
-        confirmText: "Delete Locations",
-        cancelText: "Cancel",
+        title: t("locations.bulkDeleteTitle"),
+        message: `${t("locations.bulkDeleteMessage")} ${selectedItems.length} ${messageText}?`,
+        description: t("locations.bulkDeleteDescription"),
+        confirmText: t("locations.bulkDeleteConfirm"),
+        cancelText: t("locations.cancelText"),
         onConfirm: async () => {
             try {
                 const deletePromises = selectedItems.map((item) =>
                     apiDelete(`locations/${item.id}`)
                 );
                 await Promise.all(deletePromises);
+                const successText = selectedItems.length === 1
+                    ? t("locations.bulkDeleteSingle")
+                    : t("locations.bulkDeletePlural");
                 notification.success(
-                    `${selectedItems.length} location${
-                        selectedItems.length === 1 ? "" : "s"
-                    } deleted successfully`
+                    `${selectedItems.length} ${successText} ${t("locations.bulkDeleteSuccess")}`
                 );
                 loadLocations();
                 loadParentOptions();
                 return { success: true };
             } catch (error) {
-                throw new Error("Failed to delete some locations");
+                throw new Error(t("locations.bulkDeleteError"));
             }
         },
         onSuccess: (result) => {
@@ -848,7 +849,7 @@ const handleBulkAction = (selectedItems) => {
         },
         onError: (error) => {
             console.error("Bulk delete failed:", error);
-            notification.error(error.message || "Failed to delete locations");
+            notification.error(error.message || t("locations.bulkDeleteError"));
         },
     });
 };
@@ -860,20 +861,22 @@ const handleSelectionChange = (selectedItems) => {
 
 const handleToggleStatus = async (location) => {
     const newStatus = location.is_active ? "inactive" : "active";
-    const action = newStatus === "active" ? "activate" : "deactivate";
 
     try {
         const data = await apiPost(`locations/${location.id}/toggle-status`);
 
         if (data.success) {
-            notification.success(`Location ${action}d successfully`);
+            const successMessage = newStatus === "active"
+                ? t("locations.activateSuccess")
+                : t("locations.deactivateSuccess");
+            notification.success(successMessage);
             loadLocations();
         } else {
-            notification.error(data.message || `Failed to ${action} location`);
+            notification.error(data.message || t("locations.saveError"));
         }
     } catch (error) {
         console.error(`Toggle status error:`, error);
-        notification.error(`Failed to ${action} location`);
+        notification.error(t("locations.saveError"));
     }
 };
 
@@ -886,7 +889,7 @@ const loadLocations = async () => {
         }
     } catch (error) {
         console.error("Error loading locations:", error);
-        notification.error("Failed to load locations");
+        notification.error(t("locations.loadError"));
     } finally {
         loading.value = false;
     }
@@ -901,7 +904,7 @@ const loadParentOptions = async (excludeLocation = null) => {
         const data = await apiGet(url);
         if (data.success) {
             parentOptions.value = [
-                { value: null, label: "No Parent (Root Location)" },
+                { value: null, label: t("locations.noParent") },
                 ...data.data.map((location) => ({
                     value: location.id,
                     label: location.full_path,
@@ -910,7 +913,7 @@ const loadParentOptions = async (excludeLocation = null) => {
         }
     } catch (error) {
         console.error("Error loading parent options:", error);
-        notification.error("Failed to load parent options");
+        notification.error(t("locations.loadParentOptionsError"));
     }
 };
 

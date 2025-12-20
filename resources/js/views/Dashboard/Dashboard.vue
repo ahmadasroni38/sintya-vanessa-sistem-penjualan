@@ -35,12 +35,12 @@
                             </div>
                             <div>
                                 <h1 class="text-2xl font-bold text-white">
-                                    Warehouse Dashboard
+                                    {{ $t('dashboard.title') }}
                                 </h1>
                                 <p class="mt-1 text-sm text-blue-100">
-                                    Welcome back,
+                                    {{ $t('dashboard.welcomeBack') }},
                                     {{ authStore.user?.name || "Admin" }}!
-                                    Here's your business overview for today.
+                                    {{ $t('dashboard.businessOverview') }}
                                 </p>
                             </div>
                         </div>
@@ -53,20 +53,20 @@
                                     {{ stats.totalCustomers.toLocaleString() }}
                                 </div>
                                 <div class="text-xs text-blue-100">
-                                    Customers
+                                    {{ $t('dashboard.customers') }}
                                 </div>
                             </div>
                             <div class="text-center">
                                 <div class="text-lg font-bold text-white">
                                     {{ stats.totalSales.toLocaleString() }}
                                 </div>
-                                <div class="text-xs text-blue-100">Sales</div>
+                                <div class="text-xs text-blue-100">{{ $t('dashboard.sales') }}</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-lg font-bold text-white">
                                     {{ formatCurrency(stats.totalRevenue) }}
                                 </div>
-                                <div class="text-xs text-blue-100">Revenue</div>
+                                <div class="text-xs text-blue-100">{{ $t('dashboard.revenue') }}</div>
                             </div>
                         </div>
                         <div class="text-sm text-blue-100">
@@ -109,7 +109,7 @@
                                 <dt
                                     class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
                                 >
-                                    Total Customers
+                                    {{ $t('dashboard.totalCustomers') }}
                                 </dt>
                                 <dd
                                     class="text-2xl font-bold text-gray-900 dark:text-white"
@@ -142,8 +142,8 @@
                     </div>
                     <div class="mt-4">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ stats.activeCustomers || 0 }} active •
-                            {{ stats.inactiveCustomers || 0 }} inactive
+                            {{ stats.activeCustomers || 0 }} {{ $t('dashboard.active') }} •
+                            {{ stats.inactiveCustomers || 0 }} {{ $t('dashboard.inactive') }}
                         </div>
                     </div>
                 </div>
@@ -179,7 +179,7 @@
                                 <dt
                                     class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
                                 >
-                                    Total Sales
+                                    {{ $t('dashboard.totalSales') }}
                                 </dt>
                                 <dd
                                     class="text-2xl font-bold text-gray-900 dark:text-white"
@@ -212,7 +212,7 @@
                     </div>
                     <div class="mt-4">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            This month: {{ stats.monthlySales || 0 }}
+                            {{ $t('dashboard.thisMonth') }}: {{ stats.monthlySales || 0 }}
                         </div>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
                                 <dt
                                     class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
                                 >
-                                    Total Products
+                                    {{ $t('dashboard.totalProducts') }}
                                 </dt>
                                 <dd
                                     class="text-2xl font-bold text-gray-900 dark:text-white"
@@ -281,7 +281,7 @@
                     </div>
                     <div class="mt-4">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            Low stock: {{ stats.lowStockProducts || 0 }}
+                            {{ $t('dashboard.lowStock') }}: {{ stats.lowStockProducts || 0 }}
                         </div>
                     </div>
                 </div>
@@ -317,7 +317,7 @@
                                 <dt
                                     class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
                                 >
-                                    Total Revenue
+                                    {{ $t('dashboard.totalRevenue') }}
                                 </dt>
                                 <dd
                                     class="text-2xl font-bold text-gray-900 dark:text-white"
@@ -350,7 +350,7 @@
                     </div>
                     <div class="mt-4">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            This month:
+                            {{ $t('dashboard.thisMonth') }}:
                             {{ formatCurrency(stats.monthlyRevenue || 0) }}
                         </div>
                     </div>
@@ -390,20 +390,19 @@
                                 <h3
                                     class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    Low Stock Alert
+                                    {{ $t('dashboard.lowStockAlert') }}
                                 </h3>
                                 <p
                                     class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.lowStockProducts || 0 }} products
-                                    need attention
+                                    {{ stats.lowStockProducts || 0 }} {{ $t('dashboard.productsNeedAttention') }}
                                 </p>
                             </div>
                         </div>
                         <button
                             class="text-red-600 hover:text-red-500 text-sm font-medium"
                         >
-                            View All
+                            {{ $t('dashboard.viewAll') }}
                         </button>
                     </div>
                 </div>
@@ -439,20 +438,19 @@
                                 <h3
                                     class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    Stock Movements
+                                    {{ $t('dashboard.stockMovements') }}
                                 </h3>
                                 <p
                                     class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.todayMovements || 0 }} transactions
-                                    today
+                                    {{ stats.todayMovements || 0 }} {{ $t('dashboard.transactionsToday') }}
                                 </p>
                             </div>
                         </div>
                         <button
                             class="text-blue-600 hover:text-blue-500 text-sm font-medium"
                         >
-                            View Details
+                            {{ $t('dashboard.viewDetails') }}
                         </button>
                     </div>
                 </div>
@@ -488,20 +486,19 @@
                                 <h3
                                     class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    Pending Approvals
+                                    {{ $t('dashboard.pendingApprovals') }}
                                 </h3>
                                 <p
                                     class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.pendingApprovals || 0 }} items
-                                    waiting
+                                    {{ stats.pendingApprovals || 0 }} {{ $t('dashboard.itemsWaiting') }}
                                 </p>
                             </div>
                         </div>
                         <button
                             class="text-yellow-600 hover:text-yellow-500 text-sm font-medium"
                         >
-                            Review
+                            {{ $t('dashboard.review') }}
                         </button>
                     </div>
                 </div>
@@ -520,15 +517,15 @@
                             <h3
                                 class="text-lg font-medium text-gray-900 dark:text-white"
                             >
-                                Sales Revenue Trend
+                                {{ $t('dashboard.salesRevenueTrend') }}
                             </h3>
                             <div class="flex items-center space-x-2">
                                 <select
                                     class="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 >
-                                    <option>Last 12 months</option>
-                                    <option>Last 6 months</option>
-                                    <option>Last 3 months</option>
+                                    <option>{{ $t('dashboard.last12Months') }}</option>
+                                    <option>{{ $t('dashboard.last6Months') }}</option>
+                                    <option>{{ $t('dashboard.last3Months') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -550,12 +547,12 @@
                             <h3
                                 class="text-lg font-medium text-gray-900 dark:text-white"
                             >
-                                Recent Activity
+                                {{ $t('dashboard.recentActivity') }}
                             </h3>
                             <button
                                 class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                             >
-                                View all
+                                {{ $t('dashboard.viewAll') }}
                             </button>
                         </div>
                         <div class="space-y-4 max-h-80 overflow-y-auto">
@@ -647,7 +644,7 @@
                         <h3
                             class="text-lg font-medium text-gray-900 dark:text-white mb-4"
                         >
-                            Quick Actions
+                            {{ $t('dashboard.quickActions') }}
                         </h3>
                         <div class="grid grid-cols-2 gap-4">
                             <button
@@ -699,7 +696,7 @@
                         <h3
                             class="text-lg font-medium text-gray-900 dark:text-white"
                         >
-                            Business Insights
+                            {{ $t('dashboard.businessInsights') }}
                         </h3>
                         <div
                             class="flex items-center text-sm text-gray-500 dark:text-gray-400"
@@ -717,7 +714,7 @@
                                     d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                                 ></path>
                             </svg>
-                            Analytics
+                            {{ $t('dashboard.analytics') }}
                         </div>
                     </div>
                     <div class="space-y-4">
@@ -746,13 +743,12 @@
                                     <p
                                         class="text-sm font-medium text-green-800 dark:text-green-200"
                                     >
-                                        Revenue Growth
+                                        {{ $t('dashboard.revenueGrowth') }}
                                     </p>
                                     <p
                                         class="text-xs text-green-600 dark:text-green-400"
                                     >
-                                        +{{ stats.revenueGrowth }}% from last
-                                        month
+                                        +{{ stats.revenueGrowth }}% {{ $t('dashboard.fromLastMonth') }}
                                     </p>
                                 </div>
                             </div>
@@ -783,13 +779,12 @@
                                     <p
                                         class="text-sm font-medium text-blue-800 dark:text-blue-200"
                                     >
-                                        Customer Acquisition
+                                        {{ $t('dashboard.customerAcquisition') }}
                                     </p>
                                     <p
                                         class="text-xs text-blue-600 dark:text-blue-400"
                                     >
-                                        {{ stats.activeCustomers }} active
-                                        customers this month
+                                        {{ stats.activeCustomers }} {{ $t('dashboard.activeCustomersThisMonth') }}
                                     </p>
                                 </div>
                             </div>
@@ -820,13 +815,12 @@
                                     <p
                                         class="text-sm font-medium text-purple-800 dark:text-purple-200"
                                     >
-                                        Inventory Health
+                                        {{ $t('dashboard.inventoryHealth') }}
                                     </p>
                                     <p
                                         class="text-xs text-purple-600 dark:text-purple-400"
                                     >
-                                        {{ stats.lowStockProducts }} products
-                                        need restocking
+                                        {{ stats.lowStockProducts }} {{ $t('dashboard.productsNeedRestocking') }}
                                     </p>
                                 </div>
                             </div>
@@ -844,7 +838,7 @@
                         <h3
                             class="text-lg font-medium text-gray-900 dark:text-white"
                         >
-                            System Alerts
+                            {{ $t('dashboard.systemAlerts') }}
                         </h3>
                         <div
                             class="flex items-center text-sm text-gray-500 dark:text-gray-400"
@@ -862,7 +856,7 @@
                                     d="M15 17h5l-5 5v-5zM4.868 12.683A17.925 17.925 0 0112 21c7.962 0 12-1.21 12-2.683m-12 2.683a17.925 17.925 0 01-7.132-8.317M12 21V9m0 0l-4 4m4-4l4 4"
                                 ></path>
                             </svg>
-                            Live Updates
+                            {{ $t('dashboard.liveUpdates') }}
                         </div>
                     </div>
                     <div class="space-y-4">
@@ -889,13 +883,12 @@
                                 <p
                                     class="text-sm font-medium text-yellow-800 dark:text-yellow-200"
                                 >
-                                    Low Stock Alert
+                                    {{ $t('dashboard.lowStockAlert') }}
                                 </p>
                                 <p
                                     class="text-xs text-yellow-700 dark:text-yellow-300"
                                 >
-                                    {{ stats.lowStockProducts }} products are
-                                    running low on stock
+                                    {{ stats.lowStockProducts }} {{ $t('dashboard.productsRunningLow') }}
                                 </p>
                             </div>
                         </div>
@@ -923,13 +916,12 @@
                                 <p
                                     class="text-sm font-medium text-blue-800 dark:text-blue-200"
                                 >
-                                    Pending Approvals
+                                    {{ $t('dashboard.pendingApprovals') }}
                                 </p>
                                 <p
                                     class="text-xs text-blue-700 dark:text-blue-300"
                                 >
-                                    {{ stats.pendingApprovals }} items waiting
-                                    for approval
+                                    {{ stats.pendingApprovals }} {{ $t('dashboard.itemsWaitingApproval') }}
                                 </p>
                             </div>
                         </div>
@@ -956,12 +948,12 @@
                                 <p
                                     class="text-sm font-medium text-green-800 dark:text-green-200"
                                 >
-                                    System Status
+                                    {{ $t('dashboard.systemStatus') }}
                                 </p>
                                 <p
                                     class="text-xs text-green-700 dark:text-green-300"
                                 >
-                                    All systems operational
+                                    {{ $t('dashboard.allSystemsOperational') }}
                                 </p>
                             </div>
                         </div>
@@ -977,10 +969,12 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { apiGet } from "@/utils/api";
 import { useNotificationStore } from "@/stores/notification";
+import { useI18n } from "vue-i18n";
 import Chart from "chart.js/auto";
 
 const authStore = useAuthStore();
 const notification = useNotificationStore();
+const { t } = useI18n();
 
 // Loading states
 const loading = ref(true);
@@ -1038,7 +1032,7 @@ const recentActivities = computed(() => {
             activities.push({
                 id: `sale-${sale.id}`,
                 type: "sale",
-                description: `Sale #${
+                description: `${t('dashboard.sale')} #${
                     sale.transaction_number
                 } - ${formatCurrency(sale.total_amount)}`,
                 status: sale.status,
@@ -1053,7 +1047,7 @@ const recentActivities = computed(() => {
             activities.push({
                 id: `customer-${customer.id}`,
                 type: "customer",
-                description: `New Customer: ${customer.customer_name}`,
+                description: `${t('dashboard.newCustomer')}: ${customer.customer_name}`,
                 status: customer.status,
                 time: formatTimeAgo(customer.created_at),
             });
@@ -1066,7 +1060,7 @@ const recentActivities = computed(() => {
             activities.push({
                 id: `product-${product.id}`,
                 type: "product",
-                description: `New Product: ${product.product_name}`,
+                description: `${t('dashboard.newProduct')}: ${product.product_name}`,
                 status: product.status,
                 time: formatTimeAgo(product.created_at),
             });
@@ -1103,44 +1097,44 @@ const recentActivities = computed(() => {
     return activities.slice(0, 8);
 });
 
-const quickActions = ref([
+const quickActions = computed(() => [
     {
-        name: "Add Customer",
+        name: t("dashboard.addCustomer"),
         action: "add-customer",
         route: "/customers",
         icon: "M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M5 5h14l1 12H4L5 9z",
         color: "bg-blue-500",
     },
     {
-        name: "Create Sale",
+        name: t("dashboard.createSale"),
         action: "create-sale",
         route: "/sales",
         icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0h6v-1a6 6 0 00-9-5.197m13.5-14a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
         color: "bg-green-500",
     },
     {
-        name: "Add Product",
+        name: t("dashboard.addProduct"),
         action: "add-product",
         route: "/products",
         icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
         color: "bg-purple-500",
     },
     {
-        name: "Stock In",
+        name: t("dashboard.stockIn"),
         action: "stock-in",
         route: "/stock-in",
         icon: "M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4",
         color: "bg-indigo-500",
     },
     {
-        name: "Stock Out",
+        name: t("dashboard.stockOut"),
         action: "stock-out",
         route: "/stock-mutations",
         icon: "M7 4V16m0 0L3 12m4 4l4-4m6-8v12m0 0l4-4m-4 4l-4-4",
         color: "bg-orange-500",
     },
     {
-        name: "View Reports",
+        name: t("dashboard.viewReports"),
         action: "view-reports",
         route: "/reports",
         icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",

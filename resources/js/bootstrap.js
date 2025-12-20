@@ -5,9 +5,24 @@
  */
 
 import axios from 'axios';
+import NProgress from 'nprogress';
 window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+// Add NProgress interceptors for axios requests
+axios.interceptors.request.use(config => {
+    NProgress.start();
+    return config;
+});
+
+axios.interceptors.response.use(response => {
+    NProgress.done();
+    return response;
+}, error => {
+    NProgress.done();
+    return Promise.reject(error);
+});
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

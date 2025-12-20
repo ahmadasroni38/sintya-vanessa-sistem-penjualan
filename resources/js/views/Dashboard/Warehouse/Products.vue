@@ -6,10 +6,10 @@
         >
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    Products Management
+                    {{ $t('products.title') }}
                 </h1>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">
-                    Manage your product catalog and inventory
+                    {{ $t('products.subtitle') }}
                 </p>
             </div>
             <div class="flex items-center gap-3">
@@ -18,7 +18,7 @@
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
                     <FunnelIcon class="w-4 h-4" />
-                    Filters
+                    {{ $t('products.filters') }}
                 </button>
                 <button
                     @click="handleExport"
@@ -26,14 +26,14 @@
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
                     <ArrowDownTrayIcon class="w-4 h-4" />
-                    {{ exporting ? "Exporting..." : "Export" }}
+                    {{ exporting ? $t('products.exporting') : $t('products.export') }}
                 </button>
                 <button
                     @click="showAddModal = true"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <PlusIcon class="w-4 h-4" />
-                    Add Product
+                    {{ $t('products.addProduct') }}
                 </button>
             </div>
         </div>
@@ -50,7 +50,7 @@
         />
         <!-- Products Table -->
         <DataTable
-            title="Products"
+            :title="$t('products.productsTable')"
             :data="products"
             :columns="columns"
             :loading="loading"
@@ -84,13 +84,13 @@
         <!-- Delete Confirmation Modal -->
         <ConfirmationModal
             :is-open="showDeleteModal"
-            title="Delete Product"
-            :message="`Are you sure you want to delete ${
-                deletingProduct?.product_name || 'this product'
+            :title="$t('products.deleteProduct')"
+            :message="`${$t('products.deleteProductMessage')} ${
+                deletingProduct?.product_name || $t('products.thisProduct')
             }?`"
-            description="This action cannot be undone and will permanently remove the product from the system."
-            confirm-text="Delete"
-            cancel-text="Cancel"
+            :description="$t('products.deleteProductDescription')"
+            :confirm-text="$t('products.delete')"
+            :cancel-text="$t('products.cancel')"
             :loading="deleting"
             @confirm="confirmDelete"
             @cancel="cancelDelete"
@@ -100,6 +100,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useProducts } from "../../../composables/useProducts";
 import { useSelectOptions } from "../../../composables/useSelectOptions";
 import DataTable from "../../../components/UI/DataTable.vue";
@@ -112,6 +113,8 @@ import {
     ArrowDownTrayIcon,
     FunnelIcon,
 } from "@heroicons/vue/24/outline";
+
+const { t } = useI18n();
 
 // Use Products Composable
 const {
@@ -162,20 +165,20 @@ const statistics = ref({
 });
 
 // Table columns
-const columns = [
+const columns = computed(() => [
     {
         key: "product_code",
-        label: "Code",
+        label: t("products.code"),
         sortable: true,
     },
     {
         key: "product_name",
-        label: "Product Name",
+        label: t("products.productName"),
         sortable: true,
     },
     {
         key: "product_type",
-        label: "Type",
+        label: t("products.type"),
         sortable: true,
         type: "badge",
         badgeColors: {
@@ -188,58 +191,58 @@ const columns = [
         },
         formatter: (value) => {
             const typeMap = {
-                finished_goods: "Finished Goods",
-                raw_material: "Raw Material",
-                consumable: "Consumable",
+                finished_goods: t("products.typeFinishedGoods"),
+                raw_material: t("products.typeRawMaterial"),
+                consumable: t("products.typeConsumable"),
             };
             return typeMap[value] || value;
         },
     },
     {
         key: "unit.name",
-        label: "Unit",
+        label: t("products.unit"),
         sortable: false,
     },
     {
         key: "purchase_price",
-        label: "Purchase Price",
+        label: t("products.purchasePrice"),
         sortable: true,
         type: "currency",
     },
     {
         key: "selling_price",
-        label: "Selling Price",
+        label: t("products.sellingPrice"),
         sortable: true,
         type: "currency",
     },
     {
         key: "minimum_stock",
-        label: "Min Stock",
+        label: t("products.minStock"),
         sortable: true,
     },
     {
         key: "maximum_stock",
-        label: "Max Stock",
+        label: t("products.maxStock"),
         sortable: true,
     },
     {
         key: "is_active",
-        label: "Status",
+        label: t("products.status"),
         sortable: true,
         type: "badge",
         badgeColors: {
             true: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
             false: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
         },
-        formatter: (value) => (value ? "Active" : "Inactive"),
+        formatter: (value) => (value ? t("products.statusActive") : t("products.statusInactive")),
     },
     {
         key: "created_at",
-        label: "Created At",
+        label: t("products.createdAt"),
         sortable: true,
         type: "date",
     },
-];
+]);
 
 // Computed
 const products = computed(() => productsData.value || []);

@@ -4,10 +4,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    Sales Management
+                    {{ $t('sales.title') }}
                 </h1>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">
-                    Manage your sales transactions and customer orders
+                    {{ $t('sales.subtitle') }}
                 </p>
             </div>
             <div class="flex items-center gap-3">
@@ -16,7 +16,7 @@
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
                     <FunnelIcon class="w-4 h-4" />
-                    Filters
+                    {{ $t('sales.filters') }}
                 </button>
                 <button
                     @click="handleExport"
@@ -24,14 +24,14 @@
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
                     <ArrowDownTrayIcon class="w-4 h-4" />
-                    {{ exporting ? "Exporting..." : "Export" }}
+                    {{ exporting ? $t('sales.exporting') : $t('sales.export') }}
                 </button>
                 <button
                     @click="showAddModal = true"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <PlusIcon class="w-4 h-4" />
-                    New Sale
+                    {{ $t('sales.newSale') }}
                 </button>
             </div>
         </div>
@@ -51,7 +51,7 @@
 
         <!-- Sales Table -->
         <DataTable
-            title="Sales Transactions"
+            :title="$t('sales.salesTransactions')"
             :data="sales"
             :columns="columns"
             :loading="loading"
@@ -85,11 +85,11 @@
         <!-- Delete Confirmation Modal -->
         <ConfirmationModal
             :is-open="showDeleteModal"
-            title="Delete Sale"
-            :message="`Are you sure you want to delete ${deletingSale?.transaction_number || 'this sale'}?`"
-            description="This action cannot be undone. Only draft sales can be deleted."
-            confirm-text="Delete"
-            cancel-text="Cancel"
+            :title="$t('sales.deleteSale')"
+            :message="`${$t('sales.deleteSaleMessage')} ${deletingSale?.transaction_number || 'this sale'}?`"
+            :description="$t('sales.deleteSaleDescription')"
+            :confirm-text="$t('sales.delete')"
+            :cancel-text="$t('sales.cancel')"
             :loading="deleting"
             @confirm="confirmDelete"
             @cancel="cancelDelete"
@@ -98,11 +98,11 @@
         <!-- Post Confirmation Modal -->
         <ConfirmationModal
             :is-open="showPostModal"
-            title="Post Sale Transaction"
-            :message="`Are you sure you want to post ${postingSale?.transaction_number}?`"
-            description="This will update stock levels and create journal entries. This action cannot be undone."
-            confirm-text="Post"
-            cancel-text="Cancel"
+            :title="$t('sales.postSaleTransaction')"
+            :message="`${$t('sales.postSaleMessage')} ${postingSale?.transaction_number}?`"
+            :description="$t('sales.postSaleDescription')"
+            :confirm-text="$t('sales.post')"
+            :cancel-text="$t('sales.cancel')"
             type="warning"
             :loading="saving"
             @confirm="confirmPost"
@@ -112,11 +112,11 @@
         <!-- Cancel Confirmation Modal -->
         <ConfirmationModal
             :is-open="showCancelModal"
-            title="Cancel Sale Transaction"
-            :message="`Are you sure you want to cancel ${cancellingSale?.transaction_number}?`"
-            description="This will reverse stock levels and journal entries. This action cannot be undone."
-            confirm-text="Cancel Sale"
-            cancel-text="Close"
+            :title="$t('sales.cancelSaleTransaction')"
+            :message="`${$t('sales.cancelSaleMessage')} ${cancellingSale?.transaction_number}?`"
+            :description="$t('sales.cancelSaleDescription')"
+            :confirm-text="$t('sales.cancelSale')"
+            :cancel-text="$t('sales.close')"
             type="danger"
             :loading="saving"
             @confirm="confirmCancel"
@@ -134,6 +134,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useSales } from "@/composables/useSales";
 import { useSelectOptions } from "@/composables/useSelectOptions";
 import DataTable from "@/components/UI/DataTable.vue";
@@ -147,6 +148,8 @@ import {
     ArrowDownTrayIcon,
     FunnelIcon,
 } from "@heroicons/vue/24/outline";
+
+const { t } = useI18n();
 
 // Use Sales Composable
 const {
@@ -206,47 +209,51 @@ const customerOptions = ref([]);
 const productOptions = ref([]);
 
 // Table columns
-const columns = [
+const columns = computed(() => [
     {
         key: "transaction_number",
-        label: "Transaction #",
+        label: t("sales.transactionNumber"),
         sortable: true,
     },
     {
         key: "transaction_date",
-        label: "Date",
+        label: t("sales.date"),
         sortable: true,
         type: "date",
     },
     {
         key: "customer.customer_name",
-        label: "Customer",
+        label: t("sales.customer"),
         sortable: false,
-        formatter: (value, row) => value || "Walk-in Customer",
+        formatter: (value, row) => value || t("sales.walkInCustomer"),
     },
     {
         key: "location.name",
-        label: "Location",
+        label: t("sales.location"),
         sortable: false,
     },
     {
         key: "total_amount",
-        label: "Total",
+        label: t("sales.total"),
         sortable: true,
         type: "currency",
     },
     {
         key: "payment_method",
-        label: "Payment",
+        label: t("sales.payment"),
         sortable: false,
         formatter: (value) => {
-            const methods = { cash: "Cash", transfer: "Transfer", credit: "Credit" };
+            const methods = {
+                cash: t("sales.paymentCash"),
+                transfer: t("sales.paymentTransfer"),
+                credit: t("sales.paymentCredit")
+            };
             return methods[value] || value;
         },
     },
     {
         key: "status",
-        label: "Status",
+        label: t("sales.status"),
         sortable: true,
         type: "badge",
         badgeColors: {
@@ -254,33 +261,40 @@ const columns = [
             posted: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
             cancelled: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
         },
-        formatter: (value) => getStatusLabel(value),
+        formatter: (value) => {
+            const statuses = {
+                draft: t("sales.statusDraft"),
+                posted: t("sales.statusPosted"),
+                cancelled: t("sales.statusCancelled"),
+            };
+            return statuses[value] || value;
+        },
     },
-];
+]);
 
 // Custom actions for table
-const customActions = [
+const customActions = computed(() => [
     {
-        label: "View",
+        label: t("sales.view"),
         icon: "eye",
         handler: (item) => handleView(item),
         condition: () => true,
     },
     {
-        label: "Post",
+        label: t("sales.post"),
         icon: "check",
         handler: (item) => handlePost(item),
         condition: (item) => item.status === "draft",
         class: "text-green-600 hover:text-green-900 dark:text-green-400",
     },
     {
-        label: "Cancel",
+        label: t("sales.cancel"),
         icon: "x",
         handler: (item) => handleCancelTransaction(item),
         condition: (item) => item.status === "posted",
         class: "text-red-600 hover:text-red-900 dark:text-red-400",
     },
-];
+]);
 
 // Computed
 const sales = computed(() => salesData.value || []);

@@ -10,6 +10,9 @@ import i18n from "./i18n";
 // Import Preline
 import "preline/preline.js";
 
+// Import NProgress with custom configuration
+import NProgress from "./config/nprogress";
+
 // Global error handler
 window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
@@ -47,6 +50,7 @@ try {
 
 // Initialize Preline after router navigation
 router.afterEach(() => {
+    NProgress.done();
     setTimeout(() => {
         if (window.HSStaticMethods) {
             window.HSStaticMethods.autoInit();

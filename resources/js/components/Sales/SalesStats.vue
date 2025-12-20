@@ -27,7 +27,7 @@
                         <p
                             class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
                         >
-                            Total Transactions
+                            {{ $t('sales.totalTransactions') }}
                         </p>
                         <p
                             class="text-3xl font-bold text-gray-900 dark:text-white mt-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
@@ -83,7 +83,7 @@
                         <p
                             class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
                         >
-                            Draft
+                            {{ $t('sales.statusDraft') }}
                         </p>
                         <p
                             class="text-3xl font-bold text-gray-900 dark:text-white mt-1 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors"
@@ -139,7 +139,7 @@
                         <p
                             class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
                         >
-                            Posted
+                            {{ $t('sales.statusPosted') }}
                         </p>
                         <p
                             class="text-3xl font-bold text-gray-900 dark:text-white mt-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors"
@@ -195,7 +195,7 @@
                         <p
                             class="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide"
                         >
-                            Total Revenue
+                            {{ $t('sales.totalRevenue') }}
                         </p>
                         <p
                             class="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1"

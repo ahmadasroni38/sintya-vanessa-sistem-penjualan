@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import NProgress from "nprogress";
 
 // Auth Views
 import Login from "../views/Auth/Login.vue";
@@ -247,6 +248,7 @@ const router = createRouter({
 
 // Navigation guards
 router.beforeEach(async (to, from, next) => {
+    NProgress.start();
     const authStore = useAuthStore();
 
     console.log("Router guard - navigating to:", to.name, "from:", from.name);

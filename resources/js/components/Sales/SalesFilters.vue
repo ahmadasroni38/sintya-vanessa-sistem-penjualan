@@ -33,13 +33,13 @@
                     <h3
                         class="text-lg font-bold text-gray-900 dark:text-white"
                     >
-                        Filter Sales
+                        {{ $t('sales.filterSales') }}
                     </h3>
                 </div>
                 <span
                     class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
                 >
-                    {{ activeFiltersCount }} Active Filters
+                    {{ activeFiltersCount }} {{ $t('sales.activeFilters') }}
                 </span>
             </div>
 
@@ -62,12 +62,12 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             ></path>
                         </svg>
-                        Search
+                        {{ $t('sales.search') }}
                     </label>
                     <input
                         v-model="localFilters.search"
                         type="text"
-                        placeholder="Transaction number..."
+                        :placeholder="$t('sales.searchPlaceholder')"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 group-hover:border-blue-400"
                         @input="handleFilterChange"
                     />
@@ -110,17 +110,17 @@
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                             ></path>
                         </svg>
-                        Status
+                        {{ $t('sales.status') }}
                     </label>
                     <select
                         v-model="localFilters.status"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 group-hover:border-blue-400"
                         @change="handleFilterChange"
                     >
-                        <option value="">All Status</option>
-                        <option value="draft">Draft</option>
-                        <option value="posted">Posted</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="">{{ $t('sales.allStatus') }}</option>
+                        <option value="draft">{{ $t('sales.statusDraft') }}</option>
+                        <option value="posted">{{ $t('sales.statusPosted') }}</option>
+                        <option value="cancelled">{{ $t('sales.statusCancelled') }}</option>
                     </select>
                 </div>
 
@@ -148,14 +148,14 @@
                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                             ></path>
                         </svg>
-                        Location
+                        {{ $t('sales.location') }}
                     </label>
                     <select
                         v-model="localFilters.location_id"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 group-hover:border-blue-400"
                         @change="handleFilterChange"
                     >
-                        <option value="">All Locations</option>
+                        <option value="">{{ $t('sales.allLocations') }}</option>
                         <option
                             v-for="location in locationOptions"
                             :key="location.id"
@@ -184,14 +184,14 @@
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             ></path>
                         </svg>
-                        Customer
+                        {{ $t('sales.customer') }}
                     </label>
                     <select
                         v-model="localFilters.customer_id"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 group-hover:border-blue-400"
                         @change="handleFilterChange"
                     >
-                        <option value="">All Customers</option>
+                        <option value="">{{ $t('sales.allCustomers') }}</option>
                         <option
                             v-for="customer in customerOptions"
                             :key="customer.id"
@@ -221,7 +221,7 @@
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             ></path>
                         </svg>
-                        Start Date
+                        {{ $t('sales.startDate') }}
                     </label>
                     <input
                         v-model="localFilters.start_date"
@@ -249,7 +249,7 @@
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             ></path>
                         </svg>
-                        End Date
+                        {{ $t('sales.endDate') }}
                     </label>
                     <input
                         v-model="localFilters.end_date"
@@ -278,7 +278,7 @@
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                             ></path>
                         </svg>
-                        Reset All Filters
+                        {{ $t('sales.resetAllFilters') }}
                     </button>
                 </div>
             </div>
