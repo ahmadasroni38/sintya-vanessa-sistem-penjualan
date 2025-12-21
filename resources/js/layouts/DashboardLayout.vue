@@ -3,31 +3,15 @@
         <!-- Modern Sidebar -->
         <div
             :class="[
-                'hs-overlay hs-overlay-open:translate-x-0 transition-all duration-300 transform fixed top-0 start-0 bottom-0 z-[60] bg-white dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700 hs-overlay-backdrop-open:bg-gray-900/20 dark:hs-overlay-backdrop-open:bg-black/30 lg:block lg:end-auto lg:bottom-0 shadow-xl flex flex-col',
-                sidebarState === 'mobile-collapsed' ? '-translate-x-full' : '',
-                sidebarState === 'mobile-expanded' ? 'w-72 translate-x-0' : '',
-                sidebarState === 'desktop-collapsed'
-                    ? 'lg:w-24 lg:-translate-x-0 overflow-hidden'
-                    : '',
-                sidebarState === 'desktop-hovered'
-                    ? 'lg:w-72 lg:-translate-x-0'
-                    : '',
-                sidebarState === 'desktop-expanded'
-                    ? 'w-72 translate-x-0 lg:translate-x-0'
-                    : '',
+                'hs-overlay hs-overlay-open:translate-x-0 transition-all duration-300 transform fixed top-0 start-0 bottom-0 z-[60] bg-white dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700 hs-overlay-backdrop-open:bg-gray-900/20 dark:hs-overlay-backdrop-open:bg-black/30 lg:block lg:end-auto lg:bottom-0 shadow-xl flex flex-col overflow-hidden',
+                !sidebarVisible ? '-translate-x-full' : '',
+                sidebarVisible ? 'w-72 translate-x-0' : '',
             ]"
             id="application-sidebar"
-            @mouseenter="handleMouseEnter"
-            @mouseleave="handleMouseLeave"
         >
             <!-- Sidebar Header with Toggle -->
             <div
                 class="flex items-center justify-between px-6 pt-7 pb-5 border-b border-gray-100 dark:border-gray-700"
-                :class="
-                    sidebarState === 'desktop-collapsed'
-                        ? 'lg:justify-center lg:px-3'
-                        : ''
-                "
             >
                 <!-- Logo Section -->
                 <a
@@ -39,11 +23,6 @@
                     <div
                         v-if="settingStore.settings?.logo_sistem"
                         class="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden group-hover:scale-105 transition-all duration-200"
-                        :class="
-                            sidebarState === 'desktop-collapsed'
-                                ? 'lg:w-10 lg:h-10'
-                                : ''
-                        "
                     >
                         <img
                             :src="`storage/logo/${settingStore.settings.logo_sistem}`"
@@ -55,42 +34,22 @@
                         <div
                             v-show="sidebarLogoError"
                             class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center group-hover:from-primary-500 group-hover:to-primary-700 transition-all duration-200"
-                            :class="
-                                sidebarState === 'desktop-collapsed'
-                                    ? 'lg:w-10 lg:h-10'
-                                    : ''
-                            "
                         >
                             <BuildingOffice2Icon
                                 class="w-7 h-7 text-white"
-                                :class="
-                                    sidebarState === 'desktop-collapsed'
-                                        ? 'lg:w-6 lg:h-6'
-                                        : ''
-                                "
                             />
                         </div>
                     </div>
                     <div
                         v-else
                         class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center group-hover:from-primary-500 group-hover:to-primary-700 transition-all duration-200"
-                        :class="
-                            sidebarState === 'desktop-collapsed'
-                                ? 'lg:w-10 lg:h-10'
-                                : ''
-                        "
                     >
                         <BuildingOffice2Icon
                             class="w-7 h-7 text-white"
-                            :class="
-                                sidebarState === 'desktop-collapsed'
-                                    ? 'lg:w-6 lg:h-6'
-                                    : ''
-                            "
                         />
                     </div>
                     <span
-                        v-if="sidebarState !== 'desktop-collapsed'"
+                        v-if="sidebarVisible"
                         class="bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-500 transition-opacity duration-300"
                         >{{ settingStore.settings?.nama_sistem || 'AdminPanel' }}</span
                     >
@@ -100,23 +59,20 @@
                 <button
                     @click="toggleSidebar"
                     class="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
-                    :class="
-                        sidebarState === 'desktop-collapsed' ? 'lg:hidden' : ''
-                    "
                     :title="
-                        sidebarState === 'desktop-collapsed'
-                            ? $t('sidebar.expandSidebar')
-                            : $t('sidebar.collapseSidebar')
+                        sidebarVisible
+                            ? $t('sidebar.hideSidebar')
+                            : $t('sidebar.showSidebar')
                     "
                 >
-                    <component :is="toggleIcon" class="w-5 h-5" />
+                    <XMarkIcon v-if="sidebarVisible" class="w-5 h-5" />
+                    <Bars3Icon v-else class="w-5 h-5" />
                 </button>
             </div>
 
             <!-- Search Section in Sidebar -->
             <div
                 class="px-6 py-4 transition-all duration-300"
-                :class="sidebarState === 'desktop-collapsed' ? 'lg:hidden' : ''"
             >
                 <div class="relative">
                     <div
@@ -136,14 +92,13 @@
 
             <!-- Navigation -->
             <nav
-                class="px-6 pb-6 flex-1 overflow-y-auto max-h-[calc(100vh-250px)] transition-all duration-300"
-                :class="sidebarState === 'desktop-collapsed' ? 'lg:px-3' : ''"
+                class="px-6 pb-6 flex-1 overflow-y-auto transition-all duration-300 max-h-[calc(100vh-250px)]"
             >
                 <div class="space-y-8">
                     <!-- Main Navigation -->
                     <div v-if="filteredMenuSections.main.items.length > 0">
                         <h3
-                            v-if="sidebarState !== 'desktop-collapsed'"
+                            v-if="sidebarVisible"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
                             {{ $t(filteredMenuSections.main.title) }}
@@ -157,13 +112,10 @@
                                 <router-link
                                     :to="item.route"
                                     :class="[
-                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden',
                                         $route.name === item.routeName
                                             ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-                                        sidebarState === 'desktop-collapsed'
-                                            ? 'lg:justify-center lg:px-4'
-                                            : '',
                                     ]"
                                 >
                                     <component
@@ -176,25 +128,12 @@
                                         ]"
                                     />
                                     <span
-                                        v-if="
-                                            sidebarState !== 'desktop-collapsed'
-                                        "
+                                        v-if="sidebarVisible"
                                         class="transition-opacity duration-300"
                                     >
                                         {{ $t(item.text) }}
                                     </span>
                                 </router-link>
-
-                                <!-- Tooltip for collapsed state -->
-                                <div
-                                    v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
-                                >
-                                    {{ $t(item.text) }}
-                                    <div
-                                        class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
-                                    ></div>
-                                </div>
                             </li>
                         </ul>
                     </div>
@@ -207,7 +146,7 @@
                         "
                     >
                         <h3
-                            v-if="sidebarState !== 'desktop-collapsed'"
+                            v-if="sidebarVisible"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
                             {{ $t(filteredMenuSections.salesManagement.title) }}
@@ -222,13 +161,10 @@
                                 <router-link
                                     :to="item.route"
                                     :class="[
-                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden',
                                         $route.name === item.routeName
                                             ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-                                        sidebarState === 'desktop-collapsed'
-                                            ? 'lg:justify-center lg:px-4'
-                                            : '',
                                     ]"
                                 >
                                     <component
@@ -241,25 +177,12 @@
                                         ]"
                                     />
                                     <span
-                                        v-if="
-                                            sidebarState !== 'desktop-collapsed'
-                                        "
+                                        v-if="sidebarVisible"
                                         class="transition-opacity duration-300"
                                     >
                                         {{ $t(item.text) }}
                                     </span>
                                 </router-link>
-
-                                <!-- Tooltip for collapsed state -->
-                                <div
-                                    v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
-                                >
-                                    {{ $t(item.text) }}
-                                    <div
-                                        class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
-                                    ></div>
-                                </div>
                             </li>
                         </ul>
                     </div>
@@ -272,7 +195,7 @@
                         "
                     >
                         <h3
-                            v-if="sidebarState !== 'desktop-collapsed'"
+                            v-if="sidebarVisible"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
                             {{ $t(filteredMenuSections.warehouseManagement.title) }}
@@ -287,13 +210,10 @@
                                 <router-link
                                     :to="item.route"
                                     :class="[
-                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden',
                                         $route.name === item.routeName
                                             ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-                                        sidebarState === 'desktop-collapsed'
-                                            ? 'lg:justify-center lg:px-4'
-                                            : '',
                                     ]"
                                 >
                                     <component
@@ -306,25 +226,12 @@
                                         ]"
                                     />
                                     <span
-                                        v-if="
-                                            sidebarState !== 'desktop-collapsed'
-                                        "
+                                        v-if="sidebarVisible"
                                         class="transition-opacity duration-300"
                                     >
                                         {{ $t(item.text) }}
                                     </span>
                                 </router-link>
-
-                                <!-- Tooltip for collapsed state -->
-                                <div
-                                    v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
-                                >
-                                    {{ $t(item.text) }}
-                                    <div
-                                        class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
-                                    ></div>
-                                </div>
                             </li>
                         </ul>
                     </div>
@@ -337,7 +244,7 @@
                         "
                     >
                         <h3
-                            v-if="sidebarState !== 'desktop-collapsed'"
+                            v-if="sidebarVisible"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
                             {{
@@ -354,13 +261,10 @@
                                 <router-link
                                     :to="item.route"
                                     :class="[
-                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden',
                                         $route.name === item.routeName
                                             ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-                                        sidebarState === 'desktop-collapsed'
-                                            ? 'lg:justify-center lg:px-4'
-                                            : '',
                                     ]"
                                 >
                                     <component
@@ -373,25 +277,12 @@
                                         ]"
                                     />
                                     <span
-                                        v-if="
-                                            sidebarState !== 'desktop-collapsed'
-                                        "
+                                        v-if="sidebarVisible"
                                         class="transition-opacity duration-300"
                                     >
                                         {{ $t(item.text) }}
                                     </span>
                                 </router-link>
-
-                                <!-- Tooltip for collapsed state -->
-                                <div
-                                    v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
-                                >
-                                    {{ $t(item.text) }}
-                                    <div
-                                        class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
-                                    ></div>
-                                </div>
                             </li>
                         </ul>
                     </div>
@@ -403,7 +294,7 @@
                         "
                     >
                         <h3
-                            v-if="sidebarState !== 'desktop-collapsed'"
+                            v-if="sidebarVisible"
                             class="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400 transition-opacity duration-300"
                         >
                             {{ $t(filteredMenuSections.userManagement.title) }}
@@ -418,13 +309,10 @@
                                 <router-link
                                     :to="item.route"
                                     :class="[
-                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                                        'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden',
                                         $route.name === item.routeName
                                             ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-                                        sidebarState === 'desktop-collapsed'
-                                            ? 'lg:justify-center lg:px-4'
-                                            : '',
                                     ]"
                                 >
                                     <component
@@ -437,25 +325,12 @@
                                         ]"
                                     />
                                     <span
-                                        v-if="
-                                            sidebarState !== 'desktop-collapsed'
-                                        "
+                                        v-if="sidebarVisible"
                                         class="transition-opacity duration-300"
                                     >
                                         {{ $t(item.text) }}
                                     </span>
                                 </router-link>
-
-                                <!-- Tooltip for collapsed state -->
-                                <div
-                                    v-if="sidebarState === 'desktop-collapsed'"
-                                    class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
-                                >
-                                    {{ $t(item.text) }}
-                                    <div
-                                        class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
-                                    ></div>
-                                </div>
                             </li>
                         </ul>
                     </div>
@@ -464,21 +339,17 @@
 
             <!-- Sidebar Footer -->
             <div
-                class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 transition-all duration-300"
-                :class="sidebarState === 'desktop-collapsed' ? 'lg:px-2' : ''"
+                class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 transition-all duration-300 mt-auto"
             >
                 <!-- System Settings -->
                 <div class="mb-3">
                     <router-link
                         to="/settings"
                         :class="[
-                            'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-200',
+                            'group flex items-center gap-x-3 py-3 px-3 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden',
                             $route.name === 'Settings'
                                 ? 'bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-lg shadow-primary-500/25'
                                 : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-                            sidebarState === 'desktop-collapsed'
-                                ? 'lg:justify-center lg:px-4'
-                                : '',
                         ]"
                     >
                         <AdjustmentsHorizontalIcon
@@ -490,54 +361,28 @@
                             ]"
                         />
                         <span
-                            v-if="sidebarState !== 'desktop-collapsed'"
+                            v-if="sidebarVisible"
                             class="transition-opacity duration-300"
                         >
                             {{ $t('sidebar.settings') }}
                         </span>
                     </router-link>
-
-                    <!-- Tooltip for collapsed state -->
-                    <div
-                        v-if="sidebarState === 'desktop-collapsed'"
-                        class="absolute left-full bottom-4 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-64 lg:block hidden"
-                    >
-                        {{ $t('sidebar.settings') }}
-                        <div
-                            class="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"
-                        ></div>
-                    </div>
                 </div>
 
                 <!-- Upgrade to Pro -->
                 <div
                     v-if="false"
                     class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 dark:from-gray-700 dark:to-gray-700"
-                    :class="
-                        sidebarState === 'desktop-collapsed'
-                            ? 'lg:justify-center'
-                            : ''
-                    "
                 >
                     <div
                         class="w-8 h-7 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0"
-                        :class="
-                            sidebarState === 'desktop-collapsed'
-                                ? 'lg:w-6 lg:h-6'
-                                : ''
-                        "
                     >
                         <SparklesIcon
                             class="w-4 h-4 text-white"
-                            :class="
-                                sidebarState === 'desktop-collapsed'
-                                    ? 'lg:w-3 lg:h-3'
-                                    : ''
-                            "
                         />
                     </div>
                     <div
-                        v-if="sidebarState !== 'desktop-collapsed'"
+                        v-if="sidebarVisible"
                         class="flex-1 transition-opacity duration-300"
                     >
                         <p
@@ -557,14 +402,12 @@
         <div
             :class="[
                 'w-full transition-all duration-300',
-                sidebarState === 'desktop-collapsed' ? 'lg:ps-24' : '',
-                sidebarState === 'desktop-hovered' ? 'lg:ps-72' : '',
-                sidebarState === 'desktop-expanded' ? 'lg:ps-72' : '',
+                sidebarVisible ? 'lg:ps-72' : 'lg:ps-0',
             ]"
         >
-            <!-- Toggle Button for Collapsed Sidebar -->
+            <!-- Toggle Button for Hidden Sidebar -->
             <button
-                v-if="sidebarState === 'desktop-collapsed'"
+                v-if="!sidebarVisible"
                 @click="toggleSidebar"
                 class="fixed top-4 left-4 z-50 lg:flex hidden p-2 bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-700"
                 title="Show Sidebar"
@@ -760,6 +603,7 @@ import {
     ChevronDoubleLeftIcon,
     ChevronDoubleRightIcon,
     Bars3Icon,
+    XMarkIcon,
     SparklesIcon,
     MoonIcon,
     SunIcon,
@@ -790,8 +634,7 @@ const settingStore = useSettingStore();
 const { t, locale } = useI18n();
 
 const searchQuery = ref("");
-const sidebarCollapsed = ref(false);
-const isHovering = ref(false);
+const sidebarVisible = ref(true);
 const isMobile = ref(false);
 const showLanguageDropdown = ref(false);
 const logoError = ref(false);
@@ -802,19 +645,6 @@ const checkIfMobile = () => {
     isMobile.value = window.innerWidth < 1024;
 };
 
-// Handle mouse enter for sidebar expansion on hover
-const handleMouseEnter = () => {
-    if (!isMobile.value && sidebarCollapsed.value) {
-        isHovering.value = true;
-    }
-};
-
-// Handle mouse leave for sidebar collapse on hover out
-const handleMouseLeave = () => {
-    if (!isMobile.value && sidebarCollapsed.value) {
-        isHovering.value = false;
-    }
-};
 
 // Menu data structure
 const menuSections = {
@@ -986,7 +816,7 @@ const filteredMenuSections = computed(() => {
                 }
             });
 
-            // Always include the section, even if no items match
+            // Always include section, even if no items match
             filtered[sectionKey] = {
                 ...section,
                 items: filteredItems,
@@ -996,34 +826,14 @@ const filteredMenuSections = computed(() => {
         return filtered;
     } catch (error) {
         console.error('Error in filteredMenuSections:', error);
-        // Return the original menuSections as fallback
+        // Return original menuSections as fallback
         return menuSections;
     }
 });
 
-// Computed property for sidebar state
-const sidebarState = computed(() => {
-    if (isMobile.value) {
-        return sidebarCollapsed.value ? "mobile-collapsed" : "mobile-expanded";
-    } else {
-        if (sidebarCollapsed.value) {
-            return isHovering.value ? "desktop-hovered" : "desktop-collapsed";
-        } else {
-            return "desktop-expanded";
-        }
-    }
-});
-
-// Computed property for toggle icon
-const toggleIcon = computed(() => {
-    return sidebarState.value === "desktop-collapsed"
-        ? ChevronDoubleRightIcon
-        : ChevronDoubleLeftIcon;
-});
-
 // Toggle sidebar function
 const toggleSidebar = () => {
-    sidebarCollapsed.value = !sidebarCollapsed.value;
+    sidebarVisible.value = !sidebarVisible.value;
 };
 
 const getPageTitle = () => {
