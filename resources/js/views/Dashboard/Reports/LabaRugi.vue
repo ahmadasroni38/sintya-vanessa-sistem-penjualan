@@ -497,6 +497,36 @@
                 </div>
             </div>
 
+            <!-- Signature Section -->
+            <div v-if="data" class="mt-16 mb-16 bg-white dark:bg-gray-800 print:mt-32 page-break-inside-avoid">
+                <div class="text-right mb-8 print:mb-16 pr-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 print:text-base">Denpasar, {{ printDate.split(', ')[1] }}</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 print:gap-24 items-end print:p-8">
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-16 print:mb-24">Dibuat oleh,</p>
+                        <div class="relative mx-auto w-52 md:w-64 print:w-80 h-28 print:h-36 border-t-0 border-gray-900 flex flex-col justify-end items-center pt-10 print:pt-16">
+                            <p class="font-bold text-sm md:text-base print:text-xl whitespace-nowrap">{{ printUser }}</p>
+                            <p class="text-xs md:text-sm text-gray-600 dark:text-gray-400 italic mt-1 print:mt-2">Akuntan</p>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-16 print:mb-24">Diperiksa oleh,</p>
+                        <div class="relative mx-auto w-52 md:w-64 print:w-80 h-28 print:h-36 border-t-0 border-gray-900 flex flex-col justify-end items-center pt-10 print:pt-16">
+                            <p class="font-bold text-sm md:text-base print:text-xl whitespace-nowrap">{{ reportSettings.checker_name }}</p>
+                            <p class="text-xs md:text-sm text-gray-600 dark:text-gray-400 italic mt-1 print:mt-2">Kepala Bagian Keuangan</p>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-16 print:mb-24">Disetujui oleh,</p>
+                        <div class="relative mx-auto w-52 md:w-64 print:w-80 h-28 print:h-36 border-t-0 border-gray-900 flex flex-col justify-end items-center pt-10 print:pt-16">
+                            <p class="font-bold text-sm md:text-base print:text-xl whitespace-nowrap">{{ reportSettings.approver_name }}</p>
+                            <p class="text-xs md:text-sm text-gray-600 dark:text-gray-400 italic mt-1 print:mt-2">Direktur Utama</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Empty State -->
             <div v-else class="flex items-center justify-center py-12">
                 <div class="text-center">
@@ -533,10 +563,30 @@ import { ref, computed } from "vue";
 import ReportLayout from "../../../components/Reports/ReportLayout.vue";
 import reportService from "../../../services/reportService";
 import { useNotificationStore } from "@/stores/notification";
+import { useAuthStore } from "@/stores/auth";
+import { apiGet } from "@/utils/api";
 
 const notification = useNotificationStore();
 const reportLayout = ref(null);
 const reportData = ref(null);
+
+const printDate = computed(() => {
+  const now = new Date();
+  return `Makassar, ${now.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  })}`;
+});
+
+const authStore = useAuthStore();
+
+const printUser = computed(() => authStore.user?.name || authStore.user?.full_name || 'Nama Pengguna');
+
+const reportSettings = ref({
+  checker_name: 'Nama Pemeriksa',
+  approver_name: 'Nama Penyetuju'
+});
 
 // Methods
 const handleGenerate = async (period) => {
@@ -547,6 +597,20 @@ const handleGenerate = async (period) => {
         );
         reportData.value = response;
         reportLayout.value?.setReportData(response);
+
+        // Fetch report signature settings
+        try {
+          const settingsResponse = await apiGet('/settings');
+
+          if (settingsResponse.success) {
+
+            const settings = settingsResponse.data;
+            reportSettings.value.checker_name = settings.report_checker_name || reportSettings.value.checker_name;
+            reportSettings.value.approver_name = settings.report_approver_name || reportSettings.value.approver_name;
+          }
+        } catch (settingsErr) {
+          console.warn('Failed to fetch settings:', settingsErr);
+        }
     } catch (error) {
         notification.error("Failed to generate Laba Rugi report");
         throw error;

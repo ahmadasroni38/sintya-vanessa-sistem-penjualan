@@ -35,7 +35,44 @@
                     href="#"
                     aria-label="Brand"
                 >
+                    <!-- Dynamic Logo -->
                     <div
+                        v-if="settingStore.settings?.logo_sistem"
+                        class="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden group-hover:scale-105 transition-all duration-200"
+                        :class="
+                            sidebarState === 'desktop-collapsed'
+                                ? 'lg:w-10 lg:h-10'
+                                : ''
+                        "
+                    >
+                        <img
+                            :src="`storage/logo/${settingStore.settings.logo_sistem}`"
+                            :alt="settingStore.settings?.nama_sistem || 'Logo'"
+                            class="w-full h-full object-contain"
+                            @error="sidebarLogoError = true"
+                            v-show="!sidebarLogoError"
+                        />
+                        <div
+                            v-show="sidebarLogoError"
+                            class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center group-hover:from-primary-500 group-hover:to-primary-700 transition-all duration-200"
+                            :class="
+                                sidebarState === 'desktop-collapsed'
+                                    ? 'lg:w-10 lg:h-10'
+                                    : ''
+                            "
+                        >
+                            <BuildingOffice2Icon
+                                class="w-7 h-7 text-white"
+                                :class="
+                                    sidebarState === 'desktop-collapsed'
+                                        ? 'lg:w-6 lg:h-6'
+                                        : ''
+                                "
+                            />
+                        </div>
+                    </div>
+                    <div
+                        v-else
                         class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center group-hover:from-primary-500 group-hover:to-primary-700 transition-all duration-200"
                         :class="
                             sidebarState === 'desktop-collapsed'
@@ -55,7 +92,7 @@
                     <span
                         v-if="sidebarState !== 'desktop-collapsed'"
                         class="bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-500 transition-opacity duration-300"
-                        >AdminPanel</span
+                        >{{ settingStore.settings?.nama_sistem || 'AdminPanel' }}</span
                     >
                 </a>
 
@@ -642,26 +679,54 @@
                     <div
                         class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
                     >
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-4">
+                                <!-- Dynamic Logo -->
                                 <div
+                                    v-if="settingStore.settings?.logo_sistem"
+                                    class="w-10 h-10 rounded-md flex items-center justify-center overflow-hidden"
+                                >
+                                    <img
+                                        :src="`storage/logo/${settingStore.settings.logo_sistem}`"
+                                        :alt="settingStore.settings?.nama_sistem || 'Logo'"
+                                        class="w-full h-full object-contain"
+                                        @error="logoError = true"
+                                        v-show="!logoError"
+                                    />
+                                    <div
+                                        v-show="logoError"
+                                        class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-md flex items-center justify-center"
+                                    >
+                                        <BuildingOffice2Icon
+                                            class="w-4 h-4 text-white"
+                                        />
+                                    </div>
+                                </div>
+                                <div
+                                    v-else
                                     class="w-6 h-6 bg-gradient-to-br from-primary-400 to-primary-600 rounded-md flex items-center justify-center"
                                 >
                                     <BuildingOffice2Icon
                                         class="w-4 h-4 text-white"
                                     />
                                 </div>
-                                <span
-                                    class="font-semibold text-gray-900 dark:text-white"
-                                    >AdminPanel</span
-                                >
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <span
+                                            class="font-semibold text-gray-900 dark:text-white"
+                                        >
+                                            {{ settingStore.settings?.nama_sistem || 'AdminPanel' }}
+                                        </span>
+                                        <div class="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                                            {{ settingStore.settings?.nama_perusahaan || "Nama Perusahaan" }}
+                                        </p>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-500 mt-0">
+                                    {{ settingStore.settings?.alamat_lengkap || "Alamat Perusahaan" }}
+                                </p>
+                                </div>
                             </div>
-                            <div
-                                class="h-4 w-px bg-gray-300 dark:bg-gray-600"
-                            ></div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                &copy; 2025 {{ $t('footer.company') }}
-                            </p>
                         </div>
                         <div class="flex items-center gap-6">
                             <span
@@ -682,6 +747,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useThemeStore } from "../stores/theme";
 import { useAuthStore } from "../stores/auth";
+import { useSettingStore } from "../stores/settingStore";
 import { useI18n } from "vue-i18n";
 import Navbar from "../components/Layout/Navbar.vue";
 import NotificationContainer from "../components/UI/NotificationContainer.vue";
@@ -720,6 +786,7 @@ const route = useRoute();
 const router = useRouter();
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
+const settingStore = useSettingStore();
 const { t, locale } = useI18n();
 
 const searchQuery = ref("");
@@ -727,6 +794,8 @@ const sidebarCollapsed = ref(false);
 const isHovering = ref(false);
 const isMobile = ref(false);
 const showLanguageDropdown = ref(false);
+const logoError = ref(false);
+const sidebarLogoError = ref(false);
 
 // Check if mobile device
 const checkIfMobile = () => {
@@ -1023,6 +1092,11 @@ const ensureUserData = async () => {
 
 onMounted(async () => {
     await ensureUserData();
+
+    // Load settings once
+    await settingStore.fetchSettings();
+    logoError.value = false; // Reset logo error state
+    sidebarLogoError.value = false; // Reset sidebar logo error state
 
     // Check if mobile on mount
     checkIfMobile();

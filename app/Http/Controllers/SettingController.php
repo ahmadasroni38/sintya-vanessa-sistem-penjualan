@@ -64,6 +64,8 @@ class SettingController extends Controller
                 'logo_sistem.image' => 'Logo sistem harus berupa file gambar',
                 'logo_sistem.mimes' => 'Logo sistem harus berformat jpeg, png, jpg, atau gif',
                 'logo_sistem.max' => 'Ukuran logo sistem maksimal 2MB',
+                'report_checker_name.max' => 'Nama pemeriksa laporan maksimal 255 karakter',
+                'report_approver_name.max' => 'Nama penyetuju laporan maksimal 255 karakter',
             ];
 
             // Debug: Log all request data
@@ -79,6 +81,8 @@ class SettingController extends Controller
                 'email_perusahaan' => 'required|email',
                 'nomor_telepon' => 'required|string|max:20',
                 'footer_text' => 'nullable|string',
+                'report_checker_name' => 'nullable|string|max:255',
+                'report_approver_name' => 'nullable|string|max:255',
                 'logo_sistem' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ], $messages);
 

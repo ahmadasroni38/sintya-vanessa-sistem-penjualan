@@ -18,5 +18,7 @@ class Setting extends Model
         'email_perusahaan',
         'nomor_telepon',
         'footer_text',
+        'report_checker_name',
+        'report_approver_name',
     ];
 }
