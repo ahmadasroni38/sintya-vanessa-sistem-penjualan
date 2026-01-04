@@ -80,7 +80,11 @@ class StockBookController extends Controller
             ->orderBy('product_name')
             ->get();
 
-        return response()->json($products);
+        return response()->json([
+            'status' => true,
+            'message' => 'Products with stock retrieved successfully',
+            'data' => $products,
+        ]);
     }
 
     /**
@@ -94,7 +98,11 @@ class StockBookController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response()->json($locations);
+        return response()->json([
+            'status' => true,
+            'message' => 'Locations with stock retrieved successfully',
+            'data' => $locations,
+        ]);
     }
 
     /**
@@ -112,7 +120,7 @@ class StockBookController extends Controller
         $previousPeriodEnd = now()->subDays(1)->format('Y-m-d');
 
         $previousTransactions = StockCard::whereBetween('transaction_date', [$previousPeriodStart, $previousPeriodEnd])->count();
-        $transactionsTrend = $totalTransactions > 0 ? (($totalTransactions - $previousTransactions) / $previousTransactions) * 100 : 0;
+        $transactionsTrend = $previousTransactions > 0 ? (($totalTransactions - $previousTransactions) / $previousTransactions) * 100 : ($totalTransactions > 0 ? 100.0 : 0.0);
 
         return response()->json([
             'total_transactions' => $totalTransactions,
@@ -174,21 +182,25 @@ class StockBookController extends Controller
         $endingBalance = $openingBalance + $totalIn - $totalOut;
 
         return response()->json([
-            'opening_balance' => $openingBalance,
-            'transactions' => $transactions->items(),
-            'summary' => [
-                'total_in' => $totalIn,
-                'total_out' => $totalOut,
-                'ending_balance' => $endingBalance,
-            ],
-            'pagination' => [
-                'current_page' => $transactions->currentPage(),
-                'last_page' => $transactions->lastPage(),
-                'per_page' => $transactions->perPage(),
-                'total' => $transactions->total(),
-                'from' => $transactions->firstItem(),
-                'to' => $transactions->lastItem(),
-            ],
+            'status' => true,
+            'message' => 'Ledger data retrieved successfully',
+            'data' => [
+                'opening_balance' => $openingBalance,
+                'transactions' => $transactions->items(),
+                'summary' => [
+                    'total_in' => $totalIn,
+                    'total_out' => $totalOut,
+                    'ending_balance' => $endingBalance,
+                ],
+                'pagination' => [
+                    'current_page' => $transactions->currentPage(),
+                    'last_page' => $transactions->lastPage(),
+                    'per_page' => $transactions->perPage(),
+                    'total' => $transactions->total(),
+                    'from' => $transactions->firstItem(),
+                    'to' => $transactions->lastItem(),
+                ],
+            ]
         ]);
     }
 

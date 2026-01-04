@@ -41,7 +41,6 @@
                         v-model="datePreset"
                         label="Date Range"
                         :options="datePresetOptions"
-                        @change="onDatePresetChange"
                     />
                 </div>
                 <div>
@@ -162,7 +161,7 @@ const datePreset = ref("");
 const showLedger = ref(false);
 const loading = ref(false);
 const exporting = ref(false);
-const ledgerData = ref(null);
+const ledgerData = computed(() => stockBookStore.ledgerData);
 
 // Options
 const datePresetOptions = [
@@ -175,6 +174,53 @@ const datePresetOptions = [
     { value: "last_month", label: "Last Month" },
     { value: "this_year", label: "This Year" },
 ];
+
+const getDatesFromPreset = (preset) => {
+    const today = new Date();
+    let start = new Date();
+    let end = new Date();
+
+    switch (preset) {
+        case "today":
+            start = today;
+            end = today;
+            break;
+        case "yesterday":
+            start = new Date(today);
+            start.setDate(today.getDate() - 1);
+            end = start;
+            break;
+        case "last_7_days":
+            start = new Date(today);
+            start.setDate(today.getDate() - 7);
+            end = today;
+            break;
+        case "last_30_days":
+            start = new Date(today);
+            start.setDate(today.getDate() - 30);
+            end = today;
+            break;
+        case "this_month":
+            start = new Date(today.getFullYear(), today.getMonth(), 1);
+            end = today;
+            break;
+        case "last_month":
+            start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            end = new Date(today.getFullYear(), today.getMonth(), 0);
+            break;
+        case "this_year":
+            start = new Date(today.getFullYear(), 0, 1);
+            end = today;
+            break;
+        default:
+            return null;
+    }
+
+    return {
+        start: start.toISOString().split("T")[0],
+        end: end.toISOString().split("T")[0],
+    };
+};
 
 const today = computed(() => {
     return new Date().toISOString().split("T")[0];
@@ -270,6 +316,12 @@ const onDateChange = () => {
         end_date: endDate.value,
     });
     showLedger.value = false;
+
+    // Check if dates match current preset
+    const presetDates = getDatesFromPreset(datePreset.value);
+    if (!presetDates || presetDates.start !== startDate.value || presetDates.end !== endDate.value) {
+        datePreset.value = "";
+    }
 };
 
 const loadLedgerData = async () => {
@@ -278,7 +330,6 @@ const loadLedgerData = async () => {
     loading.value = true;
     try {
         await stockBookStore.fetchLedgerData();
-        ledgerData.value = stockBookStore.ledgerData;
         showLedger.value = true;
     } catch (error) {
         notificationStore.error("Failed to load ledger data");
@@ -290,6 +341,7 @@ const loadLedgerData = async () => {
 };
 
 const onPageChange = async (page) => {
+    if (!canLoadData.value) return;
     stockBookStore.setPagination(page);
     await loadLedgerData();
 };
@@ -353,6 +405,10 @@ watch(
     }
 );
 
+watch(datePreset, () => {
+    onDatePresetChange();
+});
+
 onMounted(() => {
     // Initialize with values from store if available
     if (stockBookStore.filters.product_id) {
@@ -374,3 +430,4 @@ onMounted(() => {
     }
 });
 </script>
+s

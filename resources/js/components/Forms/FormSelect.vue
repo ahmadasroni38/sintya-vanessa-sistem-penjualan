@@ -180,7 +180,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["update:modelValue", "blur", "focus"]);
+const emit = defineEmits(["update:modelValue", "change", "blur", "focus"]);
 
 const selectId = computed(
     () => props.id || `select-${Math.random().toString(36).substr(2, 9)}`
@@ -239,6 +239,7 @@ const buttonClasses = computed(() => {
 const handleValueChange = (value) => {
     selectedValue.value = value;
     emit("update:modelValue", value);
+    emit("change", value);
     searchQuery.value = ""; // Clear search when selection changes
 };
 

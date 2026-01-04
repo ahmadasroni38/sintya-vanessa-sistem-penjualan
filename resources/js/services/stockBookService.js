@@ -10,6 +10,7 @@ export const stockBookService = {
     // Get products with stock
     async getProductsWithStock() {
         const response = await api.get("/stock-book/products");
+        console.log(`Response Product`, response);
         return response.data;
     },
 

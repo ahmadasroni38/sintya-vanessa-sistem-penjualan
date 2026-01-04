@@ -357,27 +357,6 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('stock-cards/balances', [StockCardController::class, 'balances']);
     Route::get('stock-cards/export', [StockCardController::class, 'export']);
 
-    // Stock Book routes (Buku Stock)
-    Route::prefix('stock-book')->group(function () {
-        // Main views
-        Route::get('/', [App\Http\Controllers\StockBookController::class, 'index']);
-        Route::get('/ledger', [App\Http\Controllers\StockBookController::class, 'ledger']);
-
-        // Current balances
-        Route::get('/current-balances', [App\Http\Controllers\StockBookController::class, 'currentBalances']);
-        Route::get('/balance-by-date', [App\Http\Controllers\StockBookController::class, 'balanceByDate']);
-
-        // Summaries & Analytics
-        Route::get('/movement-summary', [App\Http\Controllers\StockBookController::class, 'movementSummary']);
-        Route::get('/statistics', [App\Http\Controllers\StockBookController::class, 'statistics']);
-
-        // Utilities
-        Route::get('/products-with-stock', [App\Http\Controllers\StockBookController::class, 'productsWithStock']);
-        Route::get('/locations-with-stock', [App\Http\Controllers\StockBookController::class, 'locationsWithStock']);
-
-        // Export
-        Route::get('/export', [App\Http\Controllers\StockBookController::class, 'export']);
-    });
 
     // Customer routes
     Route::get('customers/statistics', [App\Http\Controllers\CustomerController::class, 'statistics']);

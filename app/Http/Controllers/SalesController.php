@@ -85,13 +85,30 @@ class SalesController extends Controller
     /**
      * Get dropdown options for sale form.
      */
-    public function options()
+    public function options(Request $request)
     {
-        $products = Product::active()
+        $locationId = $request->get('location_id');
+
+        // Get products with location-specific stock if location is provided
+        $productsQuery = Product::active()
             ->with('unit')
-            ->select('id', 'product_code', 'product_name', 'unit_id')
-            ->orderBy('product_code')
-            ->get();
+            ->select('id', 'product_code', 'product_name', 'unit_id', 'selling_price');
+
+        if ($locationId) {
+            // Join with stock balances to get location-specific stock
+            $productsQuery->leftJoin('stock_balances', function($join) use ($locationId) {
+                $join->on('products.id', '=', 'stock_balances.product_id')
+                     ->where('stock_balances.location_id', '=', $locationId);
+            })
+            ->addSelect(
+                DB::raw('COALESCE(stock_balances.current_balance, 0) as stock_quantity')
+            );
+        } else {
+            // No location selected, show 0 stock
+            $productsQuery->addSelect(DB::raw('0 as stock_quantity'));
+        }
+
+        $products = $productsQuery->orderBy('product_code')->get();
 
         $locations = Location::active()
             ->select('id', 'code', 'name')

@@ -157,9 +157,15 @@ const onSearch = (searchQuery) => {
 
 const onViewDetails = (stockCard) => {
     // Navigate to ledger view with selected product and location
+    // Set default date range to current month
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
     stockBookStore.updateFilters({
         product_id: stockCard.product_id,
         location_id: stockCard.location_id,
+        start_date: startOfMonth.toISOString().split('T')[0],
+        end_date: today.toISOString().split('T')[0],
     });
     stockBookStore.setViewMode("ledger");
 };

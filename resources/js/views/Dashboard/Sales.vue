@@ -80,6 +80,7 @@
             :product-options="productOptions"
             @close="closeModal"
             @saved="handleFormSave"
+            @location-changed="handleLocationChanged"
         />
 
         <!-- Delete Confirmation Modal -->
@@ -327,11 +328,16 @@ const loadStatistics = async () => {
     }
 };
 
-const loadOptions = async () => {
+const loadOptions = async (locationId = null) => {
     try {
-        const data = await fetchOptions();
+        const data = await fetchOptions(locationId);
         if (data) {
-            customerOptions.value = data.customers || [];
+            customerOptions.value = data.customers.length ? data.customers.map((item) => {
+                return {
+                    value: item.id,
+                    label: item.customer_name,
+                };
+            }) : [];
             productOptions.value = data.products || [];
         }
     } catch (error) {
@@ -340,6 +346,11 @@ const loadOptions = async () => {
         customerOptions.value = [];
         productOptions.value = [];
     }
+};
+
+const handleLocationChanged = async (locationId) => {
+    // Reload products with location-specific stock
+    await loadOptions(locationId);
 };
 
 const handleFilterChange = () => {

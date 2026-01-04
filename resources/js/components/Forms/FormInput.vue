@@ -86,11 +86,14 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["update:modelValue", "blur", "focus"]);
+const emit = defineEmits(["update:modelValue", "change", "blur", "focus"]);
 
 const inputValue = computed({
     get: () => props.modelValue,
-    set: (value) => emit("update:modelValue", value),
+    set: (value) => {
+        emit("update:modelValue", value);
+        emit("change", value);
+    },
 });
 
 const inputId = computed(

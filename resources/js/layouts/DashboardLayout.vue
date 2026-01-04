@@ -342,7 +342,7 @@
                 class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 transition-all duration-300 mt-auto"
             >
                 <!-- System Settings -->
-                <div class="mb-3">
+                <div v-if="hasPermission('view-settings')" class="mb-3">
                     <router-link
                         to="/settings"
                         :class="[
@@ -656,6 +656,7 @@ const menuSections = {
                 route: "/",
                 routeName: "Dashboard",
                 icon: HomeIcon,
+                permission: "view-dashboard",
             },
         ],
     },
@@ -667,42 +668,49 @@ const menuSections = {
                 route: "/journal-entries",
                 routeName: "journal-entries.index",
                 icon: BookOpenIcon,
+                permission: "view-journal",
             },
             {
                 text: "sidebar.coa",
                 route: "/chart-of-accounts",
                 routeName: "coa.index",
                 icon: ClipboardDocumentListIcon,
+                permission: "view-coa",
             },
             {
                 text: "sidebar.neracaLajur",
                 route: "/reports/neraca-lajur",
                 routeName: "reports.neraca-lajur",
                 icon: DocumentDuplicateIcon,
+                permission: "view-neraca-lajur",
             },
             {
                 text: "sidebar.neraca",
                 route: "/reports/neraca",
                 routeName: "reports.neraca",
                 icon: DocumentTextIcon,
+                permission: "view-neraca",
             },
             {
                 text: "sidebar.labaRugi",
                 route: "/reports/laba-rugi",
                 routeName: "reports.laba-rugi",
                 icon: ChartBarIcon,
+                permission: "view-laba-rugi",
             },
             {
                 text: "sidebar.perubahanModal",
                 route: "/reports/perubahan-modal",
                 routeName: "reports.perubahan-modal",
                 icon: CurrencyDollarIcon,
+                permission: "view-perubahan-modal",
             },
             {
                 text: "sidebar.arusKas",
                 route: "/reports/arus-kas",
                 routeName: "reports.arus-kas",
                 icon: BanknotesIcon,
+                permission: "view-arus-kas",
             },
         ],
     },
@@ -714,42 +722,49 @@ const menuSections = {
                 route: "/products",
                 routeName: "products.index",
                 icon: TagIcon,
+                permission: "view-products",
             },
             {
                 text: "sidebar.locations",
                 route: "/locations",
                 routeName: "locations.index",
                 icon: MapPinIcon,
+                permission: "view-locations",
             },
             {
                 text: "sidebar.stockMasuk",
                 route: "/stock-masuk",
                 routeName: "stock-masuk.index",
                 icon: ArchiveBoxIcon,
+                permission: "view-stock-masuk",
             },
             {
                 text: "sidebar.mutasi",
                 route: "/mutasi",
                 routeName: "mutasi.index",
                 icon: ArrowsRightLeftIcon,
+                permission: "view-mutasi",
             },
             {
                 text: "sidebar.adjustment",
                 route: "/adjustment",
                 routeName: "adjustment.index",
                 icon: AdjustmentsHorizontalIcon,
+                permission: "view-adjustment",
             },
             {
                 text: "sidebar.stockopname",
                 route: "/stockopname",
                 routeName: "stockopname.index",
                 icon: ClipboardDocumentListIcon,
+                permission: "view-stockopname",
             },
             {
                 text: "sidebar.bukuStock",
                 route: "/buku-stock",
                 routeName: "buku-stock.index",
                 icon: BookOpenIcon,
+                permission: "view-buku-stock",
             },
         ],
     },
@@ -761,18 +776,21 @@ const menuSections = {
                 route: "/users",
                 routeName: "Users",
                 icon: UsersIcon,
+                permission: "view-users",
             },
             {
                 text: "sidebar.roles",
                 route: "/roles",
                 routeName: "Roles",
                 icon: ShieldCheckIcon,
+                permission: "view-roles",
             },
             {
                 text: "sidebar.permissions",
                 route: "/permissions",
                 routeName: "Permissions",
                 icon: KeyIcon,
+                permission: "view-permissions",
             },
         ],
     },
@@ -784,30 +802,53 @@ const menuSections = {
                 route: "/sales",
                 routeName: "sales.index",
                 icon: ShoppingCartIcon,
+                permission: "view-sale",
             },
             {
                 text: "sidebar.customers",
                 route: "/customers",
                 routeName: "customers.index",
                 icon: UsersIcon,
+                permission: "view-customer",
             },
         ],
     },
 };
 
+// Get user permissions from active role
+const userPermissions = computed(() => {
+    return authStore.roleActive?.permissions?.map(p => p.name) || [];
+});
+
+// Helper function to check if user has permission
+const hasPermission = (requiredPermission) => {
+    if (!requiredPermission) return true; // No permission required
+    return userPermissions.value.includes(requiredPermission);
+};
+
 // Computed property for filtered menu sections
 const filteredMenuSections = computed(() => {
     try {
-        if (!searchQuery.value || !searchQuery.value.trim()) {
-            return menuSections;
-        }
-
-        const query = searchQuery.value.toLowerCase().trim();
+        // Filter items based on permissions and search query
         const filtered = {};
 
         Object.keys(menuSections).forEach((sectionKey) => {
             const section = menuSections[sectionKey];
+
+            // Filter items by permission and search query
             const filteredItems = section.items.filter((item) => {
+                // Check permission first
+                if (!hasPermission(item.permission)) {
+                    return false;
+                }
+
+                // If no search query, include the item
+                if (!searchQuery.value || !searchQuery.value.trim()) {
+                    return true;
+                }
+
+                // Check search query
+                const query = searchQuery.value.toLowerCase().trim();
                 try {
                     return t(item.text).toLowerCase().includes(query);
                 } catch (error) {
@@ -816,7 +857,7 @@ const filteredMenuSections = computed(() => {
                 }
             });
 
-            // Always include section, even if no items match
+            // Always include section, even if no items match (to prevent undefined errors)
             filtered[sectionKey] = {
                 ...section,
                 items: filteredItems,

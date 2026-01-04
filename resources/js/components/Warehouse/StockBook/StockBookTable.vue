@@ -127,11 +127,11 @@
                         >
                             Balance
                         </th>
-                        <th
+                        <!-- <th
                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                         >
                             Created By
-                        </th>
+                        </th> -->
                         <th
                             class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                         >
@@ -159,17 +159,20 @@
                         <td
                             class="px-6 py-4 text-sm text-gray-900 dark:text-white"
                         >
-                            {{ stockCard.product_code }}
+                            {{ stockCard.product.product_code }}
                         </td>
                         <td
                             class="px-6 py-4 text-sm text-gray-900 dark:text-white"
                         >
-                            {{ stockCard.product_name }}
+                            {{ stockCard.product.product_name }}
                         </td>
                         <td
                             class="px-6 py-4 text-sm text-gray-900 dark:text-white"
                         >
-                            {{ stockCard.location_name }}
+                            {{ stockCard.location.name }}
+                            <small>
+                                ({{ stockCard.location.address }})
+                            </small>
                         </td>
                         <td class="px-6 py-4">
                             <span
@@ -215,11 +218,11 @@
                         >
                             {{ formatNumber(stockCard.balance) }}
                         </td>
-                        <td
+                        <!-- <td
                             class="px-6 py-4 text-sm text-gray-900 dark:text-white"
                         >
                             {{ stockCard.created_by }}
-                        </td>
+                        </td> -->
                         <td class="px-6 py-4 text-sm text-center">
                             <div class="flex items-center justify-end gap-2">
                                 <button

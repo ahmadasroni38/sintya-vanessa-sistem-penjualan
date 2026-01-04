@@ -13,6 +13,7 @@
                     label="Transaction Date"
                     type="date"
                     required
+                    :disabled="saving"
                     :error="errors?.transaction_date"
                 />
                 <FormSelect
@@ -20,41 +21,16 @@
                     label="Location"
                     :options="locationOptions"
                     required
+                    :disabled="saving || formData.items.length > 0"
                     :error="errors?.location_id"
+                    :readonly="formData.items.length > 0"
                 />
                 <FormSelect
                     v-model="formData.customer_id"
                     label="Customer"
                     :options="customerOptions"
+                    :disabled="saving"
                     :error="errors?.customer_id"
-                />
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormSelect
-                    v-model="formData.payment_method"
-                    label="Payment Method"
-                    :options="paymentMethodOptions"
-                    required
-                    :error="errors?.payment_method"
-                />
-                <FormInput
-                    v-model="formData.paid_amount"
-                    label="Paid Amount"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    :error="errors?.paid_amount"
-                    @input="calculateChange"
-                />
-                <FormInput
-                    v-model="formData.change_amount"
-                    label="Change Amount"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    readonly
-                    :error="errors?.change_amount"
                 />
             </div>
 
@@ -63,12 +39,22 @@
                 label="Notes"
                 placeholder="Additional notes (optional)"
                 rows="2"
+                :disabled="saving"
                 :error="errors?.notes"
             />
 
             <!-- Items Table -->
             <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <SalesItemsTable v-model="formData.items" :errors="errors" :productOptions="productOptions" @update:total="handleTotalUpdate" />
+                <SalesItemsTable
+                    ref="salesItemsTableRef"
+                    v-model="formData.items"
+                    :errors="errors"
+                    :productOptions="productOptions"
+                    :saving="saving"
+                    :canAddItems="!!formData.location_id"
+                    @update:total="handleTotalUpdate"
+                    @update:hasValidationError="hasValidationError = $event"
+                />
             </div>
 
             <!-- Summary Section -->
@@ -95,6 +81,40 @@
                 </div>
             </div>
 
+            <!-- Payment Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormSelect
+                        v-model="formData.payment_method"
+                        label="Payment Method"
+                        :options="paymentMethodOptions"
+                        required
+                        :disabled="saving"
+                        :error="errors?.payment_method"
+                    />
+                    <FormInput
+                        v-model="formData.paid_amount"
+                        label="Paid Amount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        :disabled="saving"
+                        :error="errors?.paid_amount"
+                        @input="calculateChange"
+                    />
+                    <FormInput
+                        v-model="formData.change_amount"
+                        label="Change Amount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        readonly
+                        :disabled="saving"
+                        :error="errors?.change_amount"
+                    />
+                </div>
+            </div>
+
             <!-- Actions -->
             <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
@@ -106,7 +126,7 @@
                 </button>
                 <button
                     type="submit"
-                    :disabled="saving || formData.items.length === 0"
+                    :disabled="saving || formData.items.length === 0 || hasValidationError"
                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <span v-if="saving">Saving...</span>
@@ -118,7 +138,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted, onUnmounted, nextTick } from "vue";
 import Modal from "@/components/Overlays/Modal.vue";
 import FormInput from "@/components/Forms/FormInput.vue";
 import FormSelect from "@/components/Forms/FormSelect.vue";
@@ -156,7 +176,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["close", "saved"]);
+const emit = defineEmits(["close", "saved", "locationChanged"]);
 
 const paymentMethodOptions = [
     { value: "cash", label: "Cash" },
@@ -175,13 +195,27 @@ const formData = ref({
     items: [],
 });
 
-const errors = ref({});
-
 const totals = ref({
     subtotal: 0,
     discount: 0,
     tax: 0,
     total: 0,
+});
+
+const hasValidationError = ref(false);
+
+const salesItemsTableRef = ref(null);
+
+const isFormDirty = computed(() => {
+    // Check if any field has been modified from initial state
+    if (!props.editingItem) {
+        // For new transaction, check if any meaningful data was entered
+        return formData.value.location_id !== "" ||
+               formData.value.customer_id !== "" ||
+               formData.value.notes !== "" ||
+               formData.value.items.length > 0;
+    }
+    return false; // Don't show warning when editing
 });
 
 const formatCurrency = (value) => {
@@ -194,7 +228,16 @@ const formatCurrency = (value) => {
 };
 
 const handleTotalUpdate = (newTotals) => {
+    const oldTotal = totals.value.total;
     totals.value = newTotals;
+
+    // Auto-fill paid amount with new total only if:
+    // 1. It's a new transaction (not editing)
+    // 2. AND paid amount equals old total (user hasn't manually changed it)
+    if (!props.editingItem && formData.value.paid_amount === oldTotal) {
+        formData.value.paid_amount = newTotals.total;
+    }
+
     calculateChange();
 };
 
@@ -225,18 +268,40 @@ const resetForm = () => {
 
 watch(
     () => props.editingItem,
-    (newValue) => {
+    async (newValue) => {
         if (newValue) {
-            const items = (newValue.details || []).map((detail) => ({
-                id: detail.id,
-                product_id: detail.product_id,
-                quantity: parseFloat(detail.quantity) || 0,
-                unit_price: parseFloat(detail.unit_price) || 0,
-                discount_percent: parseFloat(detail.discount_percent) || 0,
-                tax_percent: parseFloat(detail.tax_percent) || 0,
-                notes: detail.notes || "",
-                product: detail.product || null,
-            }));
+            const items = (newValue.details || []).map((detail) => {
+                const quantity = parseFloat(detail.quantity) || 0;
+                const unitPrice = parseFloat(detail.unit_price) || 0;
+                const discountPercent = parseFloat(detail.discount_percent) || 0;
+                const taxPercent = parseFloat(detail.tax_percent) || 0;
+
+                // Pre-calculate values (same logic as calculateItemTotal)
+                const subtotal = quantity * unitPrice;
+                const discountAmount = subtotal * (discountPercent / 100);
+                const subtotalAfterDiscount = subtotal - discountAmount;
+                const taxAmount = subtotalAfterDiscount * (taxPercent / 100);
+                const total = subtotalAfterDiscount + taxAmount;
+
+                return {
+                    id: detail.id,
+                    product_id: detail.product_id,
+                    quantity,
+                    unit_price: unitPrice,
+                    discount_percent: discountPercent,
+                    tax_percent: taxPercent,
+                    notes: detail.notes || "",
+                    product: detail.product || null,
+                    original_quantity: quantity, // Track original quantity for stock checking
+                    // Initialize validation properties
+                    _validation_errors: [],
+                    _stock_warning: null,
+                    _available_stock: (detail.product?.stock_quantity || 0) + quantity,
+                    _total: total,
+                    _discount_amount: discountAmount,
+                    _tax_amount: taxAmount,
+                };
+            });
 
             formData.value = {
                 transaction_date: newValue.transaction_date?.split(" ")[0] || new Date().toISOString().split("T")[0],
@@ -248,6 +313,12 @@ watch(
                 notes: newValue.notes || "",
                 items: items,
             };
+
+            // Trigger validation for loaded items after DOM updates
+            await nextTick();
+            if (salesItemsTableRef.value) {
+                salesItemsTableRef.value.validateAllItems();
+            }
         } else {
             resetForm();
         }
@@ -257,14 +328,65 @@ watch(
 
 watch(
     () => props.isOpen,
-    (newValue) => {
+    async (newValue) => {
         if (!newValue && !props.editingItem) {
             resetForm();
+        } else if (newValue) {
+            // Smart defaults for new transactions
+            if (!props.editingItem) {
+                // Auto-select location if only one option
+                if (props.locationOptions.length === 1) {
+                    formData.value.location_id = props.locationOptions[0].value;
+                    // Emit location change to load products for this location
+                    emit("locationChanged", props.locationOptions[0].value);
+                }
+            }
+
+            // Auto-focus to first input when modal opens
+            await nextTick();
+            const firstInput = document.querySelector('input[type="date"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }
+    }
+);
+
+// Watch for location changes to reload products with location-specific stock
+watch(
+    () => formData.value.location_id,
+    (newLocationId, oldLocationId) => {
+        // Only react if location actually changed and it's not the initial load
+        if (oldLocationId !== undefined && newLocationId !== oldLocationId) {
+            // Clear all items when location changes
+            if (formData.value.items.length > 0) {
+                const confirmed = confirm(
+                    "Changing location will clear all added items. Continue?"
+                );
+                if (!confirmed) {
+                    // Revert to old location
+                    formData.value.location_id = oldLocationId;
+                    return;
+                }
+                formData.value.items = [];
+            }
+
+            // Emit event to parent to reload products for new location
+            if (newLocationId) {
+                emit("locationChanged", newLocationId);
+            }
         }
     }
 );
 
 const handleClose = () => {
+    // Warn user about unsaved changes
+    if (isFormDirty.value) {
+        const confirmed = confirm("You have unsaved changes. Are you sure you want to close this form?");
+        if (!confirmed) {
+            return;
+        }
+    }
     emit("close");
 };
 
@@ -278,4 +400,24 @@ const handleSubmit = () => {
         saleId,
     });
 };
+
+// Keyboard shortcuts
+const handleKeyDown = (event) => {
+    // Only handle shortcuts when modal is open
+    if (!props.isOpen) return;
+
+    // ESC key to close modal
+    if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+    }
+};
+
+onMounted(() => {
+    document.addEventListener("keydown", handleKeyDown);
+});
+
+onUnmounted(() => {
+    document.removeEventListener("keydown", handleKeyDown);
+});
 </script>

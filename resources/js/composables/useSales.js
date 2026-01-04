@@ -258,9 +258,14 @@ export function useSales() {
     /**
      * Fetch dropdown options (products, locations, customers)
      */
-    const fetchOptions = async () => {
+    const fetchOptions = async (locationId = null) => {
         try {
-            const response = await api.get("/sales/options");
+            const params = {};
+            if (locationId) {
+                params.location_id = locationId;
+            }
+
+            const response = await api.get("/sales/options", { params });
 
             // Handle both response.data and response.data.data patterns
             const data = response.data || response;

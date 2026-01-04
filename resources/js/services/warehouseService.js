@@ -465,13 +465,13 @@ export const stockBookService = {
 
     // Get products that have stock
     getProductsWithStock: async () => {
-        const response = await api.get("/stock-book/products-with-stock");
+        const response = await api.get("/stock-book/products");
         return response.data;
     },
 
     // Get locations that have stock
     getLocationsWithStock: async () => {
-        const response = await api.get("/stock-book/locations-with-stock");
+        const response = await api.get("/stock-book/locations");
         return response.data;
     },
 
