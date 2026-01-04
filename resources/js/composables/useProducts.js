@@ -32,11 +32,17 @@ export function useProducts() {
 
     // Fetch products with filters
     const fetchProducts = async (page = 1) => {
+        console.log("=== fetchProducts called ===", new Date().toISOString());
+        console.log("Page:", page, "Loading:", loading.value);
+        console.time("fetchProducts-" + page);
+
         // Prevent concurrent fetches
         if (loading.value) {
+            console.log("fetchProducts blocked - already loading");
             return;
         }
 
+        console.log("fetchProducts starting - setting loading to true");
         loading.value = true;
         try {
             const params = {
@@ -63,6 +69,8 @@ export function useProducts() {
             );
             throw error;
         } finally {
+            console.log("fetchProducts completed - setting loading to false");
+            console.timeEnd("fetchProducts-" + page);
             loading.value = false;
         }
     };
@@ -257,12 +265,14 @@ export function useProducts() {
 
     // Apply filters and refresh
     const applyFilters = (newFilters) => {
+        console.log("applyFilters called with:", newFilters);
         filters.value = { ...filters.value, ...newFilters };
         return fetchProducts(1);
     };
 
     // Reset filters
     const resetFilters = () => {
+        console.log("resetFilters called");
         filters.value = {
             search: "",
             product_type: "",
@@ -278,6 +288,7 @@ export function useProducts() {
 
     // Change page
     const changePage = (page, itemsPerPage) => {
+        console.log("changePage called with:", page, itemsPerPage);
         if (itemsPerPage?.value) {
             pagination.value.per_page = itemsPerPage?.value;
         }
@@ -287,6 +298,7 @@ export function useProducts() {
 
     // Change sorting
     const changeSort = (sortBy, sortOrder = "asc") => {
+        console.log("changeSort called with:", sortBy, sortOrder);
         filters.value.sort_by = sortBy;
         filters.value.sort_order = sortOrder;
         return fetchProducts(1);

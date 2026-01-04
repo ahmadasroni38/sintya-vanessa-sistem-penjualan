@@ -895,7 +895,9 @@ const changeLanguage = (lang) => {
 };
 
 const ensureUserData = async () => {
-    if (!authStore.user && authStore.token) {
+    // Only check auth if we don't have user data but have a token
+    // and we're not coming from login page (router already checked auth)
+    if (!authStore.user && authStore.token && route.name !== 'Dashboard') {
         await authStore.checkAuth();
     }
 };

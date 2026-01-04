@@ -76,12 +76,18 @@ const productTypeOptions = [
 watch(
     () => props.filters,
     (newFilters) => {
-        localFilters.value = { ...localFilters.value, ...newFilters };
+        // Only update if filters actually changed to prevent unnecessary updates
+        const hasChanged = JSON.stringify(localFilters.value) !== JSON.stringify(newFilters);
+        if (hasChanged) {
+            console.log("ProductFilters: External filters changed, updating localFilters");
+            localFilters.value = { ...localFilters.value, ...newFilters };
+        }
     },
     { deep: true }
 );
 
 const handleFilterChange = () => {
+    console.log("ProductFilters: handleFilterChange called with:", localFilters.value);
     emit("update:filters", localFilters.value);
 };
 

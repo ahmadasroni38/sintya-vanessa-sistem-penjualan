@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProducts } from "../../../composables/useProducts";
 import { useSelectOptions } from "../../../composables/useSelectOptions";
@@ -113,8 +113,10 @@ import {
     ArrowDownTrayIcon,
     FunnelIcon,
 } from "@heroicons/vue/24/outline";
+import { useNotificationStore } from "../../../stores/notification";
 
 const { t } = useI18n();
+const notificationStore = useNotificationStore();
 
 // Use Products Composable
 const {
@@ -157,6 +159,7 @@ const editingProduct = ref(null);
 const showDeleteModal = ref(false);
 const deletingProduct = ref(null);
 const showFilters = ref(false);
+const statsLoading = ref(false);
 const statistics = ref({
     total: 0,
     active: 0,
@@ -256,7 +259,13 @@ const stats = computed(() => ({
 
 // Methods
 const loadStatistics = async () => {
-    console.log("loadStatistics");
+    console.log("loadStatistics called - statistics.loading:", statsLoading.value);
+
+    // Prevent concurrent statistics loading
+    if (statsLoading.value) {
+        console.log("loadStatistics blocked - already loading");
+        return;
+    }
 
     try {
         const data = await fetchProductStatistics();
@@ -269,32 +278,65 @@ const loadStatistics = async () => {
 const handleFilterChange = () => {
     console.log("handleFilterChange");
     applyFiltersComposable(filters.value);
-    loadStatistics();
+    // Statistics will be updated after the filter is applied
 };
 
 const handleResetFilters = () => {
     console.log("handleResetFilters");
     resetFiltersComposable();
-    loadStatistics();
+    // Statistics will be updated after the filters are reset
 };
 
 const handleRefresh = async () => {
-    console.log("handleRefresh");
+    console.log("=== handleRefresh STARTED ===", new Date().toISOString());
+    console.time("handleRefresh-total");
+
     refreshing.value = true;
-    await fetchProducts(pagination.value.current_page);
-    await loadStatistics();
-    refreshing.value = false;
+    statsLoading.value = true;
+    try {
+        console.log("Fetching products...");
+        console.time("fetchProducts-refresh");
+        await fetchProducts({
+            page: pagination.value.current_page,
+            per_page: pagination.value.per_page,
+        });
+        console.timeEnd("fetchProducts-refresh");
+
+        console.log("Fetching statistics...");
+        console.time("fetchProductStatistics-refresh");
+        await fetchProductStatistics().then((data) => {
+            statistics.value = data;
+        });
+        console.timeEnd("fetchProductStatistics-refresh");
+
+        notificationStore.success(t("products.refreshSuccess"));
+    } catch (error) {
+        console.error("Error refreshing products:", error);
+        notificationStore.error(t("products.refreshError"), error.message);
+    } finally {
+        refreshing.value = false;
+        statsLoading.value = false;
+    }
+
+    console.timeEnd("handleRefresh-total");
+    console.log("=== handleRefresh COMPLETED ===", new Date().toISOString());
 };
 
 const handlePageChange = (page, itemsPerPage) => {
     console.log("handlePageChange");
-    changePage(page, itemsPerPage);
+    fetchProducts({
+        page,
+        per_page: pagination.value.per_page,
+    });
 };
 
-const handleSort = (column, direction) => {
-    filters.value.sort_by = column;
-    filters.value.sort_order = direction;
-    applyFiltersComposable(filters.value);
+const handleSort = ({ column, direction }) => {
+    fetchProducts({
+        page: pagination.value.current_page,
+        per_page: pagination.value.per_page,
+        sort_by: column,
+        sort_order: direction,
+    });
 };
 
 const handleEdit = (product) => {
@@ -313,7 +355,13 @@ const confirmDelete = async () => {
     try {
         await deleteProduct(deletingProduct.value.id);
         cancelDelete();
-        await handleRefresh();
+        // Refresh both products list and statistics
+        refreshing.value = true;
+        await Promise.all([
+            fetchProducts(pagination.value.current_page),
+            loadStatistics()
+        ]);
+        refreshing.value = false;
     } catch (error) {
         console.error("Error deleting product:", error);
         // Error notification already handled in composable
@@ -334,7 +382,13 @@ const handleFormSave = async ({ formData, isEditing, productId }) => {
         }
 
         closeModal();
-        await handleRefresh();
+        // Refresh both products list and statistics
+        refreshing.value = true;
+        await Promise.all([
+            fetchProducts(pagination.value.current_page),
+            loadStatistics()
+        ]);
+        refreshing.value = false;
     } catch (error) {
         console.error("Error saving product:", error);
         // Error handling is done in the modal component
@@ -371,8 +425,32 @@ const handleProductTypeAdded = async () => {
 
 // Lifecycle
 onMounted(async () => {
+    console.log("=== Products.vue onMounted STARTED ===", new Date().toISOString());
+    console.time("onMounted-total");
+
+    console.log("Loading units and categories...");
+    console.time("loadUnits-categories");
     await Promise.all([loadUnits(), loadCategories()]);
-    await fetchProducts();
-    await loadStatistics();
+    console.timeEnd("loadUnits-categories");
+
+    statsLoading.value = true;
+    try {
+        console.log("Calling fetchProducts from onMounted...");
+        console.time("fetchProducts-initial");
+        await fetchProducts();
+        console.timeEnd("fetchProducts-initial");
+
+        console.log("Calling fetchProductStatistics from onMounted...");
+        console.time("fetchProductStatistics-initial");
+        await fetchProductStatistics().then((data) => {
+            statistics.value = data;
+        });
+        console.timeEnd("fetchProductStatistics-initial");
+    } finally {
+        statsLoading.value = false;
+    }
+
+    console.timeEnd("onMounted-total");
+    console.log("=== Products.vue onMounted COMPLETED ===", new Date().toISOString());
 });
 </script>

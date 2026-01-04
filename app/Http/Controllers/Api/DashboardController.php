@@ -3,13 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Asset;
-use App\Models\AssetCategory;
-use App\Models\Location;
-use App\Models\User;
-use App\Models\Role;
-use App\Models\Permission;
-use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;

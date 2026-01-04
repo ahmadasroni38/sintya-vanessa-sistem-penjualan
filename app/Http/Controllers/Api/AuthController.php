@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\PasswordResetOtp;
+use App\Models\Role;
 use App\Notifications\PasswordResetOtp as PasswordResetOtpNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,6 +85,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::guard('api')->user();
+        $roleActive = Role::with('permissions')->where('id', $user->activeRole()?->id ?? NULL)->first();
 
         return response()->json([
             'success' => true,
@@ -97,7 +99,9 @@ class AuthController extends Controller
             ],
             'token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => Auth::guard('api')->factory()->getTTL() * 60
+            'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
+            'roles' => $user->roles,
+            'role_active' => $roleActive,
         ]);
     }
 
@@ -107,6 +111,7 @@ class AuthController extends Controller
     public function me()
     {
         $user = Auth::guard('api')->user();
+        $roleActive = Role::with('permissions')->where('id', $user->activeRole()?->id ?? NULL)->first();
 
         return response()->json([
             'success' => true,
@@ -115,8 +120,10 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => 'admin',
-                'avatar' => 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80'
-            ]
+                'avatar' => 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80',
+            ],
+            'roles' => $user->roles,
+            'role_active' => $roleActive,
         ]);
     }
 

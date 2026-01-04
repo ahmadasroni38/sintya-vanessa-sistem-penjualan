@@ -3,6 +3,8 @@ import { ref, computed } from "vue";
 
 export const useAuthStore = defineStore("auth", () => {
     const user = ref(null);
+    const roles = ref([]);
+    const roleActive = ref(null);
     const token = ref(localStorage.getItem("token") || null);
     const isLoading = ref(false);
 
@@ -31,9 +33,13 @@ export const useAuthStore = defineStore("auth", () => {
             if (data.success) {
                 token.value = data.token;
                 user.value = data.user;
+                roles.value = data.roles;
+                roleActive.value = data.role_active;
 
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("user", JSON.stringify(data.user));
+                localStorage.setItem("roles", JSON.stringify(data.roles));
+                localStorage.setItem("role_active", JSON.stringify(data.role_active));
 
                 return { success: true, user: data.user };
             } else {
@@ -64,8 +70,12 @@ export const useAuthStore = defineStore("auth", () => {
         } finally {
             token.value = null;
             user.value = null;
+            roles.value = [];
+            roleActive.value = null;
             localStorage.removeItem("token");
             localStorage.removeItem("user");
+            localStorage.removeItem("roles");
+            localStorage.removeItem("role_active");
         }
     };
 
@@ -77,6 +87,26 @@ export const useAuthStore = defineStore("auth", () => {
             } catch (error) {
                 console.error("Error parsing saved user:", error);
                 localStorage.removeItem("user");
+            }
+        }
+
+        const savedRoles = localStorage.getItem("roles");
+        if (savedRoles) {
+            try {
+                roles.value = JSON.parse(savedRoles);
+            } catch (error) {
+                console.error("Error parsing saved roles:", error);
+                localStorage.removeItem("roles");
+            }
+        }
+
+        const savedRoleActive = localStorage.getItem("role_active");
+        if (savedRoleActive) {
+            try {
+                roleActive.value = JSON.parse(savedRoleActive);
+            } catch (error) {
+                console.error("Error parsing saved role_active:", error);
+                localStorage.removeItem("role_active");
             }
         }
     };
@@ -100,7 +130,12 @@ export const useAuthStore = defineStore("auth", () => {
 
             if (data.success) {
                 user.value = data.user;
+                roles.value = data.roles;
+                roleActive.value = data.role_active;
+
                 localStorage.setItem("user", JSON.stringify(data.user));
+                localStorage.setItem("roles", JSON.stringify(data.roles));
+                localStorage.setItem("role_active", JSON.stringify(data.role_active));
                 return true;
             } else {
                 throw new Error("Auth check failed");
@@ -113,6 +148,8 @@ export const useAuthStore = defineStore("auth", () => {
 
     return {
         user,
+        roles,
+        roleActive,
         token,
         isLoading,
         isAuthenticated,

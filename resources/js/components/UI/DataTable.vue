@@ -734,6 +734,7 @@ const selectedItems = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const pageSizes = ref([5, 10, 15, 25, 50, 100]);
+const isInitialized = ref(false);
 
 // Computed properties
 const totalColumns = computed(() => {
@@ -834,7 +835,10 @@ const toggleSort = (key) => {
         sortOrder.value = "asc";
     }
 
-    emit("sort", key, sortOrder.value);
+    // Only emit sort if component is initialized to prevent initial unwanted calls
+    if (isInitialized.value) {
+        emit("sort", key, sortOrder.value);
+    }
 };
 
 const toggleSelectAll = () => {
@@ -909,7 +913,7 @@ watch(
 watch(itemsPerPage, () => {
     if (!props.serverSidePagination) {
         currentPage.value = 1;
-    } else {
+    } else if (isInitialized.value) {
         emit("page-change", 1, itemsPerPage);
     }
 });
@@ -923,9 +927,13 @@ watch(searchQuery, () => {
 watch(
     () => props.pagination,
     (newPagination) => {
-        if (props.serverSidePagination) {
+        if (props.serverSidePagination && newPagination) {
             currentPage.value = newPagination.current_page || 1;
             itemsPerPage.value = newPagination.per_page || 10;
+            // Mark as initialized after the first pagination update
+            if (!isInitialized.value) {
+                isInitialized.value = true;
+            }
         }
     },
     { immediate: true }
