@@ -56,6 +56,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::post('set-role', [AuthController::class, 'setRole']);
     Route::middleware('throttle.password.reset')->group(function () {
         Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('verify-otp', [AuthController::class, 'verifyOtp']);

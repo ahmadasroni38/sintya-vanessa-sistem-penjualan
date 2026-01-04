@@ -113,6 +113,46 @@
                         >
                     </router-link>
 
+                    <!-- Roles Section -->
+                    <div v-if="authStore.roles && authStore.roles.length > 1" class="px-2 py-2">
+                        <!-- Compact Role Selector -->
+                        <div class="px-2 mb-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Role</span>
+                                <div v-if="isSwitchingRole" class="flex items-center gap-1">
+                                    <div class="w-3 h-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600 dark:border-gray-500 dark:border-t-gray-300"></div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Switching...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Role Options - Compact Layout -->
+                        <div class="px-2 space-y-1">
+                            <button
+                                v-for="role in authStore.roles"
+                                :key="role.id"
+                                @click="switchRole(role)"
+                                :disabled="isSwitchingRole"
+                                :class="[
+                                    'w-full flex items-center gap-2 p-2 rounded-md text-sm transition-all duration-200 group',
+                                    'disabled:opacity-50 disabled:cursor-not-allowed',
+                                    role.id === authStore.roleActive?.id
+                                        ? 'bg-red-500 text-white shadow-sm'
+                                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                ]"
+                            >
+                                <!-- Compact Role Icon -->
+                                <ShieldCheckIcon class="w-4 h-4 flex-shrink-0" />
+
+                                <!-- Role Name -->
+                                <span class="flex-1 text-left font-medium truncate">{{ role.name }}</span>
+
+                                <!-- Active Indicator -->
+                                <CheckIcon v-if="role.id === authStore.roleActive?.id" class="w-4 h-4 flex-shrink-0" />
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Divider -->
                     <div
                         class="border-t border-gray-100 dark:border-gray-700 my-2"
@@ -159,11 +199,15 @@ import {
     ArrowRightOnRectangleIcon,
     CreditCardIcon,
     QuestionMarkCircleIcon,
+    CheckIcon,
+    ShieldCheckIcon,
+    UserGroupIcon,
 } from "@heroicons/vue/24/outline";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const isLoggingOut = ref(false);
+const isSwitchingRole = ref(false);
 const isOpen = ref(false);
 const profileData = ref(null);
 const isLoadingProfile = ref(false);
@@ -208,15 +252,20 @@ const userEmail = computed(() => {
 });
 
 const userRole = computed(() => {
-    // Try to get active role first
+    // Try to get active role from store first
+    if (authStore.roleActive) {
+        return authStore.roleActive.name;
+    }
+
+    // Fallback to profile data
     if (profileData.value?.active_role) {
         return profileData.value.active_role.name;
     }
 
-    // Fallback to auth store
+    // Fallback to auth store user
     const role = authStore.user?.active_role?.name ||
-                 authStore.user?.role ||
-                 authStore.user?.roles?.[0]?.name;
+                  authStore.user?.role ||
+                  authStore.user?.roles?.[0]?.name;
 
     return role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
 });
@@ -263,6 +312,41 @@ const handleLogout = async () => {
         router.push({ name: "login" });
     } finally {
         isLoggingOut.value = false;
+    }
+};
+
+const switchRole = async (role) => {
+    if (isSwitchingRole.value) return;
+
+    isSwitchingRole.value = true;
+
+    try {
+        const response = await fetch('/api/auth/set-role', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${authStore.token}`,
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            body: JSON.stringify({ role_id: role.id })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Close dropdown first
+            closeDropdown();
+
+            // Hard reload to get fresh data from backend
+            window.location.reload();
+        } else {
+            console.error("Failed to switch role:", data.message);
+        }
+    } catch (error) {
+        console.error("Error switching role:", error);
+    } finally {
+        isSwitchingRole.value = false;
     }
 };
 

@@ -156,6 +156,51 @@ class AuthController extends Controller
     }
 
     /**
+     * Set active role for authenticated user
+     */
+    public function setRole(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = Auth::guard('api')->user();
+        $role = Role::find($request->role_id);
+
+        // Check if user has this role
+        if (!$user->roles()->where('role_id', $role->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User does not have this role assigned',
+            ], 422);
+        }
+
+        $user->setActiveRole($role);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Active role set successfully',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => 'admin',
+                'avatar' => 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80'
+            ],
+            'roles' => $user->roles,
+            'role_active' => $user->activeRole(),
+        ]);
+    }
+
+    /**
      * Send password reset OTP
      */
     public function forgotPassword(Request $request)
