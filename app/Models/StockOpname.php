@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use App\Services\StockBalanceService;
 
 class StockOpname extends Model
 {
@@ -120,7 +121,15 @@ class StockOpname extends Model
             ]);
 
             // Create adjustment if there are differences
-            $this->createAdjustmentFromOpname();
+            $adjustment = $this->createAdjustmentFromOpname();
+
+            // Update stock balances directly for all counted items
+            $this->updateStockBalances();
+
+            // Post the adjustment if created to ensure balance updates
+            if ($adjustment) {
+                $adjustment->post($userId);
+            }
         });
 
         return $this;
@@ -182,6 +191,30 @@ class StockOpname extends Model
         }
 
         return $adjustment;
+    }
+
+    /**
+     * Update stock balances for all products in this opname
+     */
+    protected function updateStockBalances()
+    {
+        $productLocations = [];
+
+        foreach ($this->details as $detail) {
+            $productLocations[] = [
+                'product_id' => $detail->product_id,
+                'location_id' => $this->location_id,
+            ];
+        }
+
+        // Remove duplicates and update balances
+        $uniqueProductLocations = array_unique($productLocations, SORT_REGULAR);
+
+        StockBalanceService::updateBalancesFromTransaction(
+            $uniqueProductLocations,
+            'opname',
+            $this->opname_date->format('Y-m-d')
+        );
     }
 
     /**

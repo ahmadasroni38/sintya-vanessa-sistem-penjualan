@@ -61,6 +61,20 @@ class StockBookController extends Controller
         // Order by date descending
         $query->orderBy('transaction_date', 'desc');
 
+        // Check if pagination is disabled
+        if ($request->has('paginate') && $request->paginate === 'false') {
+            $stockCards = $query->get();
+            return response()->json([
+                'data' => $stockCards,
+                'total' => $stockCards->count(),
+                'per_page' => $stockCards->count(),
+                'current_page' => 1,
+                'last_page' => 1,
+                'from' => 1,
+                'to' => $stockCards->count(),
+            ]);
+        }
+
         // Paginate results
         $perPage = $request->get('per_page', 50);
         $page = $request->get('page', 1);
@@ -151,11 +165,11 @@ class StockBookController extends Controller
             ->where('location_id', $request->location_id);
 
         // Apply date range if provided
-        if ($request->has('start_date')) {
+        if ($request->filled('start_date')) {
             $query->whereDate('transaction_date', '>=', $request->start_date);
         }
 
-        if ($request->has('end_date')) {
+        if ($request->filled('end_date')) {
             $query->whereDate('transaction_date', '<=', $request->end_date);
         }
 

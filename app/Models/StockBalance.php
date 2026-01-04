@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\StockBalanceService;
 
 class StockBalance extends Model
 {
@@ -71,5 +72,66 @@ class StockBalance extends Model
         } else {
             return 'in_stock';
         }
+    }
+
+    /**
+     * Update stock balance for this record
+     */
+    public function updateBalance()
+    {
+        return StockBalanceService::updateBalance(
+            $this->product_id,
+            $this->location_id,
+            $this->last_transaction_type ?? 'manual_update',
+            $this->last_transaction_date
+        );
+    }
+
+    /**
+     * Get current balance for product at location
+     */
+    public static function getCurrentBalance($productId, $locationId)
+    {
+        return StockBalanceService::getCurrentBalance($productId, $locationId);
+    }
+
+    /**
+     * Get balance info for product at location
+     */
+    public static function getBalanceInfo($productId, $locationId)
+    {
+        return StockBalanceService::getBalanceInfo($productId, $locationId);
+    }
+
+    /**
+     * Scope for products with low stock
+     */
+    public function scopeLowStock($query)
+    {
+        return $query->where('status', 'low_stock');
+    }
+
+    /**
+     * Scope for out of stock products
+     */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('status', 'out_of_stock');
+    }
+
+    /**
+     * Scope for overstock products
+     */
+    public function scopeOverstock($query)
+    {
+        return $query->where('status', 'overstock');
+    }
+
+    /**
+     * Scope for in stock products
+     */
+    public function scopeInStock($query)
+    {
+        return $query->where('status', 'in_stock');
     }
 }

@@ -92,7 +92,7 @@ class SalesController extends Controller
         // Get products with location-specific stock if location is provided
         $productsQuery = Product::active()
             ->with('unit')
-            ->select('id', 'product_code', 'product_name', 'unit_id', 'selling_price');
+            ->select('products.id', 'products.product_code', 'products.product_name', 'products.unit_id', 'products.selling_price');
 
         if ($locationId) {
             // Join with stock balances to get location-specific stock
@@ -108,7 +108,7 @@ class SalesController extends Controller
             $productsQuery->addSelect(DB::raw('0 as stock_quantity'));
         }
 
-        $products = $productsQuery->orderBy('product_code')->get();
+        $products = $productsQuery->orderBy('products.product_code')->get();
 
         $locations = Location::active()
             ->select('id', 'code', 'name')

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use App\Services\StockBalanceService;
 
 class StockIn extends Model
 {
@@ -99,7 +101,7 @@ class StockIn extends Model
             throw new \Exception('Cannot post stock in without details');
         }
 
-        \DB::transaction(function () use ($userId) {
+        DB::transaction(function () use ($userId) {
             // Update status
             $this->update([
                 'status' => 'posted',
@@ -109,6 +111,9 @@ class StockIn extends Model
 
             // Create stock card entries for each detail
             $this->createStockCards();
+
+            // Update stock balances for all affected products
+            $this->updateStockBalances();
         });
 
         return $this;
@@ -151,6 +156,30 @@ class StockIn extends Model
     {
         $this->total_price = $this->details()->sum('total_price');
         $this->save();
+    }
+
+    /**
+     * Update stock balances for all products in this stock in
+     */
+    protected function updateStockBalances()
+    {
+        $productLocations = [];
+
+        foreach ($this->details as $detail) {
+            $productLocations[] = [
+                'product_id' => $detail->product_id,
+                'location_id' => $this->location_id,
+            ];
+        }
+
+        // Remove duplicates and update balances
+        $uniqueProductLocations = array_unique($productLocations, SORT_REGULAR);
+
+        StockBalanceService::updateBalancesFromTransaction(
+            $uniqueProductLocations,
+            'stock_in',
+            $this->transaction_date->format('Y-m-d')
+        );
     }
 
     // Auto-generate transaction number

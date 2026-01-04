@@ -512,6 +512,7 @@ const loadProductMovements = async () => {
             product_id: selectedProductId.value,
             start_date: startDate.value,
             end_date: endDate.value,
+            paginate: 'false',
         };
 
         // Get stock cards grouped by location
@@ -523,7 +524,8 @@ const loadProductMovements = async () => {
         let totalOut = 0;
         let currentBalance = 0;
 
-        response.data.forEach((card) => {
+        const stockCards = response.data?.data || response.data || [];
+        stockCards.forEach((card) => {
             const locationId = card.location_id;
             if (!locationGroups[locationId]) {
                 locationGroups[locationId] = {

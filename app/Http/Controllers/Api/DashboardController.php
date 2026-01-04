@@ -6,6 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\Location;
+use App\Models\Customer;
+use App\Models\User;
+use App\Models\Role;
+use App\Models\Permission;
+use App\Models\StockCard;
+use App\Models\StockBalance;
 
 class DashboardController extends Controller
 {
@@ -18,47 +27,47 @@ class DashboardController extends Controller
 
         // Base statistics (visible to all roles)
         $statistics = [
-            'assets' => [
-                'total' => Asset::count(),
-                'active' => Asset::where('status', 'active')->count(),
-                'maintenance' => Asset::where('status', 'maintenance')->count(),
-                'retired' => Asset::where('status', 'retired')->count(),
-                'by_condition' => Asset::select('condition', DB::raw('count(*) as count'))
-                    ->groupBy('condition')
-                    ->get()
-                    ->pluck('count', 'condition'),
+            'products' => [
+                'total' => Product::count(),
+                'active' => Product::where('is_active', true)->count(),
+                'inactive' => Product::where('is_active', false)->count(),
             ],
-            'asset_categories' => [
-                'total' => AssetCategory::count(),
-                'distribution' => AssetCategory::withCount('assets')
-                    ->orderBy('assets_count', 'desc')
+            'product_categories' => [
+                'total' => ProductCategory::count(),
+                'distribution' => ProductCategory::withCount('products')
+                    ->orderBy('products_count', 'desc')
                     ->limit(10)
                     ->get()
                     ->map(function ($category) {
                         return [
                             'name' => $category->name,
-                            'count' => $category->assets_count,
-                            'color' => $category->color,
+                            'count' => $category->products_count,
                         ];
                     }),
             ],
             'locations' => [
                 'total' => Location::count(),
-                'with_assets' => Location::has('assets')->count(),
-                'distribution' => Location::withCount('assets')
-                    ->orderBy('assets_count', 'desc')
+                'with_stock' => Location::has('stockCards')->count(),
+                'distribution' => Location::withCount('stockCards')
+                    ->orderBy('stock_cards_count', 'desc')
                     ->limit(10)
                     ->get()
                     ->map(function ($location) {
                         return [
                             'name' => $location->name,
-                            'count' => $location->assets_count,
+                            'count' => $location->stock_cards_count,
                         ];
                     }),
             ],
-            'vendors' => [
-                'total' => Vendor::count(),
-                'active' => Vendor::where('is_active', true)->count(),
+            'customers' => [
+                'total' => Customer::count(),
+                'active' => Customer::where('is_active', true)->count(),
+            ],
+            'stock' => [
+                'total_transactions' => StockCard::count(),
+                'total_in' => StockCard::sum('quantity_in'),
+                'total_out' => StockCard::sum('quantity_out'),
+                'current_balance' => StockBalance::sum('current_balance'),
             ],
         ];
 
@@ -172,39 +181,45 @@ class DashboardController extends Controller
             $chartData['work_orders_trend'] = $workOrdersQuery->get();
         }
 
-        // Assets by category (pie chart)
-        $chartData['assets_by_category'] = AssetCategory::withCount('assets')
-            ->having('assets_count', '>', 0)
-            ->orderBy('assets_count', 'desc')
+        // Products by category (pie chart)
+        $chartData['products_by_category'] = ProductCategory::withCount('products')
+            ->having('products_count', '>', 0)
+            ->orderBy('products_count', 'desc')
             ->limit(8)
             ->get()
             ->map(function ($category) {
                 return [
                     'label' => $category->name,
-                    'value' => $category->assets_count,
-                    'color' => $category->color,
+                    'value' => $category->products_count,
                 ];
             });
 
-        // Assets by condition (bar chart)
-        $chartData['assets_by_condition'] = Asset::select('condition', DB::raw('count(*) as count'))
-            ->groupBy('condition')
+        // Stock transactions by type (bar chart)
+        $chartData['stock_transactions_by_type'] = StockCard::select('transaction_type', DB::raw('count(*) as count'))
+            ->groupBy('transaction_type')
             ->get()
             ->map(function ($item) {
                 return [
-                    'label' => ucfirst($item->condition),
+                    'label' => ucfirst(str_replace('_', ' ', $item->transaction_type)),
                     'value' => $item->count,
                 ];
             });
 
-        // Assets by status (donut chart)
-        $chartData['assets_by_status'] = Asset::select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
+        // Stock movement trend (line chart)
+        $chartData['stock_movement_trend'] = StockCard::select(
+                DB::raw('DATE_FORMAT(transaction_date, "%Y-%m") as month'),
+                DB::raw('SUM(quantity_in) as total_in'),
+                DB::raw('SUM(quantity_out) as total_out')
+            )
+            ->where('transaction_date', '>=', now()->subMonths(6))
+            ->groupBy('month')
+            ->orderBy('month')
             ->get()
             ->map(function ($item) {
                 return [
-                    'label' => ucfirst(str_replace('_', ' ', $item->status)),
-                    'value' => $item->count,
+                    'month' => $item->month,
+                    'total_in' => $item->total_in,
+                    'total_out' => $item->total_out,
                 ];
             });
 
@@ -252,13 +267,31 @@ class DashboardController extends Controller
             $activities['recent_repair_requests'] = $repairQuery->get();
         }
 
-        // Recent Assets (Admin only)
-        if ($user->hasPermission('manage_assets')) {
-            $activities['recent_assets'] = Asset::select('id', 'name', 'code', 'status', 'created_at')
+        // Recent Products (Admin only)
+        if ($user->hasPermission('manage_products')) {
+            $activities['recent_products'] = Product::select('id', 'product_name', 'product_code', 'is_active', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->get();
         }
+
+        // Recent Stock Transactions
+        $activities['recent_stock_transactions'] = StockCard::with(['product', 'location'])
+            ->select('id', 'product_id', 'location_id', 'transaction_type', 'quantity_in', 'quantity_out', 'transaction_date')
+            ->orderBy('transaction_date', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function ($transaction) {
+                return [
+                    'id' => $transaction->id,
+                    'product_name' => $transaction->product->product_name ?? 'Unknown',
+                    'location_name' => $transaction->location->name ?? 'Unknown',
+                    'transaction_type' => $transaction->transaction_type,
+                    'quantity_in' => $transaction->quantity_in,
+                    'quantity_out' => $transaction->quantity_out,
+                    'transaction_date' => $transaction->transaction_date,
+                ];
+            });
 
         return response()->json([
             'success' => true,

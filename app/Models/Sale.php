@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\StockBalanceService;
 
 class Sale extends Model
 {
@@ -142,6 +143,9 @@ class Sale extends Model
             // Create stock card entries for each detail
             $this->createStockCards();
 
+            // Update stock balances for all affected products
+            $this->updateStockBalances();
+
             // Create journal entry for accounting
             $this->createJournalEntry();
         });
@@ -179,6 +183,30 @@ class Sale extends Model
                 'notes' => $detail->notes ?? $this->notes,
             ]);
         }
+    }
+
+    /**
+     * Update stock balances for all products in this sale
+     */
+    protected function updateStockBalances()
+    {
+        $productLocations = [];
+
+        foreach ($this->details as $detail) {
+            $productLocations[] = [
+                'product_id' => $detail->product_id,
+                'location_id' => $this->location_id,
+            ];
+        }
+
+        // Remove duplicates and update balances
+        $uniqueProductLocations = array_unique($productLocations, SORT_REGULAR);
+
+        StockBalanceService::updateBalancesFromTransaction(
+            $uniqueProductLocations,
+            'sale',
+            $this->transaction_date->format('Y-m-d')
+        );
     }
 
     /**

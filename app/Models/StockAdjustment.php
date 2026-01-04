@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use App\Services\StockBalanceService;
 
 class StockAdjustment extends Model
 {
@@ -77,7 +79,7 @@ class StockAdjustment extends Model
             throw new \Exception('Cannot post adjustment without any items');
         }
 
-        \DB::transaction(function () use ($userId) {
+        DB::transaction(function () use ($userId) {
             // Update master status
             $this->update([
                 'status' => 'posted',
@@ -89,6 +91,9 @@ class StockAdjustment extends Model
             foreach ($this->details as $detail) {
                 $this->createStockCardForDetail($detail);
             }
+
+            // Update stock balances for all affected products
+            $this->updateStockBalances();
         });
 
         return $this;
@@ -137,7 +142,7 @@ class StockAdjustment extends Model
             throw new \Exception('Only posted adjustments can be cancelled');
         }
 
-        \DB::transaction(function () {
+        DB::transaction(function () {
             // Delete all related stock cards
             StockCard::where('reference_id', $this->id)
                 ->where('transaction_type', 'adjustment')
@@ -148,6 +153,30 @@ class StockAdjustment extends Model
         });
 
         return $this;
+    }
+
+    /**
+     * Update stock balances for all products in this adjustment
+     */
+    protected function updateStockBalances()
+    {
+        $productLocations = [];
+
+        foreach ($this->details as $detail) {
+            $productLocations[] = [
+                'product_id' => $detail->product_id,
+                'location_id' => $this->location_id,
+            ];
+        }
+
+        // Remove duplicates and update balances
+        $uniqueProductLocations = array_unique($productLocations, SORT_REGULAR);
+
+        StockBalanceService::updateBalancesFromTransaction(
+            $uniqueProductLocations,
+            'adjustment',
+            $this->adjustment_date->format('Y-m-d')
+        );
     }
 
     protected static function boot()

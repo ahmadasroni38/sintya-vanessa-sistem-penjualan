@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use App\Services\StockBalanceService;
 
 class StockMutation extends Model
 {
@@ -158,7 +160,7 @@ class StockMutation extends Model
             throw new \Exception('Only approved mutations can be completed');
         }
 
-        \DB::transaction(function () use ($userId) {
+        DB::transaction(function () use ($userId) {
             // Update status
             $this->update([
                 'status' => 'completed',
@@ -168,6 +170,9 @@ class StockMutation extends Model
 
             // Create stock cards for all details
             $this->createStockCards();
+
+            // Update stock balances for all affected products
+            $this->updateStockBalances();
         });
 
         return $this;
@@ -291,5 +296,36 @@ class StockMutation extends Model
                 $mutation->transaction_number = 'SM-' . date('Y') . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
             }
         });
+    }
+
+    /**
+     * Update stock balances for all products in this mutation
+     */
+    protected function updateStockBalances()
+    {
+        $productLocations = [];
+
+        foreach ($this->details as $detail) {
+            // Add source location
+            $productLocations[] = [
+                'product_id' => $detail->product_id,
+                'location_id' => $this->from_location_id,
+            ];
+
+            // Add destination location
+            $productLocations[] = [
+                'product_id' => $detail->product_id,
+                'location_id' => $this->to_location_id,
+            ];
+        }
+
+        // Remove duplicates and update balances
+        $uniqueProductLocations = array_unique($productLocations, SORT_REGULAR);
+
+        StockBalanceService::updateBalancesFromTransaction(
+            $uniqueProductLocations,
+            'mutation',
+            $this->transaction_date->format('Y-m-d')
+        );
     }
 }
