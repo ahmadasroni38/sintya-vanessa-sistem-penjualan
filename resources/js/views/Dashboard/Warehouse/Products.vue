@@ -323,10 +323,10 @@ const handleRefresh = async () => {
 };
 
 const handlePageChange = (page, itemsPerPage) => {
-    console.log("handlePageChange");
+    console.log("handlePageChange", page, itemsPerPage);
     fetchProducts({
         page,
-        per_page: pagination.value.per_page,
+        per_page: itemsPerPage,
     });
 };
 
