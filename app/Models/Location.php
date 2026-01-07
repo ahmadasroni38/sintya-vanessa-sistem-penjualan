@@ -209,30 +209,38 @@ class Location extends Model
         }
 
         // Check if has asset categories (only if AssetCategory model exists)
-        try {
-            if ($this->assetCategories()->count() > 0) {
-                return false;
+        if (class_exists('App\Models\AssetCategory')) {
+            try {
+                if ($this->assetCategories()->count() > 0) {
+                    return false;
+                }
+            } catch (\Exception $e) {
+                // If error occurs, assume no asset categories
             }
-        } catch (\Exception $e) {
-            // If AssetCategory model doesn't exist yet, assume no asset categories
         }
 
         // Check if has stock cards (only if StockCard model exists)
-        try {
-            if ($this->stockCards()->count() > 0) {
-                return false;
+        if (class_exists('App\Models\StockCard')) {
+            try {
+                if ($this->stockCards()->count() > 0) {
+                    return false;
+                }
+            } catch (\Exception $e) {
+                // If error occurs, assume no stock cards
             }
-        } catch (\Exception $e) {
-            // If StockCard model doesn't exist yet, assume no stock cards
         }
 
         // Check if has assets (only if Asset model exists)
-        try {
-            return $this->assets()->count() === 0;
-        } catch (\Exception $e) {
-            // If Asset model doesn't exist yet, assume no assets
-            return true;
+        if (class_exists('App\Models\Asset')) {
+            try {
+                return $this->assets()->count() === 0;
+            } catch (\Exception $e) {
+                // If error occurs, assume no assets
+                return true;
+            }
         }
+
+        return true;
     }
 
     /**
