@@ -554,8 +554,8 @@ const handleForgotPassword = () => {
 };
 
 const fillDemoCredentials = () => {
-    form.email = "admin@sintiya.com";
-    form.password = "admin123";
+    form.email = "";
+    form.password = "";
     clearErrors();
 
     // Add a subtle animation to indicate the form has been filled
