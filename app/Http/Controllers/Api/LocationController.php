@@ -115,7 +115,7 @@ class LocationController extends Controller
             'longitude' => $data['longitude'],
             'color' => $data['color'] ?: '#10B981',
             'parent_id' => $data['parent_id'],
-            'metadata' => $data['metadata'] ?: [],
+            'metadata' => $data['metadata'] ?? [],
             'is_active' => true,
         ]);
 
