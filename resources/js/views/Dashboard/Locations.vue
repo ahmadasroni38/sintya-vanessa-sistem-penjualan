@@ -460,7 +460,7 @@
             :description="confirmationModal.config.description"
             :confirm-text="confirmationModal.config.confirmText"
             :cancel-text="confirmationModal.config.cancelText"
-            :loading="confirmationModal.loading"
+            :loading="confirmationModal.loading || deleting"
             @confirm="confirmationModal.handleConfirm"
             @cancel="confirmationModal.handleCancel"
             @close="confirmationModal.handleClose"
@@ -505,6 +505,7 @@ const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const selectedLocation = ref(null);
 const saving = ref(false);
+const deleting = ref(false);
 
 // Form data
 const locationForm = ref({
@@ -789,14 +790,20 @@ const handleDeleteLocation = (location) => {
         confirmText: t("locations.deleteLocation"),
         cancelText: t("locations.cancelText"),
         onConfirm: async () => {
-            const data = await apiDelete(`locations/${location.id}`);
-            if (data.success) {
-                notification.success(t("locations.deleteSuccess"));
-                loadLocations();
-                loadParentOptions();
-                return data;
-            } else {
-                throw new Error(data.message || t("locations.saveError"));
+            if (deleting.value) return;
+            deleting.value = true;
+            try {
+                const data = await apiDelete(`locations/${location.id}`);
+                if (data.success) {
+                    notification.success(t("locations.deleteSuccess"));
+                    loadLocations();
+                    loadParentOptions();
+                    return data;
+                } else {
+                    throw new Error(data.message || t("locations.saveError"));
+                }
+            } finally {
+                deleting.value = false;
             }
         },
         onSuccess: (result) => {

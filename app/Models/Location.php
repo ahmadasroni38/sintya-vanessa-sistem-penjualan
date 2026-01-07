@@ -217,6 +217,15 @@ class Location extends Model
             // If AssetCategory model doesn't exist yet, assume no asset categories
         }
 
+        // Check if has stock cards (only if StockCard model exists)
+        try {
+            if ($this->stockCards()->count() > 0) {
+                return false;
+            }
+        } catch (\Exception $e) {
+            // If StockCard model doesn't exist yet, assume no stock cards
+        }
+
         // Check if has assets (only if Asset model exists)
         try {
             return $this->assets()->count() === 0;

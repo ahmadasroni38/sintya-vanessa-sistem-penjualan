@@ -6,7 +6,7 @@
         "build": "vite build",
         "test": "vitest",
         "test:ui": "vitest --ui",
-        "fix": "vite build && git add . && git commit -m 'build' || echo 'No changes to commit' && git push"
+        "fix": "vite build && git add . && (git commit -m 'build' && git push) || echo 'No changes to commit'"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.10",
