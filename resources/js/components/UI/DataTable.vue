@@ -534,7 +534,7 @@
                         <button
                             @click="
                                 serverSidePagination
-                                    ? $emit('page-change', 1)
+                                    ? $emit('page-change', 1, itemsPerPage.value)
                                     : (currentPage = 1)
                             "
                             :disabled="currentPage === 1"
@@ -546,7 +546,7 @@
                         <button
                             @click="
                                 serverSidePagination
-                                    ? $emit('page-change', currentPage - 1)
+                                    ? $emit('page-change', currentPage - 1, itemsPerPage.value)
                                     : currentPage--
                             "
                             :disabled="currentPage === 1"
@@ -562,7 +562,7 @@
                                 :key="page"
                                 @click="
                                     serverSidePagination
-                                        ? $emit('page-change', page)
+                                        ? $emit('page-change', page, itemsPerPage.value)
                                         : (currentPage = page)
                                 "
                                 :class="[
@@ -579,7 +579,7 @@
                         <button
                             @click="
                                 serverSidePagination
-                                    ? $emit('page-change', currentPage + 1)
+                                    ? $emit('page-change', currentPage + 1, itemsPerPage.value)
                                     : currentPage++
                             "
                             :disabled="currentPage === totalPages"
@@ -591,7 +591,7 @@
                         <button
                             @click="
                                 serverSidePagination
-                                    ? $emit('page-change', totalPages)
+                                    ? $emit('page-change', totalPages, itemsPerPage.value)
                                     : (currentPage = totalPages)
                             "
                             :disabled="currentPage === totalPages"
@@ -608,7 +608,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import {
     MagnifyingGlassIcon,
     FunnelIcon,
@@ -735,6 +735,7 @@ const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const pageSizes = ref([5, 10, 15, 25, 50, 100]);
 const isInitialized = ref(false);
+const updatingFromProps = ref(false);
 
 // Computed properties
 const totalColumns = computed(() => {
@@ -913,8 +914,8 @@ watch(
 watch(itemsPerPage, () => {
     if (!props.serverSidePagination) {
         currentPage.value = 1;
-    } else if (isInitialized.value) {
-        emit("page-change", 1, itemsPerPage);
+    } else if (isInitialized.value && !updatingFromProps.value) {
+        emit("page-change", 1, itemsPerPage.value);
     }
 });
 
@@ -928,12 +929,17 @@ watch(
     () => props.pagination,
     (newPagination) => {
         if (props.serverSidePagination && newPagination) {
+            updatingFromProps.value = true;
             currentPage.value = newPagination.current_page || 1;
             itemsPerPage.value = newPagination.per_page || 10;
             // Mark as initialized after the first pagination update
             if (!isInitialized.value) {
                 isInitialized.value = true;
             }
+            // Reset flag after update
+            nextTick(() => {
+                updatingFromProps.value = false;
+            });
         }
     },
     { immediate: true }

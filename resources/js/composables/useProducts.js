@@ -68,7 +68,7 @@ export function useProducts() {
             products.value = response.data.data;
             pagination.value = {
                 current_page: response.data.current_page,
-                per_page: response.data.per_page,
+                per_page: perPage, // Force to requested per_page to maintain UI consistency
                 total: response.data.total,
                 last_page: response.data.last_page,
             };
