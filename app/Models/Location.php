@@ -208,9 +208,13 @@ class Location extends Model
             return false;
         }
 
-        // Check if has asset categories
-        if ($this->assetCategories()->count() > 0) {
-            return false;
+        // Check if has asset categories (only if AssetCategory model exists)
+        try {
+            if ($this->assetCategories()->count() > 0) {
+                return false;
+            }
+        } catch (\Exception $e) {
+            // If AssetCategory model doesn't exist yet, assume no asset categories
         }
 
         // Check if has assets (only if Asset model exists)
