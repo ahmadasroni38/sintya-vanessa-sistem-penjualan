@@ -733,7 +733,7 @@ const sortOrder = ref("asc");
 const selectedItems = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
-const pageSizes = ref([5, 10, 15, 25, 50, 100, 500, 1000]);
+const pageSizes = ref([5, 10, 15, 25, 50, 100]);
 const isInitialized = ref(false);
 
 // Computed properties

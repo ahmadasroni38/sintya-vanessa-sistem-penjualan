@@ -324,6 +324,10 @@ const handleRefresh = async () => {
 
 const handlePageChange = (page, itemsPerPage) => {
     console.log("handlePageChange", page, itemsPerPage);
+    // Update local pagination immediately for UI consistency
+    if (itemsPerPage) {
+        paginationData.value.per_page = itemsPerPage;
+    }
     fetchProducts({
         page,
         per_page: itemsPerPage,

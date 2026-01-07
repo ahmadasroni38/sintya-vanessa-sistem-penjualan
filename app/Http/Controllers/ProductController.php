@@ -38,7 +38,7 @@ class ProductController extends Controller
             'sort_order',
         ]);
 
-        $perPage = $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 15);
 
         $products = $this->productService->getProducts($filters, $perPage);
 

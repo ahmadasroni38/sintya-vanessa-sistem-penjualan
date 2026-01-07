@@ -31,9 +31,21 @@ export function useProducts() {
     });
 
     // Fetch products with filters
-    const fetchProducts = async (page = 1) => {
+    const fetchProducts = async (options = {}) => {
         console.log("=== fetchProducts called ===", new Date().toISOString());
-        console.log("Page:", page, "Loading:", loading.value);
+        console.log("Options:", options, "Loading:", loading.value);
+
+        // Handle both old format (page number) and new format (options object)
+        let page = 1;
+        let perPage = pagination.value.per_page;
+
+        if (typeof options === 'number') {
+            page = options;
+        } else {
+            page = options.page || 1;
+            perPage = options.per_page || pagination.value.per_page;
+        }
+
         console.time("fetchProducts-" + page);
 
         // Prevent concurrent fetches
@@ -47,8 +59,9 @@ export function useProducts() {
         try {
             const params = {
                 page,
-                per_page: pagination.value.per_page,
+                per_page: perPage,
                 ...filters.value,
+                ...options, // Allow overriding filters with direct options
             };
 
             const response = await api.get("/products", { params });
