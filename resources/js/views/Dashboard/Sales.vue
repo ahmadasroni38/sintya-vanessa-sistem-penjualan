@@ -130,11 +130,91 @@
             :sale="viewingSale"
             @close="closeDetailsModal"
         />
+
+        <!-- Print Receipt Template (hidden by default, shown when printing) -->
+        <div id="print-receipt" class="hidden print:block print:fixed print:inset-0 print:z-50 print:bg-white">
+            <div class="print:p-6 print:max-w-sm print:mx-auto print:text-sm">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <h1 class="text-lg font-bold">SINTIYA WAREHOUSE</h1>
+                    <p class="text-xs text-gray-600">Jl. Contoh No. 123, Kota</p>
+                    <p class="text-xs text-gray-600">Telp: (021) 12345678</p>
+                </div>
+
+                <!-- Transaction Info -->
+                <div class="border-t border-b border-gray-300 py-2 mb-4">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span>No. Transaksi:</span>
+                        <span class="font-mono">{{ printingSale?.transaction_number }}</span>
+                    </div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span>Tanggal:</span>
+                        <span>{{ formatDate(printingSale?.transaction_date) }}</span>
+                    </div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span>Pelanggan:</span>
+                        <span>{{ printingSale?.customer?.customer_name || 'Walk-in Customer' }}</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span>Lokasi:</span>
+                        <span>{{ printingSale?.location?.name }}</span>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="mb-4">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-300">
+                                <th class="text-left py-1">Item</th>
+                                <th class="text-center py-1 w-12">Qty</th>
+                                <th class="text-right py-1 w-16">Harga</th>
+                                <th class="text-right py-1 w-16">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in printingSale?.details" :key="item.id" class="border-b border-gray-200">
+                                <td class="py-1">
+                                    <div class="font-medium">{{ item.product?.product_name }}</div>
+                                    <div class="text-gray-500 text-xs">{{ item.product?.product_code }}</div>
+                                </td>
+                                <td class="text-center py-1">{{ item.quantity }}</td>
+                                <td class="text-right py-1">{{ formatCurrency(item.unit_price) }}</td>
+                                <td class="text-right py-1">{{ formatCurrency(item.total_price) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total -->
+                <div class="border-t border-gray-300 pt-2">
+                    <div class="flex justify-between text-sm font-bold mb-2">
+                        <span>TOTAL:</span>
+                        <span>{{ formatCurrency(printingSale?.total_amount) }}</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span>Pembayaran:</span>
+                        <span>{{ getPaymentMethodLabel(printingSale?.payment_method) }}</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span>Status:</span>
+                        <span>{{ getStatusLabel(printingSale?.status) }}</span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="text-center mt-6 text-xs text-gray-600">
+                    <p>Terima kasih atas kunjungan Anda!</p>
+                    <p>Barang yang sudah dibeli tidak dapat dikembalikan.</p>
+                    <p class="mt-2 font-mono">{{ new Date().toLocaleString('id-ID') }}</p>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSales } from "@/composables/useSales";
 import { useSelectOptions } from "@/composables/useSelectOptions";
@@ -198,6 +278,7 @@ const showCancelModal = ref(false);
 const cancellingSale = ref(null);
 const showDetailsModal = ref(false);
 const viewingSale = ref(null);
+const printingSale = ref(null);
 const showFilters = ref(false);
 const statistics = ref({
     total_transactions: 0,
@@ -280,6 +361,13 @@ const customActions = computed(() => [
         icon: "eye",
         handler: (item) => handleView(item),
         condition: () => true,
+    },
+    {
+        label: "Print Receipt",
+        icon: "printer",
+        handler: (item) => handlePrint(item),
+        condition: () => true,
+        class: "text-blue-600 hover:text-blue-900 dark:text-blue-400",
     },
     {
         label: t("sales.post"),
@@ -392,6 +480,30 @@ const handleView = async (sale) => {
     } catch (error) {
         console.error("Error viewing sale:", error);
     }
+};
+
+const handlePrint = async (sale) => {
+    try {
+        const fullSale = await fetchSale(sale.id);
+        printingSale.value = fullSale;
+
+        // Wait for next tick to ensure DOM is updated
+        await nextTick();
+
+        // Print the receipt
+        window.print();
+    } catch (error) {
+        console.error("Error printing sale:", error);
+    }
+};
+
+const getPaymentMethodLabel = (method) => {
+    const methods = {
+        cash: "Tunai",
+        transfer: "Transfer",
+        credit: "Kredit"
+    };
+    return methods[method] || method;
 };
 
 const handleEdit = async (sale) => {
@@ -532,3 +644,29 @@ onMounted(async () => {
     }
 });
 </script>
+
+<style>
+@media print {
+    #print-receipt {
+        display: block !important;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 50 !important;
+        background: white !important;
+        padding: 1.5rem !important;
+        max-width: 24rem !important;
+        margin: 0 auto !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* Hide everything else when printing */
+    body * {
+        visibility: hidden;
+    }
+
+    #print-receipt,
+    #print-receipt * {
+        visibility: visible;
+    }
+}
+</style>
