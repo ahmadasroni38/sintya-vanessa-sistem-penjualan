@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockAdjustmentDetail extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'stock_adjustment_id',
@@ -21,9 +22,9 @@ class StockAdjustmentDetail extends Model
     ];
 
     protected $casts = [
-        'system_quantity' => 'decimal:2',
-        'actual_quantity' => 'decimal:2',
-        'difference_quantity' => 'decimal:2',
+        'system_quantity' => 'integer',
+        'actual_quantity' => 'integer',
+        'difference_quantity' => 'integer',
     ];
 
     /**

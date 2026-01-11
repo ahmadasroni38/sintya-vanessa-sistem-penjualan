@@ -6,13 +6,13 @@
             description="Manage stock adjustments and corrections"
         >
             <template #actions>
-                <button
+                <!-- <button
                     @click="exportData"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
                     <ArrowDownTrayIcon class="w-4 h-4" />
                     Export
-                </button>
+                </button> -->
                 <button
                     @click="showAddModal = true"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
