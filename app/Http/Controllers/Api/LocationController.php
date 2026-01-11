@@ -304,7 +304,7 @@ class LocationController extends Controller
         if (!$location->canBeDeleted()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete location: it has child locations, asset categories, or assets assigned to it',
+                'message' => 'Cannot delete location: it has child locations, stock cards, or stock balances assigned to it',
             ], 422);
         }
 

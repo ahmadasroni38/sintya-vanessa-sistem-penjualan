@@ -12,6 +12,15 @@
                     {{ $t('locations.subtitle') }}
                 </p>
             </div>
+            <div class="flex items-center gap-3">
+                <button
+                    @click="showAddModal = true"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <PlusIcon class="w-4 h-4" />
+                    {{ $t('locations.addLocation') }}
+                </button>
+            </div>
         </div>
 
         <!-- Stats Cards -->
@@ -44,6 +53,7 @@
             @refresh="handleRefresh"
             @page-change="handlePageChange"
             @sort="handleSort"
+            :showExport="false"
         >
             <!-- Custom Name Column with Hierarchy -->
             <template #column-name="{ item }">
@@ -196,6 +206,7 @@ import LocationFilters from "../../components/Locations/LocationFilters.vue";
 import LocationFormModal from "../../components/Locations/LocationFormModal.vue";
 import { useNotificationStore } from "../../stores/notification";
 import { useConfirmationModalStore } from "../../stores/confirmationModal";
+import { PlusIcon } from "@heroicons/vue/24/outline";
 
 const { t } = useI18n();
 const notificationStore = useNotificationStore();

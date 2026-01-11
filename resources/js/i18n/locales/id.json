@@ -244,6 +244,7 @@
   "locations": {
     "title": "Lokasi",
     "subtitle": "Kelola lokasi fisik dan struktur hierarkinya",
+    "addLocation": "Tambah Lokasi",
     "totalLocations": "Total Lokasi",
     "activeLocations": "Lokasi Aktif",
     "rootLocations": "Lokasi Utama",

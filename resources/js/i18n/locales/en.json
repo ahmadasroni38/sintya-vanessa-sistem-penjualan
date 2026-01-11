@@ -245,6 +245,7 @@
     "title": "Locations",
     "subtitle": "Manage physical locations and their hierarchical structure",
     "totalLocations": "Total Locations",
+    "addLocation": "Add Location",
     "activeLocations": "Active Locations",
     "rootLocations": "Root Locations",
     "newThisMonth": "New This Month",

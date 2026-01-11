@@ -69,13 +69,13 @@ class Location extends Model
         return $this->children()->with('descendants');
     }
 
-    /**
-     * Get the assets in this location.
-     */
-    public function assets(): HasMany
-    {
-        return $this->hasMany(Asset::class, 'location_id');
-    }
+    // /**
+    //  * Get the assets in this location.
+    //  */
+    // public function assets(): HasMany
+    // {
+    //     return $this->hasMany(Asset::class, 'location_id');
+    // }
 
     /**
      * Get all stock cards for the location.
@@ -93,13 +93,13 @@ class Location extends Model
         return $this->hasMany(StockBalance::class);
     }
 
-    /**
-     * Get the asset categories associated with this location.
-     */
-    public function assetCategories(): HasMany
-    {
-        return $this->hasMany(AssetCategory::class, 'location_id');
-    }
+    // /**
+    //  * Get the asset categories associated with this location.
+    //  */
+    // public function assetCategories(): HasMany
+    // {
+    //     return $this->hasMany(AssetCategory::class, 'location_id');
+    // }
 
     /**
      * Scope to get only active locations.
@@ -199,7 +199,7 @@ class Location extends Model
 
     /**
      * Check if this location can be deleted.
-     * A location can be deleted if it has no assets, no children, and no asset categories.
+     * A location can be deleted if it has no children and no stock cards.
      */
     public function canBeDeleted(): bool
     {
@@ -208,36 +208,14 @@ class Location extends Model
             return false;
         }
 
-        // Check if has asset categories (only if AssetCategory model exists)
-        if (class_exists('App\Models\AssetCategory')) {
-            try {
-                if ($this->assetCategories()->count() > 0) {
-                    return false;
-                }
-            } catch (\Exception $e) {
-                // If error occurs, assume no asset categories
-            }
+        // Check if has stock cards
+        if ($this->stockCards()->count() > 0) {
+            return false;
         }
 
-        // Check if has stock cards (only if StockCard model exists)
-        if (class_exists('App\Models\StockCard')) {
-            try {
-                if ($this->stockCards()->count() > 0) {
-                    return false;
-                }
-            } catch (\Exception $e) {
-                // If error occurs, assume no stock cards
-            }
-        }
-
-        // Check if has assets (only if Asset model exists)
-        if (class_exists('App\Models\Asset')) {
-            try {
-                return $this->assets()->count() === 0;
-            } catch (\Exception $e) {
-                // If error occurs, assume no assets
-                return true;
-            }
+        // Check if has stock balances
+        if ($this->stockBalances()->count() > 0) {
+            return false;
         }
 
         return true;
