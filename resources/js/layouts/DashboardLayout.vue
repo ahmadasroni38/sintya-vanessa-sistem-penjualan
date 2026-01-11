@@ -586,7 +586,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useThemeStore } from "../stores/theme";
 import { useAuthStore } from "../stores/auth";
@@ -935,6 +935,24 @@ const changeLanguage = (lang) => {
     localStorage.setItem('language', lang);
 };
 
+const setFavicon = () => {
+    const logo = settingStore.settings?.logo_sistem;
+    if (logo) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        link.href = `storage/logo/${logo}`;
+    }
+};
+
+const setPageTitle = () => {
+    const systemName = settingStore.settings?.nama_sistem;
+    document.title = systemName ? `${systemName} - Admin Panel` : 'Admin Panel - Laravel Vue';
+};
+
 const ensureUserData = async () => {
     // Only check auth if we don't have user data but have a token
     // and we're not coming from login page (router already checked auth)
@@ -950,6 +968,10 @@ onMounted(async () => {
     await settingStore.fetchSettings();
     logoError.value = false; // Reset logo error state
     sidebarLogoError.value = false; // Reset sidebar logo error state
+
+    // Set favicon and page title based on settings
+    setFavicon();
+    setPageTitle();
 
     // Check if mobile on mount
     checkIfMobile();
@@ -971,6 +993,18 @@ onMounted(async () => {
         if (!button?.contains(target) && !dropdown?.contains(target)) {
             showLanguageDropdown.value = false;
         }
+    });
+
+    // Watch for logo changes to update favicon
+    watch(() => settingStore.settings?.logo_sistem, (newLogo) => {
+        if (newLogo) {
+            setFavicon();
+        }
+    });
+
+    // Watch for system name changes to update page title
+    watch(() => settingStore.settings?.nama_sistem, (newName) => {
+        setPageTitle();
     });
 });
 </script>

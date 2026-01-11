@@ -111,6 +111,7 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     // Location management routes
     Route::get('locations', [LocationController::class, 'index']);
     Route::post('locations', [LocationController::class, 'store']);
+    Route::get('locations/statistics', [LocationController::class, 'statistics']);
     Route::get('locations/{location}', [LocationController::class, 'show']);
     Route::put('locations/{location}', [LocationController::class, 'update']);
     Route::delete('locations/{location}', [LocationController::class, 'destroy']);

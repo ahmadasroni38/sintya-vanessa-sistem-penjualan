@@ -6,7 +6,7 @@
         "build": "vite build",
         "test": "vitest",
         "test:ui": "vitest --ui",
-        "fix": "vite build && git add . && (git commit -m 'build' && git push) || echo 'No changes to commit'"
+        "fix": "echo '🔨 Building project...' && vite build && echo '✅ Build successful' && echo '📦 Staging changes...' && git add -A && git diff --cached --quiet && echo 'ℹ️  No changes to commit' || (echo '💾 Committing changes...' && git commit -m \"build: $(date +'%Y-%m-%d %H:%M:%S')\" && echo '🚀 Pushing to remote...' && git push && echo '✅ Successfully pushed to remote')"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.10",

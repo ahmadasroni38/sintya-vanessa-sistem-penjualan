@@ -61,7 +61,7 @@ class DashboardController extends Controller
             ],
             'customers' => [
                 'total' => Customer::count(),
-                'active' => Customer::where('is_active', true)->count(),
+                'active' => Customer::active()->count(),
             ],
             'stock' => [
                 'total_transactions' => StockCard::count(),

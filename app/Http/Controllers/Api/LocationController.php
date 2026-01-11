@@ -14,45 +14,89 @@ class LocationController extends Controller
     /**
      * Display a listing of the locations.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $locations = Location::with(['parent', 'children'])
-            ->orderBy('name')
-            ->get()
-            ->map(function ($location) {
-                return [
-                    'id' => $location->id,
-                    'name' => $location->name,
-                    'code' => $location->code,
-                    'description' => $location->description,
-                    'address' => $location->address,
-                    'city' => $location->city,
-                    'state' => $location->state,
-                    'country' => $location->country,
-                    'postal_code' => $location->postal_code,
-                    'latitude' => $location->latitude,
-                    'longitude' => $location->longitude,
-                    'full_address' => $location->full_address,
-                    'color' => $location->color,
-                    'is_active' => $location->is_active,
-                    'parent_id' => $location->parent_id,
-                    'parent' => $location->parent ? [
-                        'id' => $location->parent->id,
-                        'name' => $location->parent->name,
-                        'code' => $location->parent->code,
-                    ] : null,
-                    'children_count' => $location->children->count(),
-                    'full_path' => $location->full_path,
-                    'hierarchy_level' => $location->hierarchy_level,
-                    'metadata' => $location->metadata,
-                    'created_at' => $location->created_at,
-                    'updated_at' => $location->updated_at,
-                ];
+        $query = Location::with(['parent', 'children']);
+
+        // Filter by active status
+        if ($request->filled('is_active')) {
+            $query->where('is_active', $request->is_active);
+        }
+
+        // Filter by parent
+        if ($request->filled('parent_id')) {
+            $query->where('parent_id', $request->parent_id);
+        }
+
+        // Search by code or name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('country', 'like', "%{$search}%");
             });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        // Validate sort field to prevent SQL injection
+        $allowedSortFields = ['name', 'code', 'city', 'country', 'created_at', 'is_active'];
+        if (in_array($sortBy, $allowedSortFields)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        // Pagination
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+
+        $locations = $query->paginate($perPage, ['*'], 'page', $page);
+
+        // Format the response data
+        $formattedLocations = $locations->getCollection()->map(function ($location) {
+            return [
+                'id' => $location->id,
+                'name' => $location->name,
+                'code' => $location->code,
+                'description' => $location->description,
+                'address' => $location->address,
+                'city' => $location->city,
+                'state' => $location->state,
+                'country' => $location->country,
+                'postal_code' => $location->postal_code,
+                'latitude' => $location->latitude,
+                'longitude' => $location->longitude,
+                'full_address' => $location->full_address,
+                'color' => $location->color,
+                'is_active' => $location->is_active,
+                'parent_id' => $location->parent_id,
+                'parent' => $location->parent ? [
+                    'id' => $location->parent->id,
+                    'name' => $location->parent->name,
+                    'code' => $location->parent->code,
+                    'color' => $location->parent->color,
+                ] : null,
+                'children_count' => $location->children->count(),
+                'full_path' => $location->full_path,
+                'hierarchy_level' => $location->hierarchy_level,
+                'metadata' => $location->metadata,
+                'created_at' => $location->created_at,
+                'updated_at' => $location->updated_at,
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $locations,
+            'data' => $formattedLocations,
+            'current_page' => $locations->currentPage(),
+            'per_page' => $locations->perPage(),
+            'total' => $locations->total(),
+            'last_page' => $locations->lastPage(),
         ]);
     }
 
@@ -338,7 +382,7 @@ class LocationController extends Controller
             }
         }
 
-        $locations = $locations->map(function ($location) {
+        $formattedLocations = $locations->map(function ($location) {
             return [
                 'id' => $location->id,
                 'name' => $location->name,
@@ -352,7 +396,32 @@ class LocationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $locations,
+            'data' => $formattedLocations,
+        ]);
+    }
+
+    /**
+     * Get location statistics.
+     */
+    public function statistics(): JsonResponse
+    {
+        $total = Location::count();
+        $active = Location::where('is_active', true)->count();
+        $root = Location::whereNull('parent_id')->count();
+
+        // Count locations created this month
+        $newThisMonth = Location::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'active' => $active,
+                'root' => $root,
+                'new_this_month' => $newThisMonth,
+            ],
         ]);
     }
 

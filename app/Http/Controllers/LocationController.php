@@ -35,9 +35,10 @@ class LocationController extends Controller
 
         $locations = $query->paginate($request->per_page ?? 15);
 
-        return Inertia::render('Dashboard/Locations', [
-            'locations' => $locations,
-            'filters' => $request->only(['is_active', 'search']),
+        return response()->json([
+            'status' => true,
+            'message' => 'Data lokasi berhasil diambil',
+            'data' => $locations,
         ]);
     }
 
@@ -173,5 +174,21 @@ class LocationController extends Controller
             ->get();
 
         return response()->json($locations);
+    }
+
+    public function statistics(Request $request)
+    {
+        // total locations, location active, primary locations, location new in this month
+        $totalLocations = Location::count();
+        $activeLocations = Location::where('is_active', true)->count();
+        $primaryLocations = Location::whereNull('parent_id')->count();
+        $newThisMonth = Location::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+
+        return response()->json([
+            'total_locations' => $totalLocations,
+            'active_locations' => $activeLocations,
+            'primary_locations' => $primaryLocations,
+            'new_this_month' => $newThisMonth,
+        ]);
     }
 }
