@@ -75,6 +75,7 @@
             :editing-product="editingProduct"
             :unit-options="unitOptions"
             :category-options="categoryOptions"
+            :saving="saving"
             @close="closeModal"
             @saved="handleFormSave"
             @unit-added="handleUnitAdded"
@@ -395,7 +396,8 @@ const handleFormSave = async ({ formData, isEditing, productId }) => {
         refreshing.value = false;
     } catch (error) {
         console.error("Error saving product:", error);
-        // Error handling is done in the modal component
+        // Error notification is already handled in the composable
+        // The modal will remain open so user can fix the errors
     }
 };
 

@@ -34,6 +34,7 @@
                 :disabled="!isFormValid"
                 :editing-product="editingProduct"
                 @cancel="handleClose"
+                submitText="Save Product"
             />
         </form>
     </Modal>
@@ -67,6 +68,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    saving: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits([
@@ -92,7 +97,6 @@ const {
 } = useProductFormValidation();
 
 // Local state
-const saving = ref(false);
 const generatingCode = ref(false);
 const productTypeOptions = ref([
     { value: "finished_goods", label: "Finished Goods" },
@@ -146,7 +150,6 @@ const handleSave = async () => {
     }
 
     try {
-        saving.value = true;
         errors.value = {};
 
         const formData = prepareFormData();
@@ -162,8 +165,6 @@ const handleSave = async () => {
         if (error.response?.data?.errors) {
             setServerErrors(error.response.data.errors);
         }
-    } finally {
-        saving.value = false;
     }
 };
 

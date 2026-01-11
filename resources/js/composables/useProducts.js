@@ -231,7 +231,7 @@ export function useProducts() {
             const response = await api.get("/products/generate-code", {
                 params: { product_type: productType },
             });
-            return response.data.code;
+            return response.code;
         } catch (error) {
             console.error("Error generating product code:", error);
             notificationStore.error("Failed to generate product code");
