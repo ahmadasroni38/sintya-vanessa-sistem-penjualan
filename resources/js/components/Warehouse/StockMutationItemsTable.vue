@@ -51,7 +51,7 @@
                     <!-- Quantity Input -->
                     <div class="md:col-span-2">
                         <FormInput
-                            v-model="item.quantity"
+                            v-model.number="item.quantity"
                             label="Jumlah"
                             type="number"
                             min="0.01"

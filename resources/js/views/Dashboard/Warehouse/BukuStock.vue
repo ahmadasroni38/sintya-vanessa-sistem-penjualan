@@ -13,7 +13,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-3">
-                <button
+                <!-- <button
                     @click="showExportModal = true"
                     :disabled="
                         stockBookStore.loading || stockBookStore.exporting
@@ -30,7 +30,7 @@
                 >
                     <FunnelIcon class="w-4 h-4" />
                     Filter
-                </button>
+                </button> -->
             </div>
         </div>
 

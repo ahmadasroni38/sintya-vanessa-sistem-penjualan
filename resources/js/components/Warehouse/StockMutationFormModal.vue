@@ -136,15 +136,42 @@ const formData = ref({
 
 // Check if form can be submitted
 const canSubmit = computed(() => {
-    return (
+    const hasValidItems = formData.value.items.length > 0 &&
+        formData.value.items.every((item) => {
+            const quantity = parseFloat(item.quantity);
+            const isValid = item.product_id && !isNaN(quantity) && quantity > 0;
+
+            // Debug: Log invalid items
+            if (!isValid) {
+                console.log('Invalid item:', {
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    parsed_quantity: quantity,
+                    isNaN: isNaN(quantity)
+                });
+            }
+
+            return isValid;
+        });
+
+    const result = (
         formData.value.from_location_id &&
         formData.value.to_location_id &&
         formData.value.from_location_id !== formData.value.to_location_id &&
-        formData.value.items.length > 0 &&
-        formData.value.items.every(
-            (item) => item.product_id && item.quantity > 0
-        )
+        hasValidItems
     );
+
+    // Debug: Log validation state
+    console.log('Form validation:', {
+        from_location_id: formData.value.from_location_id,
+        to_location_id: formData.value.to_location_id,
+        locations_different: formData.value.from_location_id !== formData.value.to_location_id,
+        items_count: formData.value.items.length,
+        hasValidItems,
+        canSubmit: result
+    });
+
+    return result;
 });
 
 const resetForm = () => {
