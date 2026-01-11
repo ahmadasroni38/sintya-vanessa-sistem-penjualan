@@ -189,13 +189,53 @@ class StockIn extends Model
 
         static::creating(function ($stockIn) {
             if (empty($stockIn->transaction_number)) {
-                $lastTransaction = static::whereYear('created_at', date('Y'))
-                    ->orderBy('id', 'desc')
-                    ->first();
-
-                $nextNumber = $lastTransaction ? intval(substr($lastTransaction->transaction_number, -5)) + 1 : 1;
-                $stockIn->transaction_number = 'SI-' . date('Y') . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+                $stockIn->transaction_number = static::generateTransactionNumber($stockIn->transaction_date);
             }
         });
+    }
+
+    /**
+     * Generate unique transaction number
+     */
+    protected static function generateTransactionNumber($transactionDate)
+    {
+        // Format: SI-YYYYMM-XXXXX
+        $date = $transactionDate instanceof \Carbon\Carbon ? $transactionDate : \Carbon\Carbon::parse($transactionDate);
+        $yearMonth = $date->format('Ym');
+        $prefix = 'SI-' . $yearMonth . '-';
+
+        // Get last transaction number for this year-month
+        // Use raw SQL with MAX to get the highest number more reliably
+        $lastNumber = DB::scalar(
+            "SELECT MAX(CAST(SUBSTRING(transaction_number, -5) AS UNSIGNED))
+             FROM stock_in
+             WHERE transaction_number LIKE ?
+             AND deleted_at IS NULL",
+            [$prefix . '%']
+        );
+
+        $nextNumber = $lastNumber ? $lastNumber + 1 : 1;
+
+        // Generate transaction number with retry mechanism
+        $maxRetries = 100;
+        $attempt = 0;
+
+        do {
+            $transactionNumber = $prefix . str_pad($nextNumber + $attempt, 5, '0', STR_PAD_LEFT);
+
+            // Check if this number already exists
+            $exists = static::where('transaction_number', $transactionNumber)
+                ->withTrashed()
+                ->exists();
+
+            if (!$exists) {
+                return $transactionNumber;
+            }
+
+            $attempt++;
+        } while ($attempt < $maxRetries);
+
+        // If all retries failed, add timestamp to ensure uniqueness
+        return $prefix . str_pad($nextNumber + $attempt, 5, '0', STR_PAD_LEFT) . '-' . time();
     }
 }

@@ -6,14 +6,14 @@
             description="Kelola penerimaan barang dan stok masuk"
         >
             <template #actions>
-                <button
+                <!-- <button
                     type="button"
                     @click.prevent="showFiltersPanel = !showFiltersPanel"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
                     <FunnelIcon class="w-4 h-4" />
                     Filters
-                </button>
+                </button> -->
                 <button
                     type="button"
                     @click.prevent="handleAddClick"
@@ -496,33 +496,20 @@ const cancelCancellation = () => {
 const saveItem = async (formData) => {
     saving.value = true;
     try {
-        let savedData;
         if (editingItem.value) {
-            savedData = await updateStockIn(editingItem.value.id, formData);
+            await updateStockIn(editingItem.value.id, formData);
             notificationStore.success("Stock masuk berhasil diupdate");
-
-            // Update data di array stockIns tanpa full refresh
-            const index = stockIns.value.findIndex(item => item.id === editingItem.value.id);
-            if (index !== -1 && savedData?.data) {
-                stockIns.value[index] = { ...stockIns.value[index], ...savedData.data };
-            }
         } else {
-            savedData = await createStockIn(formData);
+            await createStockIn(formData);
             notificationStore.success("Stock masuk berhasil dibuat");
-
-            // Tambah data baru ke array tanpa full refresh
-            if (savedData?.data) {
-                stockIns.value.unshift(savedData.data);
-                pagination.value.total += 1;
-            }
         }
 
         closeModal();
 
-        // Hanya refresh statistics, tidak perlu refresh seluruh data
-        await fetchStatistics(filters.value);
+        // Refresh data table dan statistics
+        await loadData();
 
-        console.log('saveItem: Updated data locally, no full refresh needed');
+        console.log('saveItem: Data refreshed successfully');
     } catch (error) {
         notificationStore.error(error.message || "Gagal menyimpan data");
     } finally {

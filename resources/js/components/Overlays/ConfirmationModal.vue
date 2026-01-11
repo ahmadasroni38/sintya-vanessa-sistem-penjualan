@@ -118,8 +118,18 @@ const emit = defineEmits(["confirm", "cancel", "close"]);
 
 const notification = useNotificationStore();
 
+const sedangDiclick = ref(false);
+
 const handleConfirm = () => {
+    if(sedangDiclick.value) {
+        return;
+    }
+
+    sedangDiclick.value = true
     emit("confirm");
+    setTimeout(() => {
+        sedangDiclick.value = false
+    }, 300)
 };
 
 const handleCancel = () => {

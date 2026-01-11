@@ -238,12 +238,12 @@ const fetchProducts = async () => {
         // Transform data untuk options
         productOptions.value = response.data.data.map((product) => ({
             value: product.id,
-            label: `${product.product_code} - ${product.product_name}`,
+            label: `${product.product_code} - ${product.product_name} (Rp ${product.purchase_price || product.selling_price || 0})`,
             extra: {
                 code: product.product_code,
                 name: product.product_name,
                 unit: product.unit?.name || "",
-                purchase_price: product.purchase_price || 0,
+                purchase_price: product.purchase_price || product.selling_price || 0,
             },
         }));
     } catch (error) {
