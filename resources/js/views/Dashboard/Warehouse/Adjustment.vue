@@ -24,7 +24,7 @@
         </PageHeader>
 
         <!-- Stats Cards -->
-        <AdjustmentStats :adjustments="adjustmentList" />
+        <AdjustmentStats :stats="adjustmentStats" />
 
         <!-- Adjustments Table -->
         <DataTable
@@ -198,6 +198,13 @@ const pagination = ref({
     total: 0,
     last_page: 1,
 });
+const adjustmentStats = ref({
+    total_this_month: 0,
+    pending: 0,
+    increase: 0,
+    decrease: 0,
+    posted: 0,
+});
 
 // Table columns - Updated for Master-Detail structure
 const columns = [
@@ -258,6 +265,37 @@ const loadAdjustments = async (params = {}) => {
         );
     } finally {
         loading.value = false;
+    }
+};
+
+const loadStatistics = async () => {
+    try {
+        const response = await stockAdjustmentService.getStatistics();
+        console.log("Adjustment statistics raw response:", response);
+
+        // Handle different response structures
+        const statsData = response?.data || response || {};
+        console.log("Adjustment statistics data:", statsData);
+
+        adjustmentStats.value = {
+            total_this_month: statsData.total_this_month || 0,
+            pending: statsData.pending || 0,
+            increase: statsData.increase || 0,
+            decrease: statsData.decrease || 0,
+            posted: statsData.posted || 0,
+        };
+    } catch (error) {
+        console.error("Failed to load statistics:", error);
+        console.error("Error response:", error.response?.data);
+
+        // Set default values on error
+        adjustmentStats.value = {
+            total_this_month: 0,
+            pending: 0,
+            increase: 0,
+            decrease: 0,
+            posted: 0,
+        };
     }
 };
 
@@ -381,7 +419,7 @@ const confirmApprove = async () => {
         notificationStore.success("Adjustment approved successfully");
         showApproveModal.value = false;
         approvingAdjustment.value = null;
-        await loadAdjustments();
+        await Promise.all([loadAdjustments(), loadStatistics()]);
     } catch (error) {
         console.error("Failed to approve adjustment:", error);
         notificationStore.error(
@@ -401,7 +439,7 @@ const confirmDelete = async () => {
         notificationStore.success("Adjustment deleted successfully");
         showDeleteModal.value = false;
         deletingAdjustment.value = null;
-        await loadAdjustments();
+        await Promise.all([loadAdjustments(), loadStatistics()]);
     } catch (error) {
         console.error("Failed to delete adjustment:", error);
         notificationStore.error(
@@ -430,7 +468,7 @@ const saveAdjustment = async (formData) => {
             notificationStore.success("Adjustment created successfully");
         }
         closeModal();
-        await loadAdjustments();
+        await Promise.all([loadAdjustments(), loadStatistics()]);
     } catch (error) {
         console.error("Failed to save adjustment:", error);
         notificationStore.error(
@@ -501,6 +539,11 @@ const exportData = async () => {
 };
 
 onMounted(async () => {
-    await Promise.all([loadAdjustments(), loadProducts(), loadLocations()]);
+    await Promise.all([
+        loadAdjustments(),
+        loadStatistics(),
+        loadProducts(),
+        loadLocations(),
+    ]);
 });
 </script>

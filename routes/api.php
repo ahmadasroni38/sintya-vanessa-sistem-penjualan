@@ -340,6 +340,7 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::post('stock-opnames/bulk-complete', [StockOpnameController::class, 'bulkComplete']);
     Route::post('stock-opnames/bulk-delete', [StockOpnameController::class, 'bulkDelete']);
     Route::post('stock-opnames/calculate-system-quantity', [StockOpnameController::class, 'calculateSystemQuantity']);
+    Route::post('stock-opnames/batch-calculate-system-quantities', [StockOpnameController::class, 'batchCalculateSystemQuantities']);
     Route::get('stock-opnames', [StockOpnameController::class, 'index']);
     Route::get('stock-opnames/create', [StockOpnameController::class, 'create']);
     Route::post('stock-opnames', [StockOpnameController::class, 'store']);

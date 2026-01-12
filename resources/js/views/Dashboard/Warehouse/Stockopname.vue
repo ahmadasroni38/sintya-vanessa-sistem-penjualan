@@ -39,6 +39,11 @@
             :showAddButton="false"
             :showExport="false"
             :showFilters="false"
+            :server-side-pagination="true"
+            :pagination="pagination"
+            @page-change="handlePageChange"
+            @sort="handleSort"
+            @search="handleSearch"
         >
             <template #column-total_items="{ value }">
                 <span
@@ -123,6 +128,7 @@
             @close="closeModal"
             @submit="saveOpname"
             @get-system-quantity="handleGetSystemQuantity"
+            @batch-get-system-quantities="handleBatchGetSystemQuantities"
         />
 
         <!-- Details Modal -->
@@ -209,6 +215,12 @@ const completingOpname = ref(null);
 const completing = ref(false);
 const showDetailsModal = ref(false);
 const selectedOpname = ref(null);
+const pagination = ref({
+    current_page: 1,
+    per_page: 15,
+    total: 0,
+    last_page: 1,
+});
 
 // Table columns
 const columns = [
@@ -252,13 +264,22 @@ const refreshStats = () => {
     }
 };
 
-const loadOpnames = async () => {
+const loadOpnames = async (params = {}) => {
     loading.value = true;
     try {
-        const response = await stockOpnameService.getAll();
-        opnameList.value = Array.isArray(response)
-            ? response
-            : response.data || [];
+        const response = await stockOpnameService.getAll(params);
+
+        if (response.data) {
+            opnameList.value = Array.isArray(response.data.data) ? response.data.data : response.data;
+            pagination.value = {
+                current_page: response.data.current_page || 1,
+                per_page: response.data.per_page || 15,
+                total: response.data.total || 0,
+                last_page: response.data.last_page || 1,
+            };
+        } else {
+            opnameList.value = Array.isArray(response) ? response : [];
+        }
 
         console.log("[StockOpname] Loaded opnames:", opnameList.value.length);
     } catch (error) {
@@ -269,6 +290,36 @@ const loadOpnames = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const handlePageChange = (page, itemsPerPage) => {
+    console.log("[StockOpname] handlePageChange", page, itemsPerPage);
+    if (itemsPerPage) {
+        pagination.value.per_page = itemsPerPage;
+    }
+    loadOpnames({
+        page,
+        per_page: itemsPerPage,
+    });
+};
+
+const handleSort = ({ column, direction }) => {
+    console.log("[StockOpname] handleSort", column, direction);
+    loadOpnames({
+        page: pagination.value.current_page,
+        per_page: pagination.value.per_page,
+        sort_by: column,
+        sort_order: direction,
+    });
+};
+
+const handleSearch = (searchQuery) => {
+    console.log("[StockOpname] handleSearch", searchQuery);
+    loadOpnames({
+        page: 1,
+        per_page: pagination.value.per_page,
+        search: searchQuery,
+    });
 };
 
 const loadProducts = async () => {
@@ -449,6 +500,47 @@ const handleGetSystemQuantity = async ({ productId, locationId, callback }) => {
         console.error("[StockOpname] Failed to get system quantity:", error);
         notificationStore.error("Failed to get system quantity");
         callback(0);
+    }
+};
+
+// Batch handle system quantities for all products
+const handleBatchGetSystemQuantities = async ({
+    productIds,
+    locationId,
+    callback,
+}) => {
+    try {
+        console.log(
+            "[StockOpname] Fetching batch system quantities for",
+            productIds.length,
+            "products at location",
+            locationId
+        );
+
+        const response =
+            await stockOpnameService.batchCalculateSystemQuantities(
+                productIds,
+                locationId
+            );
+
+        // Handle different response formats
+        const quantities =
+            response.data || response.quantities || response || {};
+
+        console.log(
+            "[StockOpname] Batch system quantities received:",
+            quantities
+        );
+
+        callback(quantities);
+    } catch (error) {
+        console.error(
+            "[StockOpname] Failed to get batch system quantities:",
+            error
+        );
+        notificationStore.error("Failed to get system quantities");
+        // Return empty object on failure
+        callback({});
     }
 };
 

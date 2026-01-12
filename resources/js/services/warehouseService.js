@@ -198,7 +198,7 @@ export const stockAdjustmentService = {
         const response = await api.get("/stock-adjustments/statistics", {
             params,
         });
-        return response.data;
+        return response;
     },
 
     bulkApprove: async (ids) => {
@@ -273,6 +273,18 @@ export const stockOpnameService = {
             "/stock-opnames/calculate-system-quantity",
             {
                 product_id: productId,
+                location_id: locationId,
+            }
+        );
+        return response;
+    },
+
+    // Batch calculate system quantities for multiple products
+    batchCalculateSystemQuantities: async (productIds, locationId) => {
+        const response = await api.post(
+            "/stock-opnames/batch-calculate-system-quantities",
+            {
+                product_ids: productIds,
                 location_id: locationId,
             }
         );

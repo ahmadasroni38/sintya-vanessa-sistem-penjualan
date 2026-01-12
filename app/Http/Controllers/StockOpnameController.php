@@ -439,6 +439,30 @@ class StockOpnameController extends Controller
     }
 
     /**
+     * Batch calculate system quantities for multiple products at once.
+     */
+    public function batchCalculateSystemQuantities(Request $request)
+    {
+        $validated = $request->validate([
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'exists:products,id',
+            'location_id' => 'required|exists:locations,id',
+        ]);
+
+        $quantities = [];
+
+        foreach ($validated['product_ids'] as $productId) {
+            $product = Product::find($productId);
+            $quantities[$productId] = $product->getCurrentStock($validated['location_id']);
+        }
+
+        return response()->json([
+            'quantities' => $quantities,
+            'data' => $quantities,
+        ]);
+    }
+
+    /**
      * Get statistics for stock opnames.
      */
     public function statistics(Request $request)
