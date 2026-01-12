@@ -443,10 +443,10 @@
                                         {{ account.name }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroDebit(account) }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroCredit(account) }}
                                     </td>
                                 </tr>
                             </template>
@@ -474,10 +474,10 @@
                                         {{ account.name }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroDebit(account) }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroCredit(account) }}
                                     </td>
                                 </tr>
                             </template>
@@ -506,10 +506,10 @@
                                             {{ account.name }}
                                         </td>
                                         <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                            {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                            {{ getSkontroDebit(account) }}
                                         </td>
                                         <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                            {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                            {{ getSkontroCredit(account) }}
                                         </td>
                                     </tr>
                                 </template>
@@ -567,10 +567,10 @@
                                         {{ account.name }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroDebit(account) }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroCredit(account) }}
                                     </td>
                                 </tr>
                             </template>
@@ -599,10 +599,10 @@
                                             {{ account.name }}
                                         </td>
                                         <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                            {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                            {{ getSkontroDebit(account) }}
                                         </td>
                                         <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                            {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                            {{ getSkontroCredit(account) }}
                                         </td>
                                     </tr>
                                 </template>
@@ -644,10 +644,10 @@
                                         {{ account.name }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroDebit(account) }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
-                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                        {{ getSkontroCredit(account) }}
                                     </td>
                                 </tr>
                             </template>
@@ -999,47 +999,102 @@ const getTotalLiabilitiesAndEquity = () => {
 };
 
 const isBalanced = () => {
-    return getTotalAssets() === getTotalLiabilitiesAndEquity();
+    if (viewFormat.value === 'staffel') {
+        return getTotalAssets() === getTotalLiabilitiesAndEquity();
+    } else {
+        // For Skontro format, check if total debit equals total credit
+        return getTotalAssetsDebit() + getTotalLiabilitiesAndEquityDebit() ===
+               getTotalAssetsCredit() + getTotalLiabilitiesAndEquityCredit();
+    }
 };
 
 const getBalanceDifference = () => {
-    return Math.abs(getTotalAssets() - getTotalLiabilitiesAndEquity());
+    if (viewFormat.value === 'staffel') {
+        return Math.abs(getTotalAssets() - getTotalLiabilitiesAndEquity());
+    } else {
+        // For Skontro format, calculate difference between total debit and total credit
+        const totalDebit = getTotalAssetsDebit() + getTotalLiabilitiesAndEquityDebit();
+        const totalCredit = getTotalAssetsCredit() + getTotalLiabilitiesAndEquityCredit();
+        return Math.abs(totalDebit - totalCredit);
+    }
 };
 
-// Skontro view helper functions (debit/credit)
+// Skontro view helper functions - properly handle debit/credit based on balance and normal_balance
+const getSkontroDebit = (account) => {
+    const balance = account.balance || 0;
+    // If balance follows normal balance (positive for debit, positive for credit)
+    // OR if balance opposes normal balance (negative for debit goes to credit, negative for credit goes to debit)
+    if (account.normal_balance === 'debit') {
+        // Debit normal: positive balance in debit, negative balance in credit
+        return balance >= 0 ? formatCurrency(balance) : '-';
+    } else {
+        // Credit normal: positive balance in credit, negative balance in debit
+        return balance < 0 ? formatCurrency(Math.abs(balance)) : '-';
+    }
+};
+
+const getSkontroCredit = (account) => {
+    const balance = account.balance || 0;
+    if (account.normal_balance === 'debit') {
+        // Debit normal: positive balance in debit, negative balance in credit
+        return balance < 0 ? formatCurrency(Math.abs(balance)) : '-';
+    } else {
+        // Credit normal: positive balance in credit, negative balance in debit
+        return balance >= 0 ? formatCurrency(balance) : '-';
+    }
+};
+
+const getSkontroDebitValue = (account) => {
+    const balance = account.balance || 0;
+    if (account.normal_balance === 'debit') {
+        return balance >= 0 ? balance : 0;
+    } else {
+        return balance < 0 ? Math.abs(balance) : 0;
+    }
+};
+
+const getSkontroCreditValue = (account) => {
+    const balance = account.balance || 0;
+    if (account.normal_balance === 'debit') {
+        return balance < 0 ? Math.abs(balance) : 0;
+    } else {
+        return balance >= 0 ? balance : 0;
+    }
+};
+
 const getCurrentAssetsDebit = () => {
     return getCurrentAssets().reduce((total, account) => {
-        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+        return total + getSkontroDebitValue(account);
     }, 0);
 };
 
 const getCurrentAssetsCredit = () => {
     return getCurrentAssets().reduce((total, account) => {
-        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+        return total + getSkontroCreditValue(account);
     }, 0);
 };
 
 const getFixedAssetsDebit = () => {
     return getFixedAssets().reduce((total, account) => {
-        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+        return total + getSkontroDebitValue(account);
     }, 0);
 };
 
 const getFixedAssetsCredit = () => {
     return getFixedAssets().reduce((total, account) => {
-        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+        return total + getSkontroCreditValue(account);
     }, 0);
 };
 
 const getOtherAssetsDebit = () => {
     return getOtherAssets().reduce((total, account) => {
-        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+        return total + getSkontroDebitValue(account);
     }, 0);
 };
 
 const getOtherAssetsCredit = () => {
     return getOtherAssets().reduce((total, account) => {
-        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+        return total + getSkontroCreditValue(account);
     }, 0);
 };
 
@@ -1053,25 +1108,25 @@ const getTotalAssetsCredit = () => {
 
 const getCurrentLiabilitiesDebit = () => {
     return getCurrentLiabilities().reduce((total, account) => {
-        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+        return total + getSkontroDebitValue(account);
     }, 0);
 };
 
 const getCurrentLiabilitiesCredit = () => {
     return getCurrentLiabilities().reduce((total, account) => {
-        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+        return total + getSkontroCreditValue(account);
     }, 0);
 };
 
 const getLongTermLiabilitiesDebit = () => {
     return getLongTermLiabilities().reduce((total, account) => {
-        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+        return total + getSkontroDebitValue(account);
     }, 0);
 };
 
 const getLongTermLiabilitiesCredit = () => {
     return getLongTermLiabilities().reduce((total, account) => {
-        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+        return total + getSkontroCreditValue(account);
     }, 0);
 };
 
@@ -1086,14 +1141,14 @@ const getTotalLiabilitiesCredit = () => {
 const getTotalEquityDebit = () => {
     if (!reportData.value?.equity) return 0;
     return reportData.value.equity.reduce((total, account) => {
-        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+        return total + getSkontroDebitValue(account);
     }, 0);
 };
 
 const getTotalEquityCredit = () => {
     if (!reportData.value?.equity) return 0;
     return reportData.value.equity.reduce((total, account) => {
-        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+        return total + getSkontroCreditValue(account);
     }, 0);
 };
 
