@@ -706,9 +706,9 @@
                 </div>
 
                 <!-- Balance Verification -->
-                <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
+                <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                    <div class="mb-4">
+                        <div class="flex items-center mb-3">
                             <svg
                                 class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
                                 fill="none"
@@ -723,43 +723,95 @@
                                 />
                             </svg>
                             <span
-                                class="text-sm font-medium text-blue-900 dark:text-blue-100"
+                                class="text-base font-bold text-blue-900 dark:text-blue-100"
                             >
-                                Balance Verification:
+                                Verifikasi Keseimbangan Neraca
                             </span>
                         </div>
-                        <div class="text-right">
-                            <span
-                                v-if="viewFormat === 'staffel'"
-                                class="text-sm text-blue-900 dark:text-blue-100"
-                            >
-                                Assets: {{ formatCurrency(getTotalAssets()) }} =
-                                Liabilities + Equity:
-                                {{
-                                    formatCurrency(
-                                        getTotalLiabilitiesAndEquity()
-                                    )
-                                }}
-                            </span>
-                            <span
-                                v-else
-                                class="text-sm text-blue-900 dark:text-blue-100"
-                            >
-                                Assets (D: {{ formatCurrency(getTotalAssetsDebit()) }} / C: {{ formatCurrency(getTotalAssetsCredit()) }}) =
-                                Liabilities + Equity (D: {{ formatCurrency(getTotalLiabilitiesAndEquityDebit()) }} / C: {{ formatCurrency(getTotalLiabilitiesAndEquityCredit()) }})
-                            </span>
-                            <div
-                                v-if="isBalanced()"
-                                class="text-sm font-semibold text-green-600 dark:text-green-400"
-                            >
-                                ✓ BALANCED
+
+                        <!-- Balance Breakdown -->
+                        <div class="space-y-2 text-sm text-blue-900 dark:text-blue-100">
+                            <div class="flex justify-between items-center py-2 border-b border-blue-200 dark:border-blue-700">
+                                <span class="font-medium">Total Aktiva:</span>
+                                <span class="font-semibold">{{ formatCurrency(getTotalAssets()) }}</span>
                             </div>
-                            <div
-                                v-else
-                                class="text-sm font-semibold text-red-600 dark:text-red-400"
-                            >
-                                ✗ NOT BALANCED (Difference:
-                                {{ formatCurrency(getBalanceDifference()) }})
+
+                            <div class="ml-4 space-y-1 text-xs">
+                                <div class="flex justify-between">
+                                    <span>• Aktiva Lancar:</span>
+                                    <span>{{ formatCurrency(getCurrentAssetsTotal()) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>• Aktiva Tetap:</span>
+                                    <span>{{ formatCurrency(getFixedAssetsTotal()) }}</span>
+                                </div>
+                                <div v-if="getOtherAssets().length > 0" class="flex justify-between">
+                                    <span>• Aktiva Lainnya:</span>
+                                    <span>{{ formatCurrency(getOtherAssetsTotal()) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center py-2 border-b border-blue-200 dark:border-blue-700 mt-3">
+                                <span class="font-medium">Total Kewajiban:</span>
+                                <span class="font-semibold">{{ formatCurrency(getTotalLiabilities()) }}</span>
+                            </div>
+
+                            <div class="ml-4 space-y-1 text-xs">
+                                <div class="flex justify-between">
+                                    <span>• Kewajiban Lancar:</span>
+                                    <span>{{ formatCurrency(getCurrentLiabilitiesTotal()) }}</span>
+                                </div>
+                                <div v-if="getLongTermLiabilities().length > 0" class="flex justify-between">
+                                    <span>• Kewajiban Jangka Panjang:</span>
+                                    <span>{{ formatCurrency(getLongTermLiabilitiesTotal()) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center py-2 border-b border-blue-200 dark:border-blue-700 mt-3">
+                                <span class="font-medium">Total Ekuitas:</span>
+                                <span class="font-semibold">{{ formatCurrency(getTotalEquity()) }}</span>
+                            </div>
+
+                            <div class="ml-4 space-y-1 text-xs">
+                                <div class="flex justify-between">
+                                    <span>• Modal:</span>
+                                    <span>{{ formatCurrency(data.equity.reduce((sum, eq) => sum + (eq.balance || 0), 0)) }}</span>
+                                </div>
+                                <div class="flex justify-between" :class="getNetIncomeClass()">
+                                    <span>• Laba (Rugi) Bersih:</span>
+                                    <span>{{ formatCurrency(data.net_income || 0) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center py-3 border-t-2 border-blue-300 dark:border-blue-600 mt-3">
+                                <span class="font-bold">Total Kewajiban + Ekuitas:</span>
+                                <span class="font-bold">{{ formatCurrency(getTotalLiabilitiesAndEquity()) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Balance Status -->
+                    <div class="mt-4 p-3 rounded-md" :class="isBalanced() ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span
+                                    v-if="isBalanced()"
+                                    class="text-lg font-bold text-green-700 dark:text-green-300"
+                                >
+                                    ✓ NERACA SEIMBANG
+                                </span>
+                                <span
+                                    v-else
+                                    class="text-lg font-bold text-red-700 dark:text-red-300"
+                                >
+                                    ✗ NERACA TIDAK SEIMBANG
+                                </span>
+                            </div>
+                            <div v-if="!isBalanced()" class="text-right">
+                                <div class="text-xs text-red-600 dark:text-red-400">Selisih:</div>
+                                <div class="text-base font-bold text-red-700 dark:text-red-300">
+                                    {{ formatCurrency(getBalanceDifference()) }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -878,6 +930,36 @@ const handleGenerate = async (period) => {
             reportLayout.value?.setReportData(response);
         }
 
+        // Debug: Log balance information to help identify issues
+        console.log('===== NERACA DEBUG INFO =====');
+        console.log('Backend Totals:');
+        console.log('  Total Assets:', reportData.value.totals?.assets);
+        console.log('  Total Liabilities:', reportData.value.totals?.liabilities);
+        console.log('  Total Equity:', reportData.value.totals?.equity);
+        console.log('  Net Income:', reportData.value.net_income);
+        console.log('  Total Liabilities + Equity:', reportData.value.totals?.liabilities_equity);
+        console.log('---');
+        console.log('Account Counts:');
+        console.log('  Total Assets:', reportData.value.assets?.length);
+        console.log('  Total Liabilities:', reportData.value.liabilities?.length);
+        console.log('  Total Equity:', reportData.value.equity?.length);
+        console.log('---');
+        console.log('Asset Details:');
+        reportData.value.assets?.forEach(asset => {
+            console.log(`  ${asset.code} - ${asset.name}: ${asset.balance}`);
+        });
+        console.log('---');
+        console.log('Liability Details:');
+        reportData.value.liabilities?.forEach(liability => {
+            console.log(`  ${liability.code} - ${liability.name}: ${liability.balance}`);
+        });
+        console.log('---');
+        console.log('Equity Details:');
+        reportData.value.equity?.forEach(equity => {
+            console.log(`  ${equity.code} - ${equity.name}: ${equity.balance}`);
+        });
+        console.log('============================');
+
         // Fetch report signature settings
         try {
           const settingsResponse = await apiGet('/settings');
@@ -912,60 +994,81 @@ const handleExport = async (params) => {
 // Helper functions
 const getCurrentAssets = () => {
     if (!reportData.value?.assets) return [];
-    return reportData.value.assets.filter(
-        (account) =>
-            account.name.toLowerCase().includes("kas") ||
-            account.name.toLowerCase().includes("bank") ||
-            account.name.toLowerCase().includes("piutang") ||
-            account.name.toLowerCase().includes("persediaan") ||
-            account.level <= 2
-    );
+    return reportData.value.assets.filter((account) => {
+        const name = account.name.toLowerCase();
+        // Check by keywords first (more specific)
+        return name.includes("kas") ||
+               name.includes("bank") ||
+               name.includes("piutang") ||
+               name.includes("persediaan") ||
+               name.includes("perlengkapan") ||
+               name.includes("beban dibayar dimuka");
+    });
 };
 
 const getFixedAssets = () => {
     if (!reportData.value?.assets) return [];
-    return reportData.value.assets.filter(
-        (account) =>
-            account.name.toLowerCase().includes("tanah") ||
-            account.name.toLowerCase().includes("gedung") ||
-            account.name.toLowerCase().includes("kendaraan") ||
-            account.name.toLowerCase().includes("peralatan") ||
-            account.name.toLowerCase().includes("akumulasi") ||
-            account.level >= 3
-    );
+    // Get current assets first to exclude them
+    const currentAssetsSet = new Set(getCurrentAssets().map(a => a.code));
+
+    return reportData.value.assets.filter((account) => {
+        // Skip if already in current assets
+        if (currentAssetsSet.has(account.code)) return false;
+
+        const name = account.name.toLowerCase();
+        // Check by keywords
+        return name.includes("tanah") ||
+               name.includes("gedung") ||
+               name.includes("bangunan") ||
+               name.includes("kendaraan") ||
+               name.includes("peralatan") ||
+               name.includes("mesin") ||
+               name.includes("akumulasi") ||
+               name.includes("penyusutan");
+    });
 };
 
 const getOtherAssets = () => {
     if (!reportData.value?.assets) return [];
+    const currentAssetsSet = new Set(getCurrentAssets().map(a => a.code));
+    const fixedAssetsSet = new Set(getFixedAssets().map(a => a.code));
+
     return reportData.value.assets.filter(
         (account) =>
-            !getCurrentAssets().some((a) => a.code === account.code) &&
-            !getFixedAssets().some((a) => a.code === account.code)
+            !currentAssetsSet.has(account.code) &&
+            !fixedAssetsSet.has(account.code)
     );
 };
 
 const getCurrentLiabilities = () => {
     if (!reportData.value?.liabilities) return [];
-    return reportData.value.liabilities.filter(
-        (account) =>
-            account.name.toLowerCase().includes("utang") &&
-            (account.name.toLowerCase().includes("dagang") ||
-                account.name.toLowerCase().includes("usaha") ||
-                account.name.toLowerCase().includes("bank") ||
-                account.name.toLowerCase().includes("gaji") ||
-                account.level <= 2)
-    );
+    return reportData.value.liabilities.filter((account) => {
+        const name = account.name.toLowerCase();
+        // Current liabilities are short-term obligations
+        return (name.includes("utang") && !name.includes("jangka panjang")) ||
+               name.includes("utang dagang") ||
+               name.includes("utang usaha") ||
+               name.includes("utang gaji") ||
+               name.includes("utang pajak") ||
+               name.includes("beban yang masih harus dibayar");
+    });
 };
 
 const getLongTermLiabilities = () => {
     if (!reportData.value?.liabilities) return [];
-    return reportData.value.liabilities.filter(
-        (account) =>
-            account.name.toLowerCase().includes("utang") &&
-            (account.name.toLowerCase().includes("jangka panjang") ||
-                account.name.toLowerCase().includes("investasi") ||
-                account.level >= 3)
-    );
+    // Get current liabilities first to exclude them
+    const currentLiabilitiesSet = new Set(getCurrentLiabilities().map(a => a.code));
+
+    return reportData.value.liabilities.filter((account) => {
+        // Skip if already in current liabilities
+        if (currentLiabilitiesSet.has(account.code)) return false;
+
+        const name = account.name.toLowerCase();
+        // Long-term liabilities
+        return name.includes("jangka panjang") ||
+               name.includes("obligasi") ||
+               name.includes("hipotek");
+    });
 };
 
 // Calculation functions
@@ -1047,24 +1150,17 @@ const getNetIncomeSkontroCredit = () => {
 };
 
 const isBalanced = () => {
-    if (viewFormat.value === 'staffel') {
-        return getTotalAssets() === getTotalLiabilitiesAndEquity();
-    } else {
-        // For Skontro format, check if total debit equals total credit
-        return getTotalAssetsDebit() + getTotalLiabilitiesAndEquityDebit() ===
-               getTotalAssetsCredit() + getTotalLiabilitiesAndEquityCredit();
-    }
+    // For both formats, we check if Net Assets = Net Liabilities & Equity
+    // Using a small threshold (0.01) to handle floating point precision issues
+    console.log([
+        getTotalAssets() , getTotalLiabilitiesAndEquity()
+    ])
+    const difference = Math.abs(getTotalAssets() - getTotalLiabilitiesAndEquity());
+    return difference < 0.01;
 };
 
 const getBalanceDifference = () => {
-    if (viewFormat.value === 'staffel') {
-        return Math.abs(getTotalAssets() - getTotalLiabilitiesAndEquity());
-    } else {
-        // For Skontro format, calculate difference between total debit and total credit
-        const totalDebit = getTotalAssetsDebit() + getTotalLiabilitiesAndEquityDebit();
-        const totalCredit = getTotalAssetsCredit() + getTotalLiabilitiesAndEquityCredit();
-        return Math.abs(totalDebit - totalCredit);
-    }
+    return Math.abs(getTotalAssets() - getTotalLiabilitiesAndEquity());
 };
 
 // Skontro view helper functions - properly handle debit/credit based on balance and normal_balance
