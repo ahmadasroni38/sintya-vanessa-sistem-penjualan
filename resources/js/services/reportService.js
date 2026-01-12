@@ -344,9 +344,12 @@ const reportService = {
     // Neraca (Balance Sheet)
     async getNeraca(endDate) {
         try {
-            // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            return generateDummyNeraca(endDate);
+            const response = await apiGet("reports/neraca", {
+                params: {
+                    end_date: endDate,
+                }
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching neraca:", error);
             throw error;
@@ -408,13 +411,38 @@ const reportService = {
 
     async exportNeraca(endDate, format = "pdf") {
         try {
-            const response = await apiGet("reports/neraca/export", {
-                params: {
-                    end_date: endDate,
-                    format: format,
-                }
+            // For export, we need to handle file download differently
+            const token = localStorage.getItem('token');
+            const apiUrl = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/reports/neraca/export`;
+
+            const params = new URLSearchParams({
+                end_date: endDate,
+                format: format,
             });
-            return response;
+
+            const response = await fetch(`${apiUrl}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `neraca_${endDate}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            return { success: true };
         } catch (error) {
             console.error("Error exporting neraca:", error);
             throw error;

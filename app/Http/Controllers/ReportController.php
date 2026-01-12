@@ -210,11 +210,13 @@ class ReportController extends Controller
             ->orderBy('account_code')
             ->get()
             ->map(function ($account) use ($validated) {
+                $balanceData = $account->calculateBalance(null, $validated['end_date']);
                 return [
                     'code' => $account->account_code,
                     'name' => $account->account_name,
-                    'balance' => $account->getBalance(null, $validated['end_date']),
+                    'balance' => $balanceData['balance'],
                     'level' => $account->level,
+                    'normal_balance' => $account->normal_balance,
                 ];
             });
 
@@ -223,11 +225,13 @@ class ReportController extends Controller
             ->orderBy('account_code')
             ->get()
             ->map(function ($account) use ($validated) {
+                $balanceData = $account->calculateBalance(null, $validated['end_date']);
                 return [
                     'code' => $account->account_code,
                     'name' => $account->account_name,
-                    'balance' => $account->getBalance(null, $validated['end_date']),
+                    'balance' => $balanceData['balance'],
                     'level' => $account->level,
+                    'normal_balance' => $account->normal_balance,
                 ];
             });
 
@@ -236,10 +240,90 @@ class ReportController extends Controller
             ->orderBy('account_code')
             ->get()
             ->map(function ($account) use ($validated) {
+                $balanceData = $account->calculateBalance(null, $validated['end_date']);
                 return [
                     'code' => $account->account_code,
                     'name' => $account->account_name,
-                    'balance' => $account->getBalance(null, $validated['end_date']),
+                    'balance' => $balanceData['balance'],
+                    'level' => $account->level,
+                    'normal_balance' => $account->normal_balance,
+                ];
+            });
+
+        $totalAssets = $assets->sum('balance');
+        $totalLiabilities = $liabilities->sum('balance');
+        $totalEquity = $equity->sum('balance');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'assets' => $assets,
+                'liabilities' => $liabilities,
+                'equity' => $equity,
+                'totals' => [
+                    'assets' => $totalAssets,
+                    'liabilities' => $totalLiabilities,
+                    'equity' => $totalEquity,
+                    'liabilities_equity' => $totalLiabilities + $totalEquity,
+                ],
+                'period' => [
+                    'end_date' => $validated['end_date'],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Export Neraca (Balance Sheet)
+     */
+    public function exportNeraca(Request $request)
+    {
+        $validated = $request->validate([
+            'end_date' => 'required|date',
+            'format' => 'required|in:pdf,xlsx',
+        ]);
+
+        $endDate = $validated['end_date'];
+        $format = $validated['format'];
+
+        $assets = ChartOfAccount::active()
+            ->where('account_type', 'asset')
+            ->orderBy('account_code')
+            ->get()
+            ->map(function ($account) use ($endDate) {
+                $balanceData = $account->calculateBalance(null, $endDate);
+                return [
+                    'code' => $account->account_code,
+                    'name' => $account->account_name,
+                    'balance' => $balanceData['balance'],
+                    'level' => $account->level,
+                ];
+            });
+
+        $liabilities = ChartOfAccount::active()
+            ->where('account_type', 'liability')
+            ->orderBy('account_code')
+            ->get()
+            ->map(function ($account) use ($endDate) {
+                $balanceData = $account->calculateBalance(null, $endDate);
+                return [
+                    'code' => $account->account_code,
+                    'name' => $account->account_name,
+                    'balance' => $balanceData['balance'],
+                    'level' => $account->level,
+                ];
+            });
+
+        $equity = ChartOfAccount::active()
+            ->where('account_type', 'equity')
+            ->orderBy('account_code')
+            ->get()
+            ->map(function ($account) use ($endDate) {
+                $balanceData = $account->calculateBalance(null, $endDate);
+                return [
+                    'code' => $account->account_code,
+                    'name' => $account->account_name,
+                    'balance' => $balanceData['balance'],
                     'level' => $account->level,
                 ];
             });
@@ -248,7 +332,7 @@ class ReportController extends Controller
         $totalLiabilities = $liabilities->sum('balance');
         $totalEquity = $equity->sum('balance');
 
-        return Inertia::render('Dashboard/Reports/Neraca', [
+        $data = [
             'assets' => $assets,
             'liabilities' => $liabilities,
             'equity' => $equity,
@@ -259,9 +343,93 @@ class ReportController extends Controller
                 'liabilities_equity' => $totalLiabilities + $totalEquity,
             ],
             'period' => [
-                'end_date' => $validated['end_date'],
+                'end_date' => $endDate,
             ],
-        ]);
+        ];
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $pdf = \PDF::loadView('reports.neraca', $data);
+            $filename = 'neraca_' . $endDate . '.pdf';
+            return $pdf->download($filename);
+        } else {
+            // Generate Excel
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $sheet->setCellValue('A1', 'NERACA');
+            $sheet->setCellValue('A2', 'Per Tanggal: ' . $endDate);
+            $sheet->setCellValue('A3', '');
+
+            // Assets section
+            $row = 4;
+            $sheet->setCellValue('A' . $row, 'AKTIVA');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Kode');
+            $sheet->setCellValue('B' . $row, 'Nama Akun');
+            $sheet->setCellValue('C' . $row, 'Saldo');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row++;
+
+            foreach ($assets as $asset) {
+                $sheet->setCellValue('A' . $row, $asset['code']);
+                $sheet->setCellValue('B' . $row, $asset['name']);
+                $sheet->setCellValue('C' . $row, $asset['balance']);
+                $row++;
+            }
+
+            $sheet->setCellValue('B' . $row, 'JUMLAH AKTIVA');
+            $sheet->setCellValue('C' . $row, $totalAssets);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row += 2;
+
+            // Liabilities & Equity section
+            $sheet->setCellValue('A' . $row, 'KEWAJIBAN DAN EKUITAS');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Kode');
+            $sheet->setCellValue('B' . $row, 'Nama Akun');
+            $sheet->setCellValue('C' . $row, 'Saldo');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row++;
+
+            foreach ($liabilities as $liability) {
+                $sheet->setCellValue('A' . $row, $liability['code']);
+                $sheet->setCellValue('B' . $row, $liability['name']);
+                $sheet->setCellValue('C' . $row, $liability['balance']);
+                $row++;
+            }
+
+            foreach ($equity as $eq) {
+                $sheet->setCellValue('A' . $row, $eq['code']);
+                $sheet->setCellValue('B' . $row, $eq['name']);
+                $sheet->setCellValue('C' . $row, $eq['balance']);
+                $row++;
+            }
+
+            $sheet->setCellValue('B' . $row, 'JUMLAH KEWAJIBAN DAN EKUITAS');
+            $sheet->setCellValue('C' . $row, $totalLiabilities + $totalEquity);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+
+            // Auto-size columns
+            foreach (['A', 'B', 'C'] as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $filename = 'neraca_' . $endDate . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer->save('php://output');
+            exit;
+        }
     }
 
     /**

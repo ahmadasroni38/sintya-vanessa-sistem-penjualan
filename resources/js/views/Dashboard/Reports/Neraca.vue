@@ -21,9 +21,38 @@
                     </p>
                 </div>
 
+                <!-- View Toggle -->
+                <div class="mb-6 flex justify-end">
+                    <div class="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
+                        <button
+                            @click="viewFormat = 'staffel'"
+                            :class="[
+                                'px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                                viewFormat === 'staffel'
+                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            ]"
+                        >
+                            Staffel
+                        </button>
+                        <button
+                            @click="viewFormat = 'skontro'"
+                            :class="[
+                                'px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                                viewFormat === 'skontro'
+                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            ]"
+                        >
+                            Skontro
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Balance Sheet Table -->
                 <div class="overflow-x-auto">
-                    <table class="min-w-full">
+                    <!-- Staffel View (Standard) -->
+                    <table v-if="viewFormat === 'staffel'" class="min-w-full">
                         <!-- Assets Section -->
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
@@ -384,6 +413,270 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <!-- Skontro View (Debit/Credit) -->
+                    <table v-else class="min-w-full">
+                        <!-- Assets Section -->
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                                    AKTIVA
+                                </th>
+                                <th class="px-6 py-3 text-right text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                                    DEBIT
+                                </th>
+                                <th class="px-6 py-3 text-right text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                                    KREDIT
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Current Assets -->
+                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                <td colspan="3" class="px-6 py-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                    Aktiva Lancar
+                                </td>
+                            </tr>
+                            <template v-for="account in getCurrentAssets()" :key="'asset-' + account.code">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                        {{ account.name }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                    Jumlah Aktiva Lancar
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getCurrentAssetsDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getCurrentAssetsCredit()) }}
+                                </td>
+                            </tr>
+
+                            <!-- Fixed Assets -->
+                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                <td colspan="3" class="px-6 py-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                    Aktiva Tetap
+                                </td>
+                            </tr>
+                            <template v-for="account in getFixedAssets()" :key="'fixed-' + account.code">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                        {{ account.name }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                    Jumlah Aktiva Tetap
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getFixedAssetsDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getFixedAssetsCredit()) }}
+                                </td>
+                            </tr>
+
+                            <!-- Other Assets -->
+                            <template v-if="getOtherAssets().length > 0">
+                                <tr class="bg-gray-100 dark:bg-gray-700">
+                                    <td colspan="3" class="px-6 py-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                        Aktiva Lainnya
+                                    </td>
+                                </tr>
+                                <template v-for="account in getOtherAssets()" :key="'other-' + account.code">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                            {{ account.name }}
+                                        </td>
+                                        <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                            {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                        </td>
+                                        <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                            {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                    <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                        Jumlah Aktiva Lainnya
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ formatCurrency(getOtherAssetsDebit()) }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ formatCurrency(getOtherAssetsCredit()) }}
+                                    </td>
+                                </tr>
+                            </template>
+
+                            <!-- Total Assets -->
+                            <tr class="bg-gray-200 dark:bg-gray-600 font-bold">
+                                <td class="px-6 py-3 text-sm text-gray-900 dark:text-white">
+                                    JUMLAH AKTIVA
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalAssetsDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalAssetsCredit()) }}
+                                </td>
+                            </tr>
+                        </tbody>
+
+                        <!-- Liabilities & Equity Section -->
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                                    KEWAJIBAN DAN EKUITAS
+                                </th>
+                                <th class="px-6 py-3 text-right text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                                    DEBIT
+                                </th>
+                                <th class="px-6 py-3 text-right text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                                    KREDIT
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Current Liabilities -->
+                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                <td colspan="3" class="px-6 py-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                    Kewajiban Lancar
+                                </td>
+                            </tr>
+                            <template v-for="account in getCurrentLiabilities()" :key="'liability-' + account.code">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                        {{ account.name }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                    Jumlah Kewajiban Lancar
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getCurrentLiabilitiesDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getCurrentLiabilitiesCredit()) }}
+                                </td>
+                            </tr>
+
+                            <!-- Long-term Liabilities -->
+                            <template v-if="getLongTermLiabilities().length > 0">
+                                <tr class="bg-gray-100 dark:bg-gray-700">
+                                    <td colspan="3" class="px-6 py-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                        Kewajiban Jangka Panjang
+                                    </td>
+                                </tr>
+                                <template v-for="account in getLongTermLiabilities()" :key="'longterm-' + account.code">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                            {{ account.name }}
+                                        </td>
+                                        <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                            {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                        </td>
+                                        <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                            {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                    <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                        Jumlah Kewajiban Jangka Panjang
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ formatCurrency(getLongTermLiabilitiesDebit()) }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ formatCurrency(getLongTermLiabilitiesCredit()) }}
+                                    </td>
+                                </tr>
+                            </template>
+
+                            <!-- Total Liabilities -->
+                            <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                <td class="px-6 py-3 text-sm text-gray-900 dark:text-white">
+                                    JUMLAH KEWAJIBAN
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalLiabilitiesDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalLiabilitiesCredit()) }}
+                                </td>
+                            </tr>
+
+                            <!-- Equity -->
+                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                <td colspan="3" class="px-6 py-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                    Ekuitas
+                                </td>
+                            </tr>
+                            <template v-for="account in data.equity" :key="'equity-' + account.code">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                        {{ account.name }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'debit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                        {{ account.normal_balance === 'credit' ? formatCurrency(account.balance) : '-' }}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
+                                <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                    Jumlah Ekuitas
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalEquityDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalEquityCredit()) }}
+                                </td>
+                            </tr>
+
+                            <!-- Total Liabilities & Equity -->
+                            <tr class="bg-gray-200 dark:bg-gray-600 font-bold">
+                                <td class="px-6 py-3 text-sm text-gray-900 dark:text-white">
+                                    JUMLAH KEWAJIBAN DAN EKUITAS
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalLiabilitiesAndEquityDebit()) }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right text-gray-900 dark:text-white">
+                                    {{ formatCurrency(getTotalLiabilitiesAndEquityCredit()) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Balance Verification -->
@@ -411,6 +704,7 @@
                         </div>
                         <div class="text-right">
                             <span
+                                v-if="viewFormat === 'staffel'"
                                 class="text-sm text-blue-900 dark:text-blue-100"
                             >
                                 Assets: {{ formatCurrency(getTotalAssets()) }} =
@@ -420,6 +714,13 @@
                                         getTotalLiabilitiesAndEquity()
                                     )
                                 }}
+                            </span>
+                            <span
+                                v-else
+                                class="text-sm text-blue-900 dark:text-blue-100"
+                            >
+                                Assets (D: {{ formatCurrency(getTotalAssetsDebit()) }} / C: {{ formatCurrency(getTotalAssetsCredit()) }}) =
+                                Liabilities + Equity (D: {{ formatCurrency(getTotalLiabilitiesAndEquityDebit()) }} / C: {{ formatCurrency(getTotalLiabilitiesAndEquityCredit()) }})
                             </span>
                             <div
                                 v-if="isBalanced()"
@@ -512,6 +813,7 @@ import { apiGet } from "@/utils/api";
 const notification = useNotificationStore();
 const reportLayout = ref(null);
 const reportData = ref(null);
+const viewFormat = ref('staffel'); // 'staffel' or 'skontro'
 
 const printDate = computed(() => {
   const now = new Date();
@@ -532,11 +834,23 @@ const reportSettings = ref({
 });
 
 // Methods
+const handleGenerateSedangClick = ref(false);
 const handleGenerate = async (period) => {
     try {
+        if(handleGenerateSedangClick.value) {
+            return
+        }
+        handleGenerateSedangClick.value = true
         const response = await reportService.getNeraca(period.end_date);
-        reportData.value = response;
-        reportLayout.value?.setReportData(response);
+
+        // Extract data from response
+        if (response.success && response.data) {
+            reportData.value = response.data;
+            reportLayout.value?.setReportData(response.data);
+        } else {
+            reportData.value = response;
+            reportLayout.value?.setReportData(response);
+        }
 
         // Fetch report signature settings
         try {
@@ -554,6 +868,8 @@ const handleGenerate = async (period) => {
     } catch (error) {
         notification.error("Failed to generate Neraca report");
         throw error;
+    } finally {
+        handleGenerateSedangClick.value = false
     }
 };
 
@@ -688,6 +1004,105 @@ const isBalanced = () => {
 
 const getBalanceDifference = () => {
     return Math.abs(getTotalAssets() - getTotalLiabilitiesAndEquity());
+};
+
+// Skontro view helper functions (debit/credit)
+const getCurrentAssetsDebit = () => {
+    return getCurrentAssets().reduce((total, account) => {
+        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getCurrentAssetsCredit = () => {
+    return getCurrentAssets().reduce((total, account) => {
+        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getFixedAssetsDebit = () => {
+    return getFixedAssets().reduce((total, account) => {
+        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getFixedAssetsCredit = () => {
+    return getFixedAssets().reduce((total, account) => {
+        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getOtherAssetsDebit = () => {
+    return getOtherAssets().reduce((total, account) => {
+        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getOtherAssetsCredit = () => {
+    return getOtherAssets().reduce((total, account) => {
+        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getTotalAssetsDebit = () => {
+    return getCurrentAssetsDebit() + getFixedAssetsDebit() + getOtherAssetsDebit();
+};
+
+const getTotalAssetsCredit = () => {
+    return getCurrentAssetsCredit() + getFixedAssetsCredit() + getOtherAssetsCredit();
+};
+
+const getCurrentLiabilitiesDebit = () => {
+    return getCurrentLiabilities().reduce((total, account) => {
+        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getCurrentLiabilitiesCredit = () => {
+    return getCurrentLiabilities().reduce((total, account) => {
+        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getLongTermLiabilitiesDebit = () => {
+    return getLongTermLiabilities().reduce((total, account) => {
+        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getLongTermLiabilitiesCredit = () => {
+    return getLongTermLiabilities().reduce((total, account) => {
+        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getTotalLiabilitiesDebit = () => {
+    return getCurrentLiabilitiesDebit() + getLongTermLiabilitiesDebit();
+};
+
+const getTotalLiabilitiesCredit = () => {
+    return getCurrentLiabilitiesCredit() + getLongTermLiabilitiesCredit();
+};
+
+const getTotalEquityDebit = () => {
+    if (!reportData.value?.equity) return 0;
+    return reportData.value.equity.reduce((total, account) => {
+        return total + (account.normal_balance === 'debit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getTotalEquityCredit = () => {
+    if (!reportData.value?.equity) return 0;
+    return reportData.value.equity.reduce((total, account) => {
+        return total + (account.normal_balance === 'credit' ? (account.balance || 0) : 0);
+    }, 0);
+};
+
+const getTotalLiabilitiesAndEquityDebit = () => {
+    return getTotalLiabilitiesDebit() + getTotalEquityDebit();
+};
+
+const getTotalLiabilitiesAndEquityCredit = () => {
+    return getTotalLiabilitiesCredit() + getTotalEquityCredit();
 };
 
 const formatCurrency = (value) => {
