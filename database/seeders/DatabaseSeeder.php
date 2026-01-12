@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,               // Users dengan Roles
             LocationSeeder::class,           // Warehouse Locations
             ChartOfAccountSeeder::class,     // Chart of Accounts (COA)
+            OpeningBalanceSeeder::class,     // Saldo Awal via Journal Entry
             ProductSeeder::class,            // Products
             UnitSeeder::class,               // Units
 

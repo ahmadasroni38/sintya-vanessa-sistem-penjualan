@@ -288,6 +288,12 @@ class JournalEntryController extends Controller
                 ]);
             }
 
+            $journalEntry->refresh();
+            $journalEntry->total_debit = $totalDebit;
+            $journalEntry->total_credit = $totalCredit;
+            $journalEntry->save();
+            $journalEntry->refresh();
+
             DB::commit();
 
             // Reload relationships

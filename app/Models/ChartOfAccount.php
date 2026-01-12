@@ -183,68 +183,73 @@ class ChartOfAccount extends Model
     }
 
     // Business Logic Methods
+    /**
+     * Calculate real-time account balance from journal entries
+     * NO CACHE - Always returns accurate, real-time data
+     *
+     * @param string|null $startDate Start date filter (YYYY-MM-DD)
+     * @param string|null $endDate End date filter (YYYY-MM-DD)
+     * @return array Balance data with debit/credit totals
+     */
     public function calculateBalance(?string $startDate = null, ?string $endDate = null): array
     {
-        $cacheKey = "account-balance:{$this->id}:" . md5(json_encode([
-            'start_date' => $startDate,
-            'end_date' => $endDate
-        ]));
+        // Real-time query - NO CACHE for accuracy
+        $query = $this->journalEntryDetails()
+            ->whereHas('journalEntry', function ($q) {
+                $q->where('status', 'posted');
+            });
 
-        return Cache::remember($cacheKey, 600, function () use ($startDate, $endDate) {
-            $query = $this->journalEntryDetails()
-                ->whereHas('journalEntry', function ($q) {
-                    $q->where('status', 'posted');
-                });
+        if ($startDate) {
+            $query->whereHas('journalEntry', function ($q) use ($startDate) {
+                $q->where('entry_date', '>=', $startDate);
+            });
+        }
 
-            if ($startDate) {
-                $query->whereHas('journalEntry', function ($q) use ($startDate) {
-                    $q->where('entry_date', '>=', $startDate);
-                });
-            }
+        if ($endDate) {
+            $query->whereHas('journalEntry', function ($q) use ($endDate) {
+                $q->where('entry_date', '<=', $endDate);
+            });
+        }
 
-            if ($endDate) {
-                $query->whereHas('journalEntry', function ($q) use ($endDate) {
-                    $q->where('entry_date', '<=', $endDate);
-                });
-            }
+        $results = $query->selectRaw('
+                transaction_type,
+                SUM(amount) as total
+            ')
+            ->groupBy('transaction_type')
+            ->pluck('total', 'transaction_type');
 
-            $results = $query->selectRaw('
-                    transaction_type,
-                    SUM(amount) as total
-                ')
-                ->groupBy('transaction_type')
-                ->pluck('total', 'transaction_type');
+        $debit = $results['debit'] ?? 0;
+        $credit = $results['credit'] ?? 0;
 
-            $debit = $results['debit'] ?? 0;
-            $credit = $results['credit'] ?? 0;
+        // Calculate balance based on normal balance
+        if ($this->normal_balance === 'debit') {
+            $balance = $this->opening_balance + $debit - $credit;
+        } else {
+            $balance = $this->opening_balance + $credit - $debit;
+        }
 
-            // Calculate balance based on normal balance
-            if ($this->normal_balance === 'debit') {
-                $balance = $this->opening_balance + $debit - $credit;
-            } else {
-                $balance = $this->opening_balance + $credit - $debit;
-            }
-
-            return [
-                'balance' => $balance,
-                'debit_total' => $debit,
-                'credit_total' => $credit,
-                'opening_balance' => $this->opening_balance,
-                'normal_balance' => $this->normal_balance
-            ];
-        });
+        return [
+            'balance' => $balance,
+            'debit_total' => $debit,
+            'credit_total' => $credit,
+            'opening_balance' => $this->opening_balance,
+            'normal_balance' => $this->normal_balance
+        ];
     }
 
+    /**
+     * Update current_balance column for historical snapshot
+     * Note: This is for historical record only, NOT for real-time balance queries
+     * Real-time balance should ALWAYS use calculateBalance()
+     */
     public function updateCurrentBalance(): void
     {
         $balanceData = $this->calculateBalance();
 
+        // Update snapshot columns (for historical reference only)
         $this->current_balance = $balanceData['balance'];
         $this->balance_updated_at = now();
         $this->saveQuietly(); // Save without triggering events
-
-        // Clear related cache
-        Cache::forget("account-balance:{$this->id}");
     }
 
     public function isDescendantOf(int $parentId): bool

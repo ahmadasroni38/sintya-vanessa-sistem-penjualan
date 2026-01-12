@@ -329,8 +329,10 @@ const reportService = {
     async getNeracaLajur(startDate, endDate) {
         try {
             const response = await apiGet("reports/neraca-lajur", {
-                start_date: startDate,
-                end_date: endDate,
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                }
             });
             return response;
         } catch (error) {
@@ -391,9 +393,11 @@ const reportService = {
     async exportNeracaLajur(startDate, endDate, format = "pdf") {
         try {
             const response = await apiGet("reports/neraca-lajur/export", {
-                start_date: startDate,
-                end_date: endDate,
-                format: format,
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    format: format,
+                }
             });
             return response;
         } catch (error) {
@@ -405,8 +409,10 @@ const reportService = {
     async exportNeraca(endDate, format = "pdf") {
         try {
             const response = await apiGet("reports/neraca/export", {
-                end_date: endDate,
-                format: format,
+                params: {
+                    end_date: endDate,
+                    format: format,
+                }
             });
             return response;
         } catch (error) {
@@ -418,9 +424,11 @@ const reportService = {
     async exportLabaRugi(startDate, endDate, format = "pdf") {
         try {
             const response = await apiGet("reports/laba-rugi/export", {
-                start_date: startDate,
-                end_date: endDate,
-                format: format,
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    format: format,
+                }
             });
             return response;
         } catch (error) {
@@ -432,9 +440,11 @@ const reportService = {
     async exportPerubahanModal(startDate, endDate, format = "pdf") {
         try {
             const response = await apiGet("reports/perubahan-modal/export", {
-                start_date: startDate,
-                end_date: endDate,
-                format: format,
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    format: format,
+                }
             });
             return response;
         } catch (error) {
@@ -446,9 +456,11 @@ const reportService = {
     async exportArusKas(startDate, endDate, format = "pdf") {
         try {
             const response = await apiGet("reports/arus-kas/export", {
-                start_date: startDate,
-                end_date: endDate,
-                format: format,
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    format: format,
+                }
             });
             return response;
         } catch (error) {

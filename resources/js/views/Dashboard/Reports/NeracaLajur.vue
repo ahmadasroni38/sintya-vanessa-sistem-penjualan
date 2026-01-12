@@ -754,7 +754,12 @@ const reportSettings = ref({
 });
 
 // Methods
+const handleGenerateSedangDiclick = ref(false);
 const handleGenerate = async (period) => {
+    if(handleGenerateSedangDiclick.value) {
+        return;
+    }
+    handleGenerateSedangDiclick.value = true
     try {
         const response = await reportService.getNeracaLajur(
             period.start_date,
@@ -779,6 +784,8 @@ const handleGenerate = async (period) => {
     } catch (error) {
         notification.error("Failed to generate Neraca Lajur report");
         throw error;
+    } finally {
+        handleGenerateSedangDiclick.value = false
     }
 };
 

@@ -752,27 +752,9 @@
                 <!-- KOP (Header) -->
                 <div class="border-b-4 border-primary-600 dark:border-primary-500 pb-6 mb-6 bg-gradient-to-r from-primary-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-lg">
                     <div class="flex items-start justify-between">
-                        <!-- Logo/Company Info -->
-                        <div class="flex items-center space-x-4">
-                            <div class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    PT. SINTIYA PUTRA PERSADA
-                                </h2>
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                    Jl. Contoh Alamat No. 123, Jakarta Selatan 12345
-                                </p>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">
-                                    Telp: (021) 1234-5678 | Email: info@sintiya.com
-                                </p>
-                            </div>
-                        </div>
+
                         <!-- Document Title -->
-                        <div class="text-right">
+                        <div class="text-left">
                             <h3 class="text-2xl font-bold text-primary-600 dark:text-primary-400">
                                 JOURNAL ENTRY
                             </h3>
@@ -1273,8 +1255,15 @@ const handleEditEntry = async (entry) => {
         const response = await apiGet(`journal-entries/${entry.id}`);
         if (response && response.data) {
             selectedEntry.value = response.data;
+
+            // Format entry_date to YYYY-MM-DD for input type="date"
+            let entryDate = response.data.entry_date;
+            if (entryDate && entryDate.includes('T')) {
+                entryDate = entryDate.split('T')[0]; // Extract YYYY-MM-DD part only
+            }
+
             entryForm.value = {
-                entry_date: response.data.entry_date,
+                entry_date: entryDate,
                 reference_number: response.data.reference_number || "",
                 description: response.data.description,
                 entry_type: response.data.entry_type,
