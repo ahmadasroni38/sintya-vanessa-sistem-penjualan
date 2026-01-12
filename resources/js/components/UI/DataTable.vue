@@ -54,6 +54,7 @@
                             type="text"
                             class="w-64 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                             :placeholder="searchPlaceholder"
+                            @keyup.enter="handleSearchEnter"
                         />
                     </div>
 
@@ -724,6 +725,9 @@ const emit = defineEmits([
     "export",
     "selection-change",
     "refresh",
+    "search",
+    "page-change",
+    "sort",
 ]);
 
 // Reactive data
@@ -922,11 +926,24 @@ const formatDate = (value) => {
     });
 };
 
+const handleSearchEnter = () => {
+    if (props.serverSidePagination) {
+        emit("search", searchQuery.value);
+    }
+};
+
 const exportData = () => {
     emit("export", filteredData.value);
 };
 
 // Watchers
+watch(searchQuery, (newQuery) => {
+    if (!props.serverSidePagination) {
+        currentPage.value = 1;
+    }
+    // Removed automatic search emission - now only triggers on Enter key
+});
+
 watch(
     selectedItems,
     (newVal) => {
@@ -940,12 +957,6 @@ watch(itemsPerPage, () => {
         currentPage.value = 1;
     } else if (isInitialized.value && !updatingFromProps.value) {
         emit("page-change", 1, itemsPerPage.value);
-    }
-});
-
-watch(searchQuery, () => {
-    if (!props.serverSidePagination) {
-        currentPage.value = 1;
     }
 });
 

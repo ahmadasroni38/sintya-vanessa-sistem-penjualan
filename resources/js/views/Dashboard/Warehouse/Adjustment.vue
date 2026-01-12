@@ -40,6 +40,10 @@
             :showExport="false"
             :showFilters="false"
             :server-side-pagination="true"
+            :pagination="pagination"
+            @page-change="handlePageChange"
+            @sort="handleSort"
+            @search="handleSearch"
         >
             <template #column-total_items="{ value }">
                 <span
@@ -188,6 +192,12 @@ const approvingAdjustment = ref(null);
 const approving = ref(false);
 const showDetailsModal = ref(false);
 const selectedAdjustment = ref(null);
+const pagination = ref({
+    current_page: 1,
+    per_page: 15,
+    total: 0,
+    last_page: 1,
+});
 
 // Table columns - Updated for Master-Detail structure
 const columns = [
@@ -225,13 +235,22 @@ const columns = [
 ];
 
 // Methods
-const loadAdjustments = async () => {
+const loadAdjustments = async (params = {}) => {
     loading.value = true;
     try {
-        const response = await stockAdjustmentService.getAll();
-        adjustmentList.value = Array.isArray(response)
-            ? response
-            : response.data || [];
+        const response = await stockAdjustmentService.getAll(params);
+
+        if (response.data) {
+            adjustmentList.value = Array.isArray(response.data.data) ? response.data.data : response.data;
+            pagination.value = {
+                current_page: response.data.current_page || 1,
+                per_page: response.data.per_page || 15,
+                total: response.data.total || 0,
+                last_page: response.data.last_page || 1,
+            };
+        } else {
+            adjustmentList.value = Array.isArray(response) ? response : [];
+        }
     } catch (error) {
         console.error("Failed to load adjustments:", error);
         notificationStore.error(
@@ -240,6 +259,36 @@ const loadAdjustments = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const handlePageChange = (page, itemsPerPage) => {
+    console.log("handlePageChange", page, itemsPerPage);
+    if (itemsPerPage) {
+        pagination.value.per_page = itemsPerPage;
+    }
+    loadAdjustments({
+        page,
+        per_page: itemsPerPage,
+    });
+};
+
+const handleSort = ({ column, direction }) => {
+    console.log("handleSort", column, direction);
+    loadAdjustments({
+        page: pagination.value.current_page,
+        per_page: pagination.value.per_page,
+        sort_by: column,
+        sort_order: direction,
+    });
+};
+
+const handleSearch = (searchQuery) => {
+    console.log("handleSearch", searchQuery);
+    loadAdjustments({
+        page: 1,
+        per_page: pagination.value.per_page,
+        search: searchQuery,
+    });
 };
 
 const loadProducts = async () => {

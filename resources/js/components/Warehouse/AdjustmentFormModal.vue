@@ -2,7 +2,7 @@
     <Modal
         :is-open="show"
         :title="isEdit ? 'Edit Adjustment' : 'New Stock Adjustment'"
-        size="4xl"
+        size="full"
         @close="$emit('close')"
     >
         <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -75,7 +75,7 @@
 
                 <!-- Products Table -->
                 <div
-                    class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg"
+                    class="overflow-x-auto overflow-x-visible border border-gray-200 dark:border-gray-700 rounded-lg"
                 >
                     <table
                         class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
@@ -138,24 +138,13 @@
                             >
                                 <!-- Product Select -->
                                 <td class="px-4 py-3">
-                                    <select
+                                    <FormSelect
                                         v-model="detail.product_id"
-                                        @change="onProductSelect(index)"
-                                        class="block w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-white cursor-default"
+                                        :options="getProductOptions(index)"
+                                        placeholder="Choose Product"
                                         required
-                                    >
-                                        <option value="">Choose Product</option>
-                                        <option
-                                            v-for="product in availableProducts(
-                                                index
-                                            )"
-                                            :key="product.id"
-                                            :value="product.id"
-                                        >
-                                            {{ product.product_code }} -
-                                            {{ product.product_name }}
-                                        </option>
-                                    </select>
+                                        @change="onProductSelect(index)"
+                                    />
                                 </td>
 
                                 <!-- System Quantity -->
@@ -375,6 +364,17 @@ const availableProducts = (currentIndex) => {
     return props.products.filter(
         (product) => !selectedProductIds.includes(product.id)
     );
+};
+
+// Format product options for FormSelect component
+const getProductOptions = (index) => {
+    const products = availableProducts(index);
+    return [
+        ...products.map((product) => ({
+            value: product.id,
+            label: `${product.product_code} - ${product.product_name}`,
+        })),
+    ];
 };
 
 const isFormValid = computed(() => {

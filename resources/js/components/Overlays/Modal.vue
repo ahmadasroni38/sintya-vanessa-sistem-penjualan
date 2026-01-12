@@ -21,7 +21,7 @@
                 class="flex min-h-full items-center justify-center p-4 text-center"
             >
                 <div
-                    class="relative w-full transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all"
+                    class="relative w-full transform overflow-visible rounded-xl bg-white dark:bg-gray-800 text-left shadow-xl transition-all"
                     :class="sizeClasses"
                 >
                     <!-- Header -->
@@ -91,7 +91,7 @@ const props = defineProps({
         type: String,
         default: "md",
         validator: (value) =>
-            ["sm", "md", "lg", "xl", "2xl", "4xl", "6xl"].includes(value),
+            ["sm", "md", "lg", "xl", "2xl", "4xl", "6xl", "full"].includes(value),
     },
     closeOnBackdrop: {
         type: Boolean,
@@ -110,6 +110,7 @@ const sizeClasses = computed(() => {
         "2xl": "max-w-2xl w-full mx-4",
         "4xl": "max-w-4xl w-full mx-4",
         "6xl": "max-w-6xl w-full mx-4",
+        full: "w-full h-full m-0 rounded-none",
     };
     return sizes[props.size];
 });

@@ -62,6 +62,7 @@
             @refresh="handleRefresh"
             @page-change="handlePageChange"
             @sort="handleSort"
+            @search="handleSearch"
             :show-refresh="true"
             :refresh-loading="refreshing"
             :showAddButton="false"
@@ -341,6 +342,15 @@ const handleSort = ({ column, direction }) => {
         per_page: pagination.value.per_page,
         sort_by: column,
         sort_order: direction,
+    });
+};
+
+const handleSearch = (searchQuery) => {
+    console.log("handleSearch", searchQuery);
+    fetchProducts({
+        page: 1, // Reset to first page on search
+        per_page: pagination.value.per_page,
+        search: searchQuery,
     });
 };
 
