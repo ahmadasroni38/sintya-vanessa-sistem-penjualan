@@ -55,9 +55,20 @@ class JournalEntryController extends Controller
             $query->withTrashed();
         }
 
-        // Sorting
-        $sortField = $request->get('sort_field', 'entry_date');
+        // Sorting - support both sort_field and sort_by
+        $sortField = $request->get('sort_by', $request->get('sort_field', 'entry_date'));
         $sortDirection = $request->get('sort_direction', 'desc');
+
+        // Map frontend column keys to database columns
+        $sortableFields = [
+            'entry_number' => 'entry_number',
+            'entry_date' => 'entry_date',
+            'description' => 'description',
+            'status' => 'status',
+            'total_amount' => 'entry_date', // Default to entry_date for total_amount since it's calculated
+        ];
+
+        $sortField = $sortableFields[$sortField] ?? 'entry_date';
 
         if ($sortField === 'entry_date') {
             $query->orderBy('entry_date', $sortDirection)
@@ -67,7 +78,7 @@ class JournalEntryController extends Controller
         }
 
         // Check if client wants all data (for client-side pagination)
-        if ($request->get('all') === 'true' || !$request->has('per_page')) {
+        if ($request->get('all') === 'true') {
             // Return all data for client-side pagination
             $entries = $query->get();
 
@@ -79,20 +90,19 @@ class JournalEntryController extends Controller
         }
 
         // Server-side pagination
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->get('per_page', 10);
         $entries = $query->paginate($perPage);
 
+        // Return in Laravel pagination format that frontend expects
         return response()->json([
             'success' => true,
             'data' => $entries->items(),
-            'pagination' => [
-                'total' => $entries->total(),
-                'per_page' => $entries->perPage(),
-                'current_page' => $entries->currentPage(),
-                'last_page' => $entries->lastPage(),
-                'from' => $entries->firstItem(),
-                'to' => $entries->lastItem(),
-            ],
+            'current_page' => $entries->currentPage(),
+            'per_page' => $entries->perPage(),
+            'total' => $entries->total(),
+            'last_page' => $entries->lastPage(),
+            'from' => $entries->firstItem(),
+            'to' => $entries->lastItem(),
             'filters' => $request->only(['status', 'entry_type', 'start_date', 'end_date', 'year', 'month', 'search', 'with_deleted']),
         ]);
     }

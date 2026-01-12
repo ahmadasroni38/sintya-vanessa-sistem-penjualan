@@ -269,8 +269,8 @@ public function calculateBalance(Request $request, ChartOfAccount $chartOfAccoun
         // Dispatch balance calculation job
         $user = auth()->user();
         CalculateAccountBalance::dispatch($chartOfAccount->id, [
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date']
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null
         ]);
 
         return response()->json([
@@ -284,23 +284,27 @@ public function calculateBalance(Request $request, ChartOfAccount $chartOfAccoun
             $balanceService = new \App\Services\ChartOfAccountBalanceService();
 
             $balanceData = $balanceService->calculateBalance($chartOfAccount, [
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date']
+                'start_date' => $validated['start_date'] ?? null,
+                'end_date' => $validated['end_date'] ?? null
             ]);
 
-            // Save balance history
+            // Save balance history (update if exists, create if not)
             $startDate = $validated['start_date'] ?? now()->startOfMonth()->format('Y-m-d');
             $endDate = $validated['end_date'] ?? now()->endOfMonth()->format('Y-m-d');
 
-            \App\Models\AccountBalanceHistory::create([
-                'chart_of_account_id' => $chartOfAccount->id,
-                'balance' => $balanceData['balance'],
-                'debit_total' => $balanceData['debit_total'],
-                'credit_total' => $balanceData['credit_total'],
-                'period_start' => $startDate,
-                'period_end' => $endDate,
-                'calculated_by' => auth()->id(),
-            ]);
+            \App\Models\AccountBalanceHistory::updateOrCreate(
+                [
+                    'chart_of_account_id' => $chartOfAccount->id,
+                    'period_start' => $startDate,
+                    'period_end' => $endDate,
+                ],
+                [
+                    'balance' => $balanceData['balance'],
+                    'debit_total' => $balanceData['debit_total'],
+                    'credit_total' => $balanceData['credit_total'],
+                    'calculated_by' => auth()->id(),
+                ]
+            );
 
             // Update account's current balance
             $chartOfAccount->current_balance = $balanceData['balance'];

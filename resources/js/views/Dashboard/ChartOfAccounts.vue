@@ -2130,9 +2130,15 @@ const saveAccount = async () => {
     }
 };
 
+const calculateCurrentBalanceSedangDiclick = ref(false);
 const calculateCurrentBalance = async () => {
     if (!selectedAccount.value) return;
 
+    if(calculateCurrentBalanceSedangDiclick.value) {
+        return;
+    }
+
+    calculateCurrentBalanceSedangDiclick.value = true
     calculatingBalance.value = true;
     try {
         const data = await apiPost(
@@ -2150,6 +2156,7 @@ const calculateCurrentBalance = async () => {
         notification.error(error.message || "Failed to calculate balance");
     } finally {
         calculatingBalance.value = false;
+        calculateCurrentBalanceSedangDiclick.value = false
     }
 };
 

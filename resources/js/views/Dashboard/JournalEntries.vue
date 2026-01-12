@@ -181,18 +181,24 @@
             :show-actions="true"
             :show-add-button="false"
             add-button-text="New Entry"
-            :show-filters="false"
-            :show-export="false"
+            :show-filters="true"
+            :show-export="true"
             :show-bulk-actions="false"
             :show-refresh="true"
             :refresh-loading="refreshLoading"
             search-placeholder="Search by entry number or description..."
             empty-title="No entries found"
             empty-description="Get started by creating your first journal entry."
+            :server-side-pagination="true"
+            :pagination="paginationData"
             @add="handleAddEntry"
             @edit="handleEditEntry"
             @delete="handleDeleteEntry"
             @refresh="handleRefreshEntries"
+            @search="handleSearch"
+            @page-change="handlePageChange"
+            @sort="handleSort"
+            @export="handleExport"
         >
             <!-- Custom Entry Number Column -->
             <template #column-entry_number="{ item }">
@@ -1060,6 +1066,17 @@ const showViewModal = ref(false);
 const selectedEntry = ref(null);
 const saving = ref(false);
 
+// Pagination & DataTable data
+const paginationData = ref({
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    last_page: 1,
+});
+const searchQuery = ref("");
+const sortField = ref("");
+const sortDirection = ref("asc");
+
 // Filter data
 const statusFilter = ref(null);
 const entryTypeFilter = ref(null);
@@ -1080,7 +1097,7 @@ const entryForm = ref({
 });
 
 // Computed properties
-const totalEntries = computed(() => entries.value.length);
+const totalEntries = computed(() => paginationData.value.total || entries.value.length);
 const draftEntries = computed(
     () => entries.value.filter((e) => e.status === "draft").length
 );
@@ -1154,15 +1171,42 @@ const columns = [
 const fetchEntries = async () => {
     try {
         loading.value = true;
-        const params = {};
+        const params = {
+            page: paginationData.value.current_page,
+            per_page: paginationData.value.per_page,
+        };
+
+        // Add search
+        if (searchQuery.value) {
+            params.search = searchQuery.value;
+        }
+
+        // Add sorting
+        if (sortField.value) {
+            params.sort_by = sortField.value;
+            params.sort_direction = sortDirection.value;
+        }
+
+        // Add filters
         if (statusFilter.value) params.status = statusFilter.value;
         if (entryTypeFilter.value) params.entry_type = entryTypeFilter.value;
         if (startDateFilter.value) params.start_date = startDateFilter.value;
         if (endDateFilter.value) params.end_date = endDateFilter.value;
 
         const response = await apiGet("journal-entries", params);
-        if (response) {
-            entries.value = response.data?.data || [];
+        if (response && response.data) {
+            // Handle Laravel pagination response
+            if (response.data.data) {
+                entries.value = response.data.data;
+                paginationData.value = {
+                    current_page: response.data.current_page || 1,
+                    per_page: response.data.per_page || 10,
+                    total: response.data.total || 0,
+                    last_page: response.data.last_page || 1,
+                };
+            } else {
+                entries.value = response.data || [];
+            }
         }
     } catch (error) {
         notification.error("Failed to fetch journal entries");
@@ -1348,6 +1392,52 @@ const handleRefreshEntries = async () => {
         notification.error("Failed to refresh journal entries");
     } finally {
         refreshLoading.value = false;
+    }
+};
+
+const handleSearch = (query) => {
+    searchQuery.value = query;
+    paginationData.value.current_page = 1; // Reset to first page on search
+    fetchEntries();
+};
+
+const handlePageChange = (page, perPage) => {
+    paginationData.value.current_page = page;
+    paginationData.value.per_page = perPage;
+    fetchEntries();
+};
+
+const handleSort = (field, direction) => {
+    sortField.value = field;
+    sortDirection.value = direction;
+    fetchEntries();
+};
+
+const handleExport = async () => {
+    try {
+        notification.info("Exporting journal entries...");
+
+        const params = {};
+        if (searchQuery.value) params.search = searchQuery.value;
+        if (sortField.value) {
+            params.sort_by = sortField.value;
+            params.sort_direction = sortDirection.value;
+        }
+        if (statusFilter.value) params.status = statusFilter.value;
+        if (entryTypeFilter.value) params.entry_type = entryTypeFilter.value;
+        if (startDateFilter.value) params.start_date = startDateFilter.value;
+        if (endDateFilter.value) params.end_date = endDateFilter.value;
+
+        // Export with all filters applied
+        params.export = 'excel'; // or 'pdf'
+
+        const queryString = new URLSearchParams(params).toString();
+        const baseURL = import.meta.env.VITE_API_URL || '/api';
+        window.open(`${baseURL}/journal-entries/export?${queryString}`, '_blank');
+
+        notification.success("Export started successfully");
+    } catch (error) {
+        notification.error("Failed to export journal entries");
     }
 };
 
