@@ -250,6 +250,28 @@ class ReportController extends Controller
                 ];
             });
 
+        // Calculate net income from revenue and expense accounts
+        // Get all revenue accounts balance
+        $revenues = ChartOfAccount::active()
+            ->where('account_type', 'revenue')
+            ->get()
+            ->sum(function ($account) use ($validated) {
+                $balanceData = $account->calculateBalance(null, $validated['end_date']);
+                return $balanceData['balance'];
+            });
+
+        // Get all expense accounts balance
+        $expenses = ChartOfAccount::active()
+            ->where('account_type', 'expense')
+            ->get()
+            ->sum(function ($account) use ($validated) {
+                $balanceData = $account->calculateBalance(null, $validated['end_date']);
+                return $balanceData['balance'];
+            });
+
+        // Net income = Revenue - Expenses
+        $netIncome = $revenues - $expenses;
+
         $totalAssets = $assets->sum('balance');
         $totalLiabilities = $liabilities->sum('balance');
         $totalEquity = $equity->sum('balance');
@@ -260,11 +282,12 @@ class ReportController extends Controller
                 'assets' => $assets,
                 'liabilities' => $liabilities,
                 'equity' => $equity,
+                'net_income' => $netIncome,
                 'totals' => [
                     'assets' => $totalAssets,
                     'liabilities' => $totalLiabilities,
                     'equity' => $totalEquity,
-                    'liabilities_equity' => $totalLiabilities + $totalEquity,
+                    'liabilities_equity' => $totalLiabilities + $totalEquity + $netIncome,
                 ],
                 'period' => [
                     'end_date' => $validated['end_date'],

@@ -380,6 +380,21 @@
                                 </tr>
                             </template>
                             <tr
+                                class="hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                <td
+                                    class="px-12 py-3 text-sm text-gray-900 dark:text-white"
+                                >
+                                    Laba (Rugi) Bersih
+                                </td>
+                                <td
+                                    class="px-6 py-3 text-sm text-right"
+                                    :class="getNetIncomeClass()"
+                                >
+                                    {{ formatCurrency(data.net_income || 0) }}
+                                </td>
+                            </tr>
+                            <tr
                                 class="bg-gray-50 dark:bg-gray-700 font-semibold"
                             >
                                 <td
@@ -651,6 +666,17 @@
                                     </td>
                                 </tr>
                             </template>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
+                                    Laba (Rugi) Bersih
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right" :class="getNetIncomeClass()">
+                                    {{ getNetIncomeSkontroDebit() }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right" :class="getNetIncomeClass()">
+                                    {{ getNetIncomeSkontroCredit() }}
+                                </td>
+                            </tr>
                             <tr class="bg-gray-50 dark:bg-gray-700 font-semibold">
                                 <td class="px-12 py-3 text-sm text-gray-900 dark:text-white">
                                     Jumlah Ekuitas
@@ -990,12 +1016,34 @@ const getTotalLiabilities = () => {
 
 const getTotalEquity = () => {
     if (!reportData.value?.totals) return 0;
-    return reportData.value.totals.equity || 0;
+    // Total equity includes equity accounts + net income
+    return (reportData.value.totals.equity || 0) + (reportData.value.net_income || 0);
 };
 
 const getTotalLiabilitiesAndEquity = () => {
     if (!reportData.value?.totals) return 0;
     return reportData.value.totals.liabilities_equity || 0;
+};
+
+const getNetIncomeClass = () => {
+    const netIncome = reportData.value?.net_income || 0;
+    return netIncome >= 0
+        ? 'text-green-600 dark:text-green-400'
+        : 'text-red-600 dark:text-red-400';
+};
+
+const getNetIncomeSkontroDebit = () => {
+    const netIncome = reportData.value?.net_income || 0;
+    // Net income is credit normal (revenue - expense)
+    // If positive (profit), goes to credit. If negative (loss), goes to debit
+    return netIncome < 0 ? formatCurrency(Math.abs(netIncome)) : '-';
+};
+
+const getNetIncomeSkontroCredit = () => {
+    const netIncome = reportData.value?.net_income || 0;
+    // Net income is credit normal (revenue - expense)
+    // If positive (profit), goes to credit. If negative (loss), goes to debit
+    return netIncome >= 0 ? formatCurrency(netIncome) : '-';
 };
 
 const isBalanced = () => {
@@ -1140,16 +1188,22 @@ const getTotalLiabilitiesCredit = () => {
 
 const getTotalEquityDebit = () => {
     if (!reportData.value?.equity) return 0;
-    return reportData.value.equity.reduce((total, account) => {
+    const equityDebit = reportData.value.equity.reduce((total, account) => {
         return total + getSkontroDebitValue(account);
     }, 0);
+    // Add net income to debit if it's negative (loss)
+    const netIncome = reportData.value?.net_income || 0;
+    return equityDebit + (netIncome < 0 ? Math.abs(netIncome) : 0);
 };
 
 const getTotalEquityCredit = () => {
     if (!reportData.value?.equity) return 0;
-    return reportData.value.equity.reduce((total, account) => {
+    const equityCredit = reportData.value.equity.reduce((total, account) => {
         return total + getSkontroCreditValue(account);
     }, 0);
+    // Add net income to credit if it's positive (profit)
+    const netIncome = reportData.value?.net_income || 0;
+    return equityCredit + (netIncome >= 0 ? netIncome : 0);
 };
 
 const getTotalLiabilitiesAndEquityDebit = () => {
