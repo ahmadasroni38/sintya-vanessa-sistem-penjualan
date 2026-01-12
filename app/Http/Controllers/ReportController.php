@@ -762,55 +762,300 @@ class ReportController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
-        // Get modal pemilik (owner's equity)
-        $modalPemilik = ChartOfAccount::active()
-            ->where('account_type', 'equity')
-            ->where('account_name', 'like', '%Modal Pemilik%')
-            ->first();
-
-        // Get prive (drawings)
-        $prive = ChartOfAccount::active()
-            ->where('account_type', 'equity')
-            ->where('account_name', 'like', '%Prive%')
-            ->first();
-
-        // Get laba ditahan (retained earnings)
-        $labaDitahan = ChartOfAccount::active()
-            ->where('account_type', 'equity')
-            ->where('account_name', 'like', '%Laba Ditahan%')
-            ->first();
-
-        // Calculate net income from income statement
+        // Calculate net income from income statement (period transactions only)
         $revenues = ChartOfAccount::active()
             ->where('account_type', 'revenue')
             ->get()
             ->sum(function ($account) use ($validated) {
-                return $account->getBalance($validated['start_date'], $validated['end_date']);
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($validated) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                    });
+
+                $results = $query->selectRaw('
+                        transaction_type,
+                        SUM(amount) as total
+                    ')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                $debit = $results['debit'] ?? 0;
+                $credit = $results['credit'] ?? 0;
+                return $credit - $debit; // Revenue balance
             });
 
         $expenses = ChartOfAccount::active()
             ->where('account_type', 'expense')
             ->get()
             ->sum(function ($account) use ($validated) {
-                return $account->getBalance($validated['start_date'], $validated['end_date']);
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($validated) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                    });
+
+                $results = $query->selectRaw('
+                        transaction_type,
+                        SUM(amount) as total
+                    ')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                $debit = $results['debit'] ?? 0;
+                $credit = $results['credit'] ?? 0;
+                return $debit - $credit; // Expense balance
             });
 
         $netIncome = $revenues - $expenses;
 
-        $beginningBalance = $modalPemilik ? $modalPemilik->opening_balance : 0;
-        $priveAmount = $prive ? $prive->getBalance($validated['start_date'], $validated['end_date']) : 0;
-        $endingBalance = $beginningBalance + $netIncome - $priveAmount;
+        // Get all equity accounts balance at the beginning of period
+        $equityAccounts = ChartOfAccount::active()
+            ->where('account_type', 'equity')
+            ->get();
 
-        return Inertia::render('Dashboard/Reports/PerubahanModal', [
+        $beginningBalance = 0;
+        $priveAmount = 0;
+        $additionalInvestment = 0;
+
+        foreach ($equityAccounts as $account) {
+            // Get balance before period starts (opening balance + transactions before start_date)
+            $balanceData = $account->calculateBalance(null, date('Y-m-d', strtotime($validated['start_date'] . ' -1 day')));
+            $accountBeginningBalance = $balanceData['balance'];
+
+            // Get transactions during period
+            $periodQuery = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($validated) {
+                    $q->where('status', 'posted')
+                      ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                });
+
+            $periodResults = $periodQuery->selectRaw('
+                    transaction_type,
+                    SUM(amount) as total
+                ')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $periodDebit = $periodResults['debit'] ?? 0;
+            $periodCredit = $periodResults['credit'] ?? 0;
+            $periodChange = $periodCredit - $periodDebit; // Equity normal balance is credit
+
+            // Classify based on account name
+            if (stripos($account->account_name, 'Prive') !== false ||
+                stripos($account->account_name, 'Penarikan') !== false ||
+                stripos($account->account_name, 'Drawing') !== false) {
+                // Prive account - debit increases prive (reduces equity)
+                $priveAmount += ($periodDebit - $periodCredit);
+            } elseif (stripos($account->account_name, 'Modal') !== false ||
+                      stripos($account->account_name, 'Capital') !== false) {
+                // Capital account
+                $beginningBalance += $accountBeginningBalance;
+                // Additional investment during period (credit increases capital)
+                if ($periodChange > 0) {
+                    $additionalInvestment += $periodChange;
+                }
+            } elseif (stripos($account->account_name, 'Laba Ditahan') !== false ||
+                      stripos($account->account_name, 'Retained Earnings') !== false) {
+                // Retained earnings
+                $beginningBalance += $accountBeginningBalance;
+            } else {
+                // Other equity accounts
+                $beginningBalance += $accountBeginningBalance;
+            }
+        }
+
+        // Calculate ending balance
+        // Beginning Balance + Net Income + Additional Investment - Prive = Ending Balance
+        $endingBalance = $beginningBalance + $netIncome + $additionalInvestment - $priveAmount;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'beginning_balance' => $beginningBalance,
+                'net_income' => $netIncome,
+                'additional_investment' => $additionalInvestment,
+                'prive' => $priveAmount,
+                'ending_balance' => $endingBalance,
+                'period' => [
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Export Perubahan Modal (Statement of Changes in Equity)
+     */
+    public function exportPerubahanModal(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'format' => 'required|in:pdf,xlsx',
+        ]);
+
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $format = $validated['format'];
+
+        // Calculate net income
+        $revenues = ChartOfAccount::active()
+            ->where('account_type', 'revenue')
+            ->get()
+            ->sum(function ($account) use ($startDate, $endDate) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$startDate, $endDate]);
+                    });
+
+                $results = $query->selectRaw('transaction_type, SUM(amount) as total')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                return ($results['credit'] ?? 0) - ($results['debit'] ?? 0);
+            });
+
+        $expenses = ChartOfAccount::active()
+            ->where('account_type', 'expense')
+            ->get()
+            ->sum(function ($account) use ($startDate, $endDate) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$startDate, $endDate]);
+                    });
+
+                $results = $query->selectRaw('transaction_type, SUM(amount) as total')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                return ($results['debit'] ?? 0) - ($results['credit'] ?? 0);
+            });
+
+        $netIncome = $revenues - $expenses;
+
+        // Get equity accounts
+        $equityAccounts = ChartOfAccount::active()
+            ->where('account_type', 'equity')
+            ->get();
+
+        $beginningBalance = 0;
+        $priveAmount = 0;
+        $additionalInvestment = 0;
+
+        foreach ($equityAccounts as $account) {
+            $balanceData = $account->calculateBalance(null, date('Y-m-d', strtotime($startDate . ' -1 day')));
+            $accountBeginningBalance = $balanceData['balance'];
+
+            $periodQuery = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                    $q->where('status', 'posted')
+                      ->whereBetween('entry_date', [$startDate, $endDate]);
+                });
+
+            $periodResults = $periodQuery->selectRaw('transaction_type, SUM(amount) as total')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $periodDebit = $periodResults['debit'] ?? 0;
+            $periodCredit = $periodResults['credit'] ?? 0;
+            $periodChange = $periodCredit - $periodDebit;
+
+            if (stripos($account->account_name, 'Prive') !== false ||
+                stripos($account->account_name, 'Penarikan') !== false ||
+                stripos($account->account_name, 'Drawing') !== false) {
+                $priveAmount += ($periodDebit - $periodCredit);
+            } elseif (stripos($account->account_name, 'Modal') !== false ||
+                      stripos($account->account_name, 'Capital') !== false) {
+                $beginningBalance += $accountBeginningBalance;
+                if ($periodChange > 0) {
+                    $additionalInvestment += $periodChange;
+                }
+            } elseif (stripos($account->account_name, 'Laba Ditahan') !== false ||
+                      stripos($account->account_name, 'Retained Earnings') !== false) {
+                $beginningBalance += $accountBeginningBalance;
+            } else {
+                $beginningBalance += $accountBeginningBalance;
+            }
+        }
+
+        $endingBalance = $beginningBalance + $netIncome + $additionalInvestment - $priveAmount;
+
+        $data = [
             'beginning_balance' => $beginningBalance,
             'net_income' => $netIncome,
+            'additional_investment' => $additionalInvestment,
             'prive' => $priveAmount,
             'ending_balance' => $endingBalance,
             'period' => [
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ],
-        ]);
+        ];
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $pdf = \PDF::loadView('reports.perubahan-modal', $data);
+            $filename = 'perubahan_modal_' . $startDate . '_' . $endDate . '.pdf';
+            return $pdf->download($filename);
+        } else {
+            // Generate Excel
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $sheet->setCellValue('A1', 'LAPORAN PERUBAHAN MODAL');
+            $sheet->setCellValue('A2', 'Periode: ' . date('d/m/Y', strtotime($startDate)) . ' - ' . date('d/m/Y', strtotime($endDate)));
+            $sheet->setCellValue('A3', '');
+
+            // Content
+            $row = 4;
+            $sheet->setCellValue('A' . $row, 'KETERANGAN');
+            $sheet->setCellValue('B' . $row, 'JUMLAH (Rp)');
+            $sheet->getStyle('A' . $row . ':B' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Saldo Awal Modal');
+            $sheet->setCellValue('B' . $row, $beginningBalance);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Laba Bersih Periode Ini');
+            $sheet->setCellValue('B' . $row, $netIncome);
+            $row++;
+
+            if ($additionalInvestment > 0) {
+                $sheet->setCellValue('A' . $row, 'Tambahan Investasi Pemilik');
+                $sheet->setCellValue('B' . $row, $additionalInvestment);
+                $row++;
+            }
+
+            $sheet->setCellValue('A' . $row, 'Prive (Penarikan oleh Pemilik)');
+            $sheet->setCellValue('B' . $row, -$priveAmount);
+            $row++;
+
+            $row++;
+            $sheet->setCellValue('A' . $row, 'Saldo Akhir Modal');
+            $sheet->setCellValue('B' . $row, $endingBalance);
+            $sheet->getStyle('A' . $row . ':B' . $row)->getFont()->setBold(true);
+
+            // Auto-size columns
+            foreach (['A', 'B'] as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $filename = 'perubahan_modal_' . $startDate . '_' . $endDate . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer->save('php://output');
+            exit;
+        }
     }
 
     /**
@@ -822,6 +1067,43 @@ class ReportController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
+
+        // Calculate net income from income statement (period transactions only)
+        $revenues = ChartOfAccount::active()
+            ->where('account_type', 'revenue')
+            ->get()
+            ->sum(function ($account) use ($validated) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($validated) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                    });
+
+                $results = $query->selectRaw('transaction_type, SUM(amount) as total')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                return ($results['credit'] ?? 0) - ($results['debit'] ?? 0);
+            });
+
+        $expenses = ChartOfAccount::active()
+            ->where('account_type', 'expense')
+            ->get()
+            ->sum(function ($account) use ($validated) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($validated) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                    });
+
+                $results = $query->selectRaw('transaction_type, SUM(amount) as total')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                return ($results['debit'] ?? 0) - ($results['credit'] ?? 0);
+            });
+
+        $netIncome = $revenues - $expenses;
 
         // Get all cash and bank accounts
         $cashAccounts = ChartOfAccount::active()
@@ -837,9 +1119,16 @@ class ReportController extends Controller
         $endingBalance = 0;
 
         foreach ($cashAccounts as $account) {
-            $beginning = $account->opening_balance;
-            $ending = $account->getBalance(null, $validated['end_date']);
-            $movement = $account->getBalance($validated['start_date'], $validated['end_date']);
+            // Get balance before period starts
+            $beginningBalanceData = $account->calculateBalance(null, date('Y-m-d', strtotime($validated['start_date'] . ' -1 day')));
+            $beginning = $beginningBalanceData['balance'];
+
+            // Get balance at end of period
+            $endingBalanceData = $account->calculateBalance(null, $validated['end_date']);
+            $ending = $endingBalanceData['balance'];
+
+            // Movement during period = ending - beginning
+            $movement = $ending - $beginning;
 
             $cashFlow[] = [
                 'code' => $account->account_code,
@@ -853,29 +1142,195 @@ class ReportController extends Controller
             $endingBalance += $ending;
         }
 
-        // Calculate net income for operating activities
-        $netIncome = ChartOfAccount::active()
+        $netChange = $endingBalance - $beginningBalance;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'cash_accounts' => $cashFlow,
+                'beginning_balance' => $beginningBalance,
+                'ending_balance' => $endingBalance,
+                'net_change' => $netChange,
+                'net_income' => $netIncome,
+                'period' => [
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Export Arus Kas (Cash Flow Statement)
+     */
+    public function exportArusKas(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'format' => 'required|in:pdf,xlsx',
+        ]);
+
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $format = $validated['format'];
+
+        // Calculate net income
+        $revenues = ChartOfAccount::active()
             ->where('account_type', 'revenue')
             ->get()
-            ->sum(function ($account) use ($validated) {
-                return $account->getBalance($validated['start_date'], $validated['end_date']);
-            }) - ChartOfAccount::active()
-            ->where('account_type', 'expense')
-            ->get()
-            ->sum(function ($account) use ($validated) {
-                return $account->getBalance($validated['start_date'], $validated['end_date']);
+            ->sum(function ($account) use ($startDate, $endDate) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$startDate, $endDate]);
+                    });
+
+                $results = $query->selectRaw('transaction_type, SUM(amount) as total')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                return ($results['credit'] ?? 0) - ($results['debit'] ?? 0);
             });
 
-        return Inertia::render('Dashboard/Reports/ArusKas', [
+        $expenses = ChartOfAccount::active()
+            ->where('account_type', 'expense')
+            ->get()
+            ->sum(function ($account) use ($startDate, $endDate) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$startDate, $endDate]);
+                    });
+
+                $results = $query->selectRaw('transaction_type, SUM(amount) as total')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                return ($results['debit'] ?? 0) - ($results['credit'] ?? 0);
+            });
+
+        $netIncome = $revenues - $expenses;
+
+        // Get cash accounts
+        $cashAccounts = ChartOfAccount::active()
+            ->where('account_type', 'asset')
+            ->where(function ($q) {
+                $q->where('account_name', 'like', '%Kas%')
+                    ->orWhere('account_name', 'like', '%Bank%');
+            })
+            ->get();
+
+        $cashFlow = [];
+        $beginningBalance = 0;
+        $endingBalance = 0;
+
+        foreach ($cashAccounts as $account) {
+            $beginningBalanceData = $account->calculateBalance(null, date('Y-m-d', strtotime($startDate . ' -1 day')));
+            $beginning = $beginningBalanceData['balance'];
+
+            $endingBalanceData = $account->calculateBalance(null, $endDate);
+            $ending = $endingBalanceData['balance'];
+
+            $movement = $ending - $beginning;
+
+            $cashFlow[] = [
+                'code' => $account->account_code,
+                'name' => $account->account_name,
+                'beginning_balance' => $beginning,
+                'movement' => $movement,
+                'ending_balance' => $ending,
+            ];
+
+            $beginningBalance += $beginning;
+            $endingBalance += $ending;
+        }
+
+        $netChange = $endingBalance - $beginningBalance;
+
+        $data = [
             'cash_accounts' => $cashFlow,
             'beginning_balance' => $beginningBalance,
             'ending_balance' => $endingBalance,
-            'net_change' => $endingBalance - $beginningBalance,
+            'net_change' => $netChange,
             'net_income' => $netIncome,
             'period' => [
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ],
-        ]);
+        ];
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $pdf = \PDF::loadView('reports.arus-kas', $data);
+            $filename = 'arus_kas_' . $startDate . '_' . $endDate . '.pdf';
+            return $pdf->download($filename);
+        } else {
+            // Generate Excel
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $sheet->setCellValue('A1', 'LAPORAN ARUS KAS');
+            $sheet->setCellValue('A2', 'Periode: ' . date('d/m/Y', strtotime($startDate)) . ' - ' . date('d/m/Y', strtotime($endDate)));
+            $sheet->setCellValue('A3', '');
+
+            // Summary section
+            $row = 4;
+            $sheet->setCellValue('A' . $row, 'Saldo Awal Kas');
+            $sheet->setCellValue('B' . $row, $beginningBalance);
+            $sheet->getStyle('A' . $row . ':B' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Laba Bersih');
+            $sheet->setCellValue('B' . $row, $netIncome);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Kenaikan/Penurunan Kas Bersih');
+            $sheet->setCellValue('B' . $row, $netChange);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Saldo Akhir Kas');
+            $sheet->setCellValue('B' . $row, $endingBalance);
+            $sheet->getStyle('A' . $row . ':B' . $row)->getFont()->setBold(true);
+            $row += 2;
+
+            // Cash accounts detail
+            $sheet->setCellValue('A' . $row, 'RINCIAN REKENING KAS');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Kode');
+            $sheet->setCellValue('B' . $row, 'Nama Rekening');
+            $sheet->setCellValue('C' . $row, 'Saldo Awal');
+            $sheet->setCellValue('D' . $row, 'Pergerakan');
+            $sheet->setCellValue('E' . $row, 'Saldo Akhir');
+            $sheet->getStyle('A' . $row . ':E' . $row)->getFont()->setBold(true);
+            $row++;
+
+            foreach ($cashFlow as $account) {
+                $sheet->setCellValue('A' . $row, $account['code']);
+                $sheet->setCellValue('B' . $row, $account['name']);
+                $sheet->setCellValue('C' . $row, $account['beginning_balance']);
+                $sheet->setCellValue('D' . $row, $account['movement']);
+                $sheet->setCellValue('E' . $row, $account['ending_balance']);
+                $row++;
+            }
+
+            // Auto-size columns
+            foreach (['A', 'B', 'C', 'D', 'E'] as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $filename = 'arus_kas_' . $startDate . '_' . $endDate . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer->save('php://output');
+            exit;
+        }
     }
 }

@@ -221,47 +221,7 @@ const generateDummyNeraca = (endDate) => {
 };
 
 
-const generateDummyPerubahanModal = (startDate, endDate) => {
-    return {
-        beginning_balance: 100000000,
-        net_income: 48000000,
-        prive: 12000000,
-        ending_balance: 136000000,
-        period: {
-            start_date: startDate,
-            end_date: endDate,
-        },
-    };
-};
 
-const generateDummyArusKas = (startDate, endDate) => {
-    return {
-        cash_accounts: [
-            {
-                code: "1-1000",
-                name: "Kas",
-                beginning_balance: 50000000,
-                movement: 25000000,
-                ending_balance: 75000000,
-            },
-            {
-                code: "1-1100",
-                name: "Bank BCA",
-                beginning_balance: 75000000,
-                movement: 10000000,
-                ending_balance: 85000000,
-            },
-        ],
-        beginning_balance: 125000000,
-        ending_balance: 160000000,
-        net_change: 35000000,
-        net_income: 48000000,
-        period: {
-            start_date: startDate,
-            end_date: endDate,
-        },
-    };
-};
 
 const reportService = {
     // Neraca Lajur (Worksheet)
@@ -314,9 +274,13 @@ const reportService = {
     // Perubahan Modal (Statement of Changes in Equity)
     async getPerubahanModal(startDate, endDate) {
         try {
-            // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            return generateDummyPerubahanModal(startDate, endDate);
+            const response = await apiGet("reports/perubahan-modal", {
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                }
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching perubahan modal:", error);
             throw error;
@@ -326,9 +290,13 @@ const reportService = {
     // Arus Kas (Cash Flow Statement)
     async getArusKas(startDate, endDate) {
         try {
-            // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            return generateDummyArusKas(startDate, endDate);
+            const response = await apiGet("reports/arus-kas", {
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                }
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching arus kas:", error);
             throw error;
@@ -435,14 +403,39 @@ const reportService = {
 
     async exportPerubahanModal(startDate, endDate, format = "pdf") {
         try {
-            const response = await apiGet("reports/perubahan-modal/export", {
-                params: {
-                    start_date: startDate,
-                    end_date: endDate,
-                    format: format,
-                }
+            // For export, we need to handle file download differently
+            const token = localStorage.getItem('token');
+            const apiUrl = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/reports/perubahan-modal/export`;
+
+            const params = new URLSearchParams({
+                start_date: startDate,
+                end_date: endDate,
+                format: format,
             });
-            return response;
+
+            const response = await fetch(`${apiUrl}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `perubahan_modal_${startDate}_${endDate}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            return { success: true };
         } catch (error) {
             console.error("Error exporting perubahan modal:", error);
             throw error;
@@ -451,14 +444,39 @@ const reportService = {
 
     async exportArusKas(startDate, endDate, format = "pdf") {
         try {
-            const response = await apiGet("reports/arus-kas/export", {
-                params: {
-                    start_date: startDate,
-                    end_date: endDate,
-                    format: format,
-                }
+            // For export, we need to handle file download differently
+            const token = localStorage.getItem('token');
+            const apiUrl = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/reports/arus-kas/export`;
+
+            const params = new URLSearchParams({
+                start_date: startDate,
+                end_date: endDate,
+                format: format,
             });
-            return response;
+
+            const response = await fetch(`${apiUrl}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `arus_kas_${startDate}_${endDate}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            return { success: true };
         } catch (error) {
             console.error("Error exporting arus kas:", error);
             throw error;

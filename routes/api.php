@@ -249,7 +249,9 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('reports/laba-rugi', [ReportController::class, 'labaRugi']);
     Route::get('reports/laba-rugi/export', [ReportController::class, 'exportLabaRugi']);
     Route::get('reports/perubahan-modal', [ReportController::class, 'perubahanModal']);
+    Route::get('reports/perubahan-modal/export', [ReportController::class, 'exportPerubahanModal']);
     Route::get('reports/arus-kas', [ReportController::class, 'arusKas']);
+    Route::get('reports/arus-kas/export', [ReportController::class, 'exportArusKas']);
 
     // =====================================================
     // WAREHOUSE MODULE

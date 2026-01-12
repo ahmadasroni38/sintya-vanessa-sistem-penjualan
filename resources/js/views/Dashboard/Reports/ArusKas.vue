@@ -623,7 +623,7 @@ const reportData = ref(null);
 
 const printDate = computed(() => {
   const now = new Date();
-  return `Makassar, ${now.toLocaleDateString("id-ID", {
+  return `Denpasar, ${now.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric"
@@ -646,8 +646,11 @@ const handleGenerate = async (period) => {
             period.start_date,
             period.end_date
         );
-        reportData.value = response;
-        reportLayout.value?.setReportData(response);
+
+        // Handle API response structure: { success: true, data: {...} }
+        const data = response.data || response;
+        reportData.value = data;
+        reportLayout.value?.setReportData(data);
 
         // Fetch report signature settings
         try {

@@ -444,7 +444,7 @@ const reportData = ref(null);
 
 const printDate = computed(() => {
   const now = new Date();
-  return `Makassar, ${now.toLocaleDateString("id-ID", {
+  return `Denpasar, ${now.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric"
@@ -461,21 +461,28 @@ const reportSettings = ref({
 });
 
 // Methods
+const handleGenerateSedangDiclick = ref(false)
 const handleGenerate = async (period) => {
     try {
+        if(handleGenerateSedangDiclick.value) {
+            return;
+        }
+        handleGenerateSedangDiclick.value = true
         const response = await reportService.getPerubahanModal(
             period.start_date,
             period.end_date
         );
-        reportData.value = response;
-        reportLayout.value?.setReportData(response);
+
+        // Handle API response structure: { success: true, data: {...} }
+        const data = response.data || response;
+        reportData.value = data;
+        reportLayout.value?.setReportData(data);
 
         // Fetch report signature settings
         try {
           const settingsResponse = await apiGet('/settings');
 
           if (settingsResponse.success) {
-
             const settings = settingsResponse.data;
             reportSettings.value.checker_name = settings.report_checker_name || reportSettings.value.checker_name;
             reportSettings.value.approver_name = settings.report_approver_name || reportSettings.value.approver_name;
@@ -486,6 +493,8 @@ const handleGenerate = async (period) => {
     } catch (error) {
         notification.error("Failed to generate Perubahan Modal report");
         throw error;
+    } finally {
+        handleGenerateSedangDiclick.value = false
     }
 };
 
@@ -505,31 +514,33 @@ const handleExport = async (params) => {
 
 // Helper functions
 const hasAdditionalInvestments = () => {
-    // This would be calculated from additional equity accounts
-    return false; // Placeholder
+    if (!reportData.value) return false;
+    return (reportData.value.additional_investment || 0) > 0;
 };
 
 const hasOtherChanges = () => {
     // This would be calculated from other equity changes
-    return false; // Placeholder
+    // Currently not implemented in backend
+    return false;
 };
 
 const getAdditionalInvestments = () => {
-    // This would be calculated from additional investment accounts
-    return 0; // Placeholder
+    if (!reportData.value) return 0;
+    return reportData.value.additional_investment || 0;
 };
 
 const getOtherChanges = () => {
     // This would be calculated from other equity change accounts
-    return 0; // Placeholder
+    // Currently not implemented in backend
+    return 0;
 };
 
 const getTotalChanges = () => {
     if (!reportData.value) return 0;
     return (
-        reportData.value.net_income -
+        reportData.value.net_income +
+        getAdditionalInvestments() -
         reportData.value.prive +
-        getAdditionalInvestments() +
         getOtherChanges()
     );
 };
