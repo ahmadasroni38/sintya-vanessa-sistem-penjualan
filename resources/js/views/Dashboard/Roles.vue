@@ -593,7 +593,7 @@
                             {{ filteredPermissions.length }} selected
                         </p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <div class="flex gap-2">
                             <button
                                 @click="checkAllPermissions"
@@ -608,6 +608,48 @@
                                 :disabled="filteredPermissions.length === 0"
                             >
                                 Uncheck All
+                            </button>
+                        </div>
+                        <div class="relative w-64">
+                            <input
+                                v-model="permissionSearch"
+                                type="text"
+                                placeholder="Search permissions..."
+                                class="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                            />
+                            <svg
+                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
+                            <button
+                                v-if="permissionSearch"
+                                @click="permissionSearch = ''"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                            >
+                                <svg
+                                    class="w-4 h-4"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
                             </button>
                         </div>
                         <div class="relative w-48">
@@ -768,6 +810,7 @@ const selectedRole = ref(null);
 const saving = ref(false);
 const savingPermissions = ref(false);
 const permissionGroup = ref("");
+const permissionSearch = ref("");
 const selectedPermissions = ref([]);
 
 // Filter data
@@ -806,8 +849,23 @@ const permissionGroups = computed(() => {
 });
 
 const filteredPermissions = computed(() => {
-    if (!permissionGroup.value) return permissions.value;
-    return permissions.value.filter((p) => p.group === permissionGroup.value);
+    let filtered = permissions.value;
+
+    // Filter by group
+    if (permissionGroup.value) {
+        filtered = filtered.filter((p) => p.group === permissionGroup.value);
+    }
+
+    // Filter by search query
+    if (permissionSearch.value) {
+        const searchLower = permissionSearch.value.toLowerCase();
+        filtered = filtered.filter((p) =>
+            p.display_name.toLowerCase().includes(searchLower) ||
+            p.name.toLowerCase().includes(searchLower)
+        );
+    }
+
+    return filtered;
 });
 
 // Validation functions
@@ -922,6 +980,7 @@ const handleManagePermissions = async (role) => {
         selectedRole.value = role;
         selectedPermissions.value = role.permissions.map((p) => p.id);
         permissionGroup.value = ""; // Reset filter
+        permissionSearch.value = ""; // Reset search
         showPermissionsModal.value = true;
     } catch (error) {
         notification.error("Failed to load permissions data");
@@ -1109,6 +1168,7 @@ const closeModals = () => {
     };
     selectedPermissions.value = [];
     permissionGroup.value = "";
+    permissionSearch.value = "";
     formErrors.value = {};
     formTouched.value = {};
 };
