@@ -181,8 +181,8 @@
             :show-actions="true"
             :show-add-button="false"
             add-button-text="New Entry"
-            :show-filters="true"
-            :show-export="true"
+            :show-filters="false"
+            :show-export="false"
             :show-bulk-actions="false"
             :show-refresh="true"
             :refresh-loading="refreshLoading"
@@ -389,37 +389,22 @@
             <template #filters>
                 <div class="p-3 space-y-4">
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Status
-                        </label>
-                        <select
+                        <EnhancedFormSelect
                             v-model="statusFilter"
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        >
-                            <option value="">All Status</option>
-                            <option value="draft">Draft</option>
-                            <option value="posted">Posted</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
+                            label="Status"
+                            placeholder="All Status"
+                            :options="statusOptions"
+                            :searchable="false"
+                        />
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Entry Type
-                        </label>
-                        <select
+                        <EnhancedFormSelect
                             v-model="entryTypeFilter"
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        >
-                            <option value="">All Types</option>
-                            <option value="general">General</option>
-                            <option value="adjustment">Adjustment</option>
-                            <option value="closing">Closing</option>
-                            <option value="opening">Opening</option>
-                        </select>
+                            label="Entry Type"
+                            placeholder="All Types"
+                            :options="entryTypeOptions"
+                            :searchable="false"
+                        />
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -471,7 +456,7 @@
         </DataTable>
 
         <!-- View Entry Details Modal -->
-        <Modal :is-open="showViewModal" @close="closeModals" size="xl">
+        <Modal :is-open="showViewModal" @close="closeModals" size="6xl">
             <template #title> Journal Entry Details </template>
 
             <div v-if="selectedEntry" class="space-y-6">
@@ -747,7 +732,7 @@
         <Modal
             :is-open="showCreateModal || showEditModal"
             @close="closeModals"
-            size="xl"
+            size="6xl"
         >
             <template #title>
                 {{
@@ -757,8 +742,42 @@
                 }}
             </template>
 
-            <form @submit.prevent="saveEntry" class="space-y-6">
-                <div class="space-y-5">
+            <form @submit.prevent="saveEntry" class="space-y-6" style="overflow: visible;">
+                <!-- KOP (Header) -->
+                <div class="border-b-4 border-primary-600 dark:border-primary-500 pb-6 mb-6 bg-gradient-to-r from-primary-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-lg">
+                    <div class="flex items-start justify-between">
+                        <!-- Logo/Company Info -->
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                                    PT. SINTIYA PUTRA PERSADA
+                                </h2>
+                                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                    Jl. Contoh Alamat No. 123, Jakarta Selatan 12345
+                                </p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    Telp: (021) 1234-5678 | Email: info@sintiya.com
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Document Title -->
+                        <div class="text-right">
+                            <h3 class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                                JOURNAL ENTRY
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {{ new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-5" style="overflow: visible;">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
                             v-model="entryForm.entry_date"
@@ -773,24 +792,14 @@
                         />
                     </div>
 
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-                        >
-                            Entry Type <span class="text-red-500">*</span>
-                        </label>
-                        <select
-                            v-model="entryForm.entry_type"
-                            required
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        >
-                            <option value="">Select Type</option>
-                            <option value="general">General</option>
-                            <option value="adjustment">Adjustment</option>
-                            <option value="closing">Closing</option>
-                            <option value="opening">Opening</option>
-                        </select>
-                    </div>
+                    <EnhancedFormSelect
+                        v-model="entryForm.entry_type"
+                        label="Entry Type"
+                        placeholder="Select Type"
+                        :options="entryTypeFormOptions"
+                        :searchable="false"
+                        required
+                    />
 
                     <FormInput
                         v-model="entryForm.description"
@@ -800,7 +809,7 @@
                     />
 
                     <!-- Entry Details -->
-                    <div>
+                    <div style="overflow: visible;">
                         <div class="flex items-center justify-between mb-4">
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-200"
@@ -830,9 +839,9 @@
                                 Add Line
                             </Button>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="w-full" style="overflow: visible;">
                             <table
-                                class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+                                class="w-full divide-y divide-gray-200 dark:divide-gray-700"
                             >
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
@@ -873,23 +882,14 @@
                                         :key="index"
                                     >
                                         <td class="px-4 py-2">
-                                            <select
+                                            <EnhancedFormSelect
                                                 v-model="detail.account_id"
-                                                required
-                                                class="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                            >
-                                                <option value="">
-                                                    Select Account
-                                                </option>
-                                                <option
-                                                    v-for="account in availableAccounts"
-                                                    :key="account.id"
-                                                    :value="account.id"
-                                                >
-                                                    {{ account.account_code }} -
-                                                    {{ account.account_name }}
-                                                </option>
-                                            </select>
+                                                :placeholder="loadingAccounts ? 'Loading accounts...' : 'Select Account'"
+                                                :options="accountOptions"
+                                                :disabled="loadingAccounts"
+                                                :searchable="true"
+                                                size="sm"
+                                            />
                                         </td>
                                         <td class="px-4 py-2">
                                             <input
@@ -900,21 +900,13 @@
                                             />
                                         </td>
                                         <td class="px-4 py-2">
-                                            <select
-                                                v-model="
-                                                    detail.transaction_type
-                                                "
-                                                required
-                                                class="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                            >
-                                                <option value="">Select</option>
-                                                <option value="debit">
-                                                    Debit
-                                                </option>
-                                                <option value="credit">
-                                                    Credit
-                                                </option>
-                                            </select>
+                                            <EnhancedFormSelect
+                                                v-model="detail.transaction_type"
+                                                placeholder="Select"
+                                                :options="transactionTypeOptions"
+                                                :searchable="false"
+                                                size="sm"
+                                            />
                                         </td>
                                         <td class="px-4 py-2">
                                             <input
@@ -1047,6 +1039,7 @@ import DataTable from "../../components/UI/DataTable.vue";
 import Modal from "../../components/Overlays/Modal.vue";
 import ConfirmationModal from "../../components/Overlays/ConfirmationModal.vue";
 import FormInput from "../../components/Forms/FormInput.vue";
+import EnhancedFormSelect from "../../components/Forms/EnhancedFormSelect.vue";
 import Button from "../../components/Base/Button.vue";
 import { useNotificationStore } from "@/stores/notification";
 import { useConfirmationModalStore } from "@/stores/confirmationModal";
@@ -1058,6 +1051,7 @@ const confirmationModal = useConfirmationModalStore();
 // Reactive data
 const loading = ref(false);
 const refreshLoading = ref(false);
+const loadingAccounts = ref(false);
 const entries = ref([]);
 const availableAccounts = ref([]);
 const showCreateModal = ref(false);
@@ -1067,8 +1061,8 @@ const selectedEntry = ref(null);
 const saving = ref(false);
 
 // Filter data
-const statusFilter = ref("");
-const entryTypeFilter = ref("");
+const statusFilter = ref(null);
+const entryTypeFilter = ref(null);
 const startDateFilter = ref("");
 const endDateFilter = ref("");
 const applyingFilters = ref(false);
@@ -1078,10 +1072,10 @@ const entryForm = ref({
     entry_date: new Date().toISOString().split("T")[0],
     reference_number: "",
     description: "",
-    entry_type: "",
+    entry_type: null,
     details: [
-        { account_id: "", transaction_type: "", amount: 0, description: "" },
-        { account_id: "", transaction_type: "", amount: 0, description: "" },
+        { account_id: null, transaction_type: null, amount: "", description: "" },
+        { account_id: null, transaction_type: null, amount: "", description: "" },
     ],
 });
 
@@ -1113,6 +1107,39 @@ const balanceError = computed(() => {
 
     return null;
 });
+
+// Options for EnhancedFormSelect
+const statusOptions = computed(() => [
+    { value: "draft", label: "Draft" },
+    { value: "posted", label: "Posted" },
+    { value: "cancelled", label: "Cancelled" },
+]);
+
+const entryTypeOptions = computed(() => [
+    { value: "general", label: "General" },
+    { value: "adjustment", label: "Adjustment" },
+    { value: "closing", label: "Closing" },
+    { value: "opening", label: "Opening" },
+]);
+
+const entryTypeFormOptions = computed(() => [
+    { value: "general", label: "General" },
+    { value: "adjustment", label: "Adjustment" },
+    { value: "closing", label: "Closing" },
+    { value: "opening", label: "Opening" },
+]);
+
+const transactionTypeOptions = computed(() => [
+    { value: "debit", label: "Debit" },
+    { value: "credit", label: "Credit" },
+]);
+
+const accountOptions = computed(() =>
+    availableAccounts.value.map((account) => ({
+        value: account.id,
+        label: `${account.account_code} - ${account.account_name}`,
+    }))
+);
 
 // Table columns configuration
 const columns = [
@@ -1146,12 +1173,21 @@ const fetchEntries = async () => {
 
 const fetchAccounts = async () => {
     try {
-        const response = await apiGet("chart-of-accounts", { is_active: true });
+        loadingAccounts.value = true;
+        const response = await apiGet("chart-of-accounts", { is_active: 1 });
+        console.log("Fetch Accounts Response:", response);
         if (response) {
-            availableAccounts.value = response.data?.data || [];
+            // Handle both response.data.data and response.data formats
+            const accounts = response.data?.data || response.data || [];
+            availableAccounts.value = accounts;
+            console.log("Available Accounts after fetch:", availableAccounts.value);
+            console.log("Account Options:", accountOptions.value);
         }
     } catch (error) {
+        console.error("Error fetching accounts:", error);
         notification.error("Failed to fetch accounts");
+    } finally {
+        loadingAccounts.value = false;
     }
 };
 
@@ -1160,27 +1196,36 @@ const handleAddEntry = () => {
         entry_date: new Date().toISOString().split("T")[0],
         reference_number: "",
         description: "",
-        entry_type: "",
+        entry_type: null,
         details: [
             {
-                account_id: "",
-                transaction_type: "",
+                account_id: null,
+                transaction_type: null,
                 amount: 0,
                 description: "",
             },
             {
-                account_id: "",
-                transaction_type: "",
+                account_id: null,
+                transaction_type: null,
                 amount: 0,
                 description: "",
             },
         ],
     };
+    // Fetch accounts if not already loaded
+    if (availableAccounts.value.length === 0) {
+        fetchAccounts();
+    }
     showCreateModal.value = true;
 };
 
 const handleEditEntry = async (entry) => {
     try {
+        // Fetch accounts if not already loaded
+        if (availableAccounts.value.length === 0) {
+            fetchAccounts();
+        }
+
         const response = await apiGet(`journal-entries/${entry.id}`);
         if (response && response.data) {
             selectedEntry.value = response.data;
@@ -1319,8 +1364,8 @@ const applyFilters = async () => {
 };
 
 const clearFilters = () => {
-    statusFilter.value = "";
-    entryTypeFilter.value = "";
+    statusFilter.value = null;
+    entryTypeFilter.value = null;
     startDateFilter.value = "";
     endDateFilter.value = "";
     fetchEntries();
@@ -1328,9 +1373,9 @@ const clearFilters = () => {
 
 const addDetailRow = () => {
     entryForm.value.details.push({
-        account_id: "",
-        transaction_type: "",
-        amount: 0,
+        account_id: null,
+        transaction_type: null,
+        amount: "",
         description: "",
     });
 };
@@ -1384,17 +1429,17 @@ const closeModals = () => {
         entry_date: new Date().toISOString().split("T")[0],
         reference_number: "",
         description: "",
-        entry_type: "",
+        entry_type: null,
         details: [
             {
-                account_id: "",
-                transaction_type: "",
+                account_id: null,
+                transaction_type: null,
                 amount: 0,
                 description: "",
             },
             {
-                account_id: "",
-                transaction_type: "",
+                account_id: null,
+                transaction_type: null,
                 amount: 0,
                 description: "",
             },
@@ -1472,17 +1517,18 @@ const calculateTotalByType = (details, type) => {
         .reduce((total, detail) => total + parseFloat(detail.amount || 0), 0);
 };
 
-// Watch for filter changes
-watch([statusFilter, entryTypeFilter, startDateFilter, endDateFilter], () => {
-    if (
-        statusFilter.value ||
-        entryTypeFilter.value ||
-        startDateFilter.value ||
-        endDateFilter.value
-    ) {
-        applyFilters();
-    }
-});
+// Watch removed - filters are now applied manually via "Apply Filters" button
+// This prevents auto-filtering on every change and gives users control
+
+// Watch for debugging accounts
+watch(
+    () => availableAccounts.value,
+    (newVal) => {
+        console.log("Available Accounts:", newVal);
+        console.log("Account Options:", accountOptions.value);
+    },
+    { deep: true }
+);
 
 // Lifecycle
 onMounted(() => {

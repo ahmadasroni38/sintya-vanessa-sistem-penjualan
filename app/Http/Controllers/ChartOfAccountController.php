@@ -237,7 +237,15 @@ public function balanceHistory(Request $request, ChartOfAccount $chartOfAccount)
 
     return response()->json([
         'success' => true,
-        'data' => $histories,
+        'data' => $histories->items(),
+        'pagination' => [
+            'total' => $histories->total(),
+            'per_page' => $histories->perPage(),
+            'current_page' => $histories->currentPage(),
+            'last_page' => $histories->lastPage(),
+            'from' => $histories->firstItem(),
+            'to' => $histories->lastItem(),
+        ],
         'filters' => $validated
     ]);
 }
@@ -251,21 +259,66 @@ public function calculateBalance(Request $request, ChartOfAccount $chartOfAccoun
 
     $validated = $request->validate([
         'start_date' => 'nullable|date',
-        'end_date' => 'nullable|date|after_or_equal:start_date'
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'async' => 'nullable|boolean'
     ]);
 
-    // Dispatch balance calculation job
-    $user = auth()->user();
-    CalculateAccountBalance::dispatch($chartOfAccount->id, [
-        'start_date' => $validated['start_date'],
-        'end_date' => $validated['end_date']
-    ]);
+    $async = $validated['async'] ?? false;
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Balance calculation job has been queued. You will be notified when it\'s ready.',
-        'job_id' => uniqid()
-    ]);
+    if ($async) {
+        // Dispatch balance calculation job
+        $user = auth()->user();
+        CalculateAccountBalance::dispatch($chartOfAccount->id, [
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date']
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Balance calculation job has been queued. You will be notified when it\'s ready.',
+            'job_id' => uniqid()
+        ]);
+    } else {
+        // Synchronous calculation
+        try {
+            $balanceService = new \App\Services\ChartOfAccountBalanceService();
+
+            $balanceData = $balanceService->calculateBalance($chartOfAccount, [
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date']
+            ]);
+
+            // Save balance history
+            $startDate = $validated['start_date'] ?? now()->startOfMonth()->format('Y-m-d');
+            $endDate = $validated['end_date'] ?? now()->endOfMonth()->format('Y-m-d');
+
+            \App\Models\AccountBalanceHistory::create([
+                'chart_of_account_id' => $chartOfAccount->id,
+                'balance' => $balanceData['balance'],
+                'debit_total' => $balanceData['debit_total'],
+                'credit_total' => $balanceData['credit_total'],
+                'period_start' => $startDate,
+                'period_end' => $endDate,
+                'calculated_by' => auth()->id(),
+            ]);
+
+            // Update account's current balance
+            $chartOfAccount->current_balance = $balanceData['balance'];
+            $chartOfAccount->balance_updated_at = now();
+            $chartOfAccount->saveQuietly();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Balance calculated successfully',
+                'data' => $balanceData
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to calculate balance: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
 /**
@@ -302,7 +355,15 @@ public function audits(Request $request, ChartOfAccount $chartOfAccount)
 
     return response()->json([
         'success' => true,
-        'data' => $audits,
+        'data' => $audits->items(),
+        'pagination' => [
+            'total' => $audits->total(),
+            'per_page' => $audits->perPage(),
+            'current_page' => $audits->currentPage(),
+            'last_page' => $audits->lastPage(),
+            'from' => $audits->firstItem(),
+            'to' => $audits->lastItem(),
+        ],
         'filters' => $validated
     ]);
 }

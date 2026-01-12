@@ -13,7 +13,7 @@
                     structure
                 </p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 hidden">
                 <!-- Export Dropdown -->
                 <div class="relative" ref="exportDropdownRef">
                     <Button
@@ -2136,15 +2136,18 @@ const calculateCurrentBalance = async () => {
     calculatingBalance.value = true;
     try {
         const data = await apiPost(
-            `chart-of-accounts/${selectedAccount.value.id}/calculate-balance`
+            `chart-of-accounts/${selectedAccount.value.id}/calculate-balance`,
+            { async: false } // Force synchronous calculation
         );
-        if (data) {
+        if (data && data.success) {
             notification.success("Balance calculated successfully");
             await fetchBalanceHistory(selectedAccount.value.id);
             fetchAccounts();
+        } else {
+            notification.error(data.message || "Failed to calculate balance");
         }
     } catch (error) {
-        notification.error("Failed to calculate balance");
+        notification.error(error.message || "Failed to calculate balance");
     } finally {
         calculatingBalance.value = false;
     }
@@ -2156,8 +2159,8 @@ const fetchBalanceHistory = async (accountId) => {
         const response = await apiGet(
             `chart-of-accounts/${accountId}/balance-history`
         );
-        if (response) {
-            balanceHistory.value = response.data || response || [];
+        if (response && response.success) {
+            balanceHistory.value = response.data || [];
         }
     } catch (error) {
         notification.error("Failed to fetch balance history");
@@ -2170,8 +2173,8 @@ const fetchAuditTrail = async (accountId) => {
     try {
         loadingAuditTrail.value = true;
         const response = await apiGet(`chart-of-accounts/${accountId}/audit`);
-        if (response) {
-            auditTrail.value = response.data || response || [];
+        if (response && response.success) {
+            auditTrail.value = response.data || [];
         }
     } catch (error) {
         notification.error("Failed to fetch audit trail");

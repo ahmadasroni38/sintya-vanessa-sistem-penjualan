@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales', function (Blueprint $table) {
+        if (!Schema::hasTable('sales')) {
+            Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->string('transaction_number', 20)->unique();
             $table->date('transaction_date');
@@ -41,6 +42,7 @@ return new class extends Migration
             $table->index(['customer_id', 'status']);
             $table->index('transaction_number');
         });
+        }
     }
 
     /**

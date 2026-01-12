@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
-            $table->id();
-            $table->string('logo_sistem')->nullable();
-            $table->string('nama_sistem');
-            $table->text('deskripsi_sistem');
-            $table->string('nama_perusahaan');
-            $table->text('alamat_lengkap');
-            $table->string('email_perusahaan');
-            $table->string('nomor_telepon');
-            $table->text('footer_text')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('settings')) {
+            Schema::create('settings', function (Blueprint $table) {
+                $table->id();
+                $table->string('logo_sistem')->nullable();
+                $table->string('nama_sistem');
+                $table->text('deskripsi_sistem');
+                $table->string('nama_perusahaan');
+                $table->text('alamat_lengkap');
+                $table->string('email_perusahaan');
+                $table->string('nomor_telepon');
+                $table->text('footer_text')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

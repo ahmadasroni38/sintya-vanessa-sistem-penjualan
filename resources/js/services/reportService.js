@@ -328,9 +328,11 @@ const reportService = {
     // Neraca Lajur (Worksheet)
     async getNeracaLajur(startDate, endDate) {
         try {
-            // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            return generateDummyNeracaLajur(startDate, endDate);
+            const response = await apiGet("reports/neraca-lajur", {
+                start_date: startDate,
+                end_date: endDate,
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching neraca lajur:", error);
             throw error;

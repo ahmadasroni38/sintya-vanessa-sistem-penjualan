@@ -26,7 +26,8 @@ class ReportController extends Controller
         $data = [];
 
         foreach ($accounts as $account) {
-            $balance = $account->getBalance($validated['start_date'], $validated['end_date']);
+            $balanceData = $account->calculateBalance($validated['start_date'], $validated['end_date']);
+            $balance = $balanceData['balance'];
 
             // Classify into financial statement categories
             $neracaDebit = 0;
@@ -66,7 +67,8 @@ class ReportController extends Controller
             ];
         }
 
-        return Inertia::render('Dashboard/Reports/NeracaLajur', [
+        return response()->json([
+            'success' => true,
             'data' => $data,
             'period' => [
                 'start_date' => $validated['start_date'],

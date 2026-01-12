@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('password_reset_otps', function (Blueprint $table) {
-            $table->id();
-            $table->string('email')->index();
-            $table->string('otp', 60); // Hashed OTP (bcrypt = 60 chars)
-            $table->timestamp('expires_at');
-            $table->timestamp('used_at')->nullable();
-            $table->tinyInteger('attempts')->default(0);
-            $table->string('ip_address')->nullable();
-            $table->text('user_agent')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('password_reset_otps')) {
+            Schema::create('password_reset_otps', function (Blueprint $table) {
+                $table->id();
+                $table->string('email')->index();
+                $table->string('otp', 60); // Hashed OTP (bcrypt = 60 chars)
+                $table->timestamp('expires_at');
+                $table->timestamp('used_at')->nullable();
+                $table->tinyInteger('attempts')->default(0);
+                $table->string('ip_address')->nullable();
+                $table->text('user_agent')->nullable();
+                $table->timestamps();
 
-            // Index for performance
-            $table->index(['email', 'expires_at']);
-        });
+                // Index for performance
+                $table->index(['email', 'expires_at']);
+            });
+        }
     }
 
     /**

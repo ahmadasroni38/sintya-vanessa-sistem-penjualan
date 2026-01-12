@@ -11,25 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sale_details', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('sale_id');
-            $table->unsignedBigInteger('product_id');
-            $table->decimal('quantity', 15, 2);
-            $table->decimal('unit_price', 15, 2);
-            $table->decimal('discount_percent', 5, 2)->default(0);
-            $table->decimal('discount_amount', 15, 2)->default(0);
-            $table->decimal('tax_percent', 5, 2)->default(0);
-            $table->decimal('tax_amount', 15, 2)->default(0);
-            $table->decimal('total_price', 15, 2);
-            $table->text('notes')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('sale_details')) {
+            Schema::create('sale_details', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('sale_id');
+                $table->unsignedBigInteger('product_id');
+                $table->decimal('quantity', 15, 2);
+                $table->decimal('unit_price', 15, 2);
+                $table->decimal('discount_percent', 5, 2)->default(0);
+                $table->decimal('discount_amount', 15, 2)->default(0);
+                $table->decimal('tax_percent', 5, 2)->default(0);
+                $table->decimal('tax_amount', 15, 2)->default(0);
+                $table->decimal('total_price', 15, 2);
+                $table->text('notes')->nullable();
+                $table->timestamps();
 
-            $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+                $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade');
+                $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
 
-            $table->index(['sale_id', 'product_id']);
-        });
+                $table->index(['sale_id', 'product_id']);
+            });
+        }
     }
 
     /**

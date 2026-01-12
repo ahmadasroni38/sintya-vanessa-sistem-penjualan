@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('customer_code', 20)->unique();
-            $table->string('customer_name');
-            $table->text('address')->nullable();
-            $table->string('phone', 20)->nullable();
-            $table->string('email')->nullable();
-            $table->text('notes')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->timestamps();
+        if (!Schema::hasTable('customers')) {
+            Schema::create('customers', function (Blueprint $table) {
+                $table->id();
+                $table->string('customer_code', 20)->unique();
+                $table->string('customer_name');
+                $table->text('address')->nullable();
+                $table->string('phone', 20)->nullable();
+                $table->string('email')->nullable();
+                $table->text('notes')->nullable();
+                $table->enum('status', ['active', 'inactive'])->default('active');
+                $table->timestamps();
 
-            $table->index(['status', 'customer_code']);
-            $table->index('customer_name');
-        });
+                $table->index(['status', 'customer_code']);
+                $table->index('customer_name');
+            });
+        }
     }
 
     /**
