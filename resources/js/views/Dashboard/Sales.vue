@@ -363,11 +363,25 @@ const customActions = computed(() => [
         condition: () => true,
     },
     {
+        label: "Edit",
+        icon: "pencil",
+        handler: (item) => handleEdit(item),
+        condition: (item) => item.status === "draft",
+        class: "text-blue-600 hover:text-blue-900 dark:text-blue-400",
+    },
+    {
+        label: "Delete",
+        icon: "trash",
+        handler: (item) => handleDelete(item),
+        condition: (item) => item.status === "draft",
+        class: "text-red-600 hover:text-red-900 dark:text-red-400",
+    },
+    {
         label: "Print Receipt",
         icon: "printer",
         handler: (item) => handlePrint(item),
         condition: () => true,
-        class: "text-blue-600 hover:text-blue-900 dark:text-blue-400",
+        class: "text-purple-600 hover:text-purple-900 dark:text-purple-400",
     },
     {
         label: t("sales.post"),
@@ -381,7 +395,7 @@ const customActions = computed(() => [
         icon: "x",
         handler: (item) => handleCancelTransaction(item),
         condition: (item) => item.status === "posted",
-        class: "text-red-600 hover:text-red-900 dark:text-red-400",
+        class: "text-orange-600 hover:text-orange-900 dark:text-orange-400",
     },
 ]);
 

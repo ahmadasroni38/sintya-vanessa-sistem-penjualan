@@ -895,7 +895,7 @@ const viewFormat = ref('staffel'); // 'staffel' or 'skontro'
 
 const printDate = computed(() => {
   const now = new Date();
-  return `Makassar, ${now.toLocaleDateString("id-ID", {
+  return `Denpasar, ${now.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric"
@@ -921,14 +921,10 @@ const handleGenerate = async (period) => {
         handleGenerateSedangClick.value = true
         const response = await reportService.getNeraca(period.end_date);
 
-        // Extract data from response
-        if (response.success && response.data) {
-            reportData.value = response.data;
-            reportLayout.value?.setReportData(response.data);
-        } else {
-            reportData.value = response;
-            reportLayout.value?.setReportData(response);
-        }
+        // Handle API response structure: { success: true, data: {...} }
+        const data = response.data || response;
+        reportData.value = data;
+        reportLayout.value?.setReportData(data);
 
         // Debug: Log balance information to help identify issues
         console.log('===== NERACA DEBUG INFO =====');

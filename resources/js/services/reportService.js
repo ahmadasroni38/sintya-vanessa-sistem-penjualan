@@ -306,14 +306,39 @@ const reportService = {
     // Export functions
     async exportNeracaLajur(startDate, endDate, format = "pdf") {
         try {
-            const response = await apiGet("reports/neraca-lajur/export", {
-                params: {
-                    start_date: startDate,
-                    end_date: endDate,
-                    format: format,
-                }
+            // For export, we need to handle file download differently
+            const token = localStorage.getItem('token');
+            const apiUrl = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/reports/neraca-lajur/export`;
+
+            const params = new URLSearchParams({
+                start_date: startDate,
+                end_date: endDate,
+                format: format,
             });
-            return response;
+
+            const response = await fetch(`${apiUrl}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `neraca_lajur_${startDate}_${endDate}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            return { success: true };
         } catch (error) {
             console.error("Error exporting neraca lajur:", error);
             throw error;

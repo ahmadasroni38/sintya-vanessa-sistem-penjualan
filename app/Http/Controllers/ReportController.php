@@ -186,6 +186,75 @@ class ReportController extends Controller
             ];
         }
 
+        // Calculate totals for each column
+        $totals = [
+            'adjusted_debit' => 0,
+            'adjusted_credit' => 0,
+            'neraca_debit' => 0,
+            'neraca_credit' => 0,
+            'laba_rugi_debit' => 0,
+            'laba_rugi_credit' => 0,
+        ];
+
+        foreach ($data as $row) {
+            $totals['adjusted_debit'] += $row['adjusted_debit'];
+            $totals['adjusted_credit'] += $row['adjusted_credit'];
+            $totals['neraca_debit'] += $row['neraca_debit'];
+            $totals['neraca_credit'] += $row['neraca_credit'];
+            $totals['laba_rugi_debit'] += $row['laba_rugi_debit'];
+            $totals['laba_rugi_credit'] += $row['laba_rugi_credit'];
+        }
+
+        // Calculate net income: Revenue (Laba Rugi Credit) - Expense (Laba Rugi Debit)
+        $netIncome = $totals['laba_rugi_credit'] - $totals['laba_rugi_debit'];
+
+        // Add closing entry to balance the worksheet
+        // This represents the conceptual transfer of net income to equity
+        // The closing entry itself will balance the worksheet without modifying Modal account
+        if ($netIncome != 0) {
+            // Add a closing entry row to show the transfer
+            $data[] = [
+                'id' => null,
+                'account_code' => '',
+                'account_name' => $netIncome > 0 ? 'Laba Bersih (Net Income)' : 'Rugi Bersih (Net Loss)',
+                'account_type' => 'closing',
+                'normal_balance' => null,
+                'opening_balance' => 0,
+                'adjustment_debit' => 0,
+                'adjustment_credit' => 0,
+                'adjusted_debit' => 0,
+                'adjusted_credit' => 0,
+                // Closing entry balances the worksheet
+                'neraca_debit' => $netIncome < 0 ? abs($netIncome) : 0,
+                'neraca_credit' => $netIncome > 0 ? $netIncome : 0,
+                'laba_rugi_debit' => $netIncome > 0 ? $netIncome : 0,
+                'laba_rugi_credit' => $netIncome < 0 ? abs($netIncome) : 0,
+                'regular_debit' => 0,
+                'regular_credit' => 0,
+                'balance' => 0,
+                'adjusted_balance' => 0,
+            ];
+        }
+
+        // Recalculate totals after closing entry
+        $totals = [
+            'adjusted_debit' => 0,
+            'adjusted_credit' => 0,
+            'neraca_debit' => 0,
+            'neraca_credit' => 0,
+            'laba_rugi_debit' => 0,
+            'laba_rugi_credit' => 0,
+        ];
+
+        foreach ($data as $row) {
+            $totals['adjusted_debit'] += $row['adjusted_debit'];
+            $totals['adjusted_credit'] += $row['adjusted_credit'];
+            $totals['neraca_debit'] += $row['neraca_debit'];
+            $totals['neraca_credit'] += $row['neraca_credit'];
+            $totals['laba_rugi_debit'] += $row['laba_rugi_debit'];
+            $totals['laba_rugi_credit'] += $row['laba_rugi_credit'];
+        }
+
         return response()->json([
             'success' => true,
             'data' => $data,
@@ -193,7 +262,276 @@ class ReportController extends Controller
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
             ],
+            'totals' => $totals,
+            'net_income' => $netIncome,
+            'is_balanced' => (
+                abs($totals['adjusted_debit'] - $totals['adjusted_credit']) < 0.01 &&
+                abs($totals['neraca_debit'] - $totals['neraca_credit']) < 0.01 &&
+                abs($totals['laba_rugi_debit'] - $totals['laba_rugi_credit']) < 0.01
+            ),
         ]);
+    }
+
+    /**
+     * Export Neraca Lajur (Worksheet)
+     */
+    public function exportNeracaLajur(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'format' => 'required|in:pdf,xlsx',
+        ]);
+
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $format = $validated['format'];
+
+        $accounts = ChartOfAccount::active()
+            ->orderBy('account_code')
+            ->get();
+
+        $data = [];
+
+        foreach ($accounts as $account) {
+            // Get opening balance
+            $openingBalanceData = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($startDate) {
+                    $q->where('status', 'posted')
+                      ->where('entry_date', '<', $startDate);
+                })
+                ->selectRaw('transaction_type, SUM(amount) as total')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $openingDebit = $openingBalanceData['debit'] ?? 0;
+            $openingCredit = $openingBalanceData['credit'] ?? 0;
+
+            if ($account->normal_balance === 'debit') {
+                $openingBalance = $account->opening_balance + $openingDebit - $openingCredit;
+            } else {
+                $openingBalance = $account->opening_balance + $openingCredit - $openingDebit;
+            }
+
+            // Get ALL transactions within period
+            $allPeriodData = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                    $q->where('status', 'posted')
+                      ->whereBetween('entry_date', [$startDate, $endDate]);
+                })
+                ->selectRaw('transaction_type, SUM(amount) as total')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $allPeriodDebit = $allPeriodData['debit'] ?? 0;
+            $allPeriodCredit = $allPeriodData['credit'] ?? 0;
+
+            // Get adjustment entries
+            $adjustmentResults = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                    $q->where('status', 'posted')
+                      ->where('entry_type', 'adjustment')
+                      ->whereBetween('entry_date', [$startDate, $endDate]);
+                })
+                ->selectRaw('transaction_type, SUM(amount) as total')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $adjustmentDebit = $adjustmentResults['debit'] ?? 0;
+            $adjustmentCredit = $adjustmentResults['credit'] ?? 0;
+
+            $regularDebit = $allPeriodDebit - $adjustmentDebit;
+            $regularCredit = $allPeriodCredit - $adjustmentCredit;
+
+            // Calculate adjusted balance
+            if ($account->normal_balance === 'debit') {
+                $adjustedBalance = $openingBalance + $regularDebit - $regularCredit + $adjustmentDebit - $adjustmentCredit;
+            } else {
+                $adjustedBalance = $openingBalance + $regularCredit - $regularDebit + $adjustmentCredit - $adjustmentDebit;
+            }
+
+            if (abs($adjustedBalance) < 0.01 && abs($openingBalance) < 0.01) {
+                continue;
+            }
+
+            $saldoDisesuaikanDebit = 0;
+            $saldoDisesuaikanCredit = 0;
+            $neracaDebit = 0;
+            $neracaCredit = 0;
+            $labaRugiDebit = 0;
+            $labaRugiCredit = 0;
+
+            if ($adjustedBalance > 0) {
+                if ($account->normal_balance === 'debit') {
+                    $saldoDisesuaikanDebit = $adjustedBalance;
+                } else {
+                    $saldoDisesuaikanCredit = $adjustedBalance;
+                }
+            } else {
+                if ($account->normal_balance === 'debit') {
+                    $saldoDisesuaikanCredit = abs($adjustedBalance);
+                } else {
+                    $saldoDisesuaikanDebit = abs($adjustedBalance);
+                }
+            }
+
+            if (in_array($account->account_type, ['asset', 'liability', 'equity'])) {
+                $neracaDebit = $saldoDisesuaikanDebit;
+                $neracaCredit = $saldoDisesuaikanCredit;
+            } else {
+                $labaRugiDebit = $saldoDisesuaikanDebit;
+                $labaRugiCredit = $saldoDisesuaikanCredit;
+            }
+
+            $data[] = [
+                'account_code' => $account->account_code,
+                'account_name' => $account->account_name,
+                'account_type' => $account->account_type,
+                'opening_balance' => $openingBalance,
+                'adjustment_debit' => $adjustmentDebit,
+                'adjustment_credit' => $adjustmentCredit,
+                'adjusted_debit' => $saldoDisesuaikanDebit,
+                'adjusted_credit' => $saldoDisesuaikanCredit,
+                'neraca_debit' => $neracaDebit,
+                'neraca_credit' => $neracaCredit,
+                'laba_rugi_debit' => $labaRugiDebit,
+                'laba_rugi_credit' => $labaRugiCredit,
+            ];
+        }
+
+        // Calculate totals for each column
+        $totals = [
+            'adjusted_debit' => 0,
+            'adjusted_credit' => 0,
+            'neraca_debit' => 0,
+            'neraca_credit' => 0,
+            'laba_rugi_debit' => 0,
+            'laba_rugi_credit' => 0,
+        ];
+
+        foreach ($data as $row) {
+            $totals['adjusted_debit'] += $row['adjusted_debit'];
+            $totals['adjusted_credit'] += $row['adjusted_credit'];
+            $totals['neraca_debit'] += $row['neraca_debit'];
+            $totals['neraca_credit'] += $row['neraca_credit'];
+            $totals['laba_rugi_debit'] += $row['laba_rugi_debit'];
+            $totals['laba_rugi_credit'] += $row['laba_rugi_credit'];
+        }
+
+        // Calculate net income: Revenue (Laba Rugi Credit) - Expense (Laba Rugi Debit)
+        $netIncome = $totals['laba_rugi_credit'] - $totals['laba_rugi_debit'];
+
+        // Add closing entry to balance the worksheet
+        // The closing entry itself will balance the worksheet without modifying Modal account
+        if ($netIncome != 0) {
+            // Add a closing entry row to show the transfer
+            $data[] = [
+                'account_code' => '',
+                'account_name' => $netIncome > 0 ? 'Laba Bersih (Net Income)' : 'Rugi Bersih (Net Loss)',
+                'account_type' => 'closing',
+                'opening_balance' => 0,
+                'adjustment_debit' => 0,
+                'adjustment_credit' => 0,
+                'adjusted_debit' => 0,
+                'adjusted_credit' => 0,
+                'neraca_debit' => $netIncome < 0 ? abs($netIncome) : 0,
+                'neraca_credit' => $netIncome > 0 ? $netIncome : 0,
+                'laba_rugi_debit' => $netIncome > 0 ? $netIncome : 0,
+                'laba_rugi_credit' => $netIncome < 0 ? abs($netIncome) : 0,
+            ];
+        }
+
+        // Recalculate totals after closing entry
+        $totals = [
+            'adjusted_debit' => 0,
+            'adjusted_credit' => 0,
+            'neraca_debit' => 0,
+            'neraca_credit' => 0,
+            'laba_rugi_debit' => 0,
+            'laba_rugi_credit' => 0,
+        ];
+
+        foreach ($data as $row) {
+            $totals['adjusted_debit'] += $row['adjusted_debit'];
+            $totals['adjusted_credit'] += $row['adjusted_credit'];
+            $totals['neraca_debit'] += $row['neraca_debit'];
+            $totals['neraca_credit'] += $row['neraca_credit'];
+            $totals['laba_rugi_debit'] += $row['laba_rugi_debit'];
+            $totals['laba_rugi_credit'] += $row['laba_rugi_credit'];
+        }
+
+        $reportData = [
+            'data' => $data,
+            'period' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
+            'totals' => $totals,
+            'net_income' => $netIncome,
+        ];
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $pdf = \PDF::loadView('reports.neraca-lajur', $reportData);
+            $filename = 'neraca_lajur_' . $startDate . '_' . $endDate . '.pdf';
+            return $pdf->download($filename);
+        } else {
+            // Generate Excel
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $sheet->setCellValue('A1', 'NERACA LAJUR');
+            $sheet->setCellValue('A2', 'Periode: ' . date('d/m/Y', strtotime($startDate)) . ' - ' . date('d/m/Y', strtotime($endDate)));
+            $sheet->setCellValue('A3', '');
+
+            // Column headers
+            $row = 4;
+            $sheet->setCellValue('A' . $row, 'Kode');
+            $sheet->setCellValue('B' . $row, 'Nama Akun');
+            $sheet->setCellValue('C' . $row, 'Saldo Awal');
+            $sheet->setCellValue('D' . $row, 'Penyesuaian Debit');
+            $sheet->setCellValue('E' . $row, 'Penyesuaian Kredit');
+            $sheet->setCellValue('F' . $row, 'Saldo Disesuaikan Debit');
+            $sheet->setCellValue('G' . $row, 'Saldo Disesuaikan Kredit');
+            $sheet->setCellValue('H' . $row, 'Neraca Debit');
+            $sheet->setCellValue('I' . $row, 'Neraca Kredit');
+            $sheet->setCellValue('J' . $row, 'Laba Rugi Debit');
+            $sheet->setCellValue('K' . $row, 'Laba Rugi Kredit');
+            $sheet->getStyle('A' . $row . ':K' . $row)->getFont()->setBold(true);
+            $row++;
+
+            // Data rows
+            foreach ($data as $account) {
+                $sheet->setCellValue('A' . $row, $account['account_code']);
+                $sheet->setCellValue('B' . $row, $account['account_name']);
+                $sheet->setCellValue('C' . $row, $account['opening_balance']);
+                $sheet->setCellValue('D' . $row, $account['adjustment_debit']);
+                $sheet->setCellValue('E' . $row, $account['adjustment_credit']);
+                $sheet->setCellValue('F' . $row, $account['adjusted_debit']);
+                $sheet->setCellValue('G' . $row, $account['adjusted_credit']);
+                $sheet->setCellValue('H' . $row, $account['neraca_debit']);
+                $sheet->setCellValue('I' . $row, $account['neraca_credit']);
+                $sheet->setCellValue('J' . $row, $account['laba_rugi_debit']);
+                $sheet->setCellValue('K' . $row, $account['laba_rugi_credit']);
+                $row++;
+            }
+
+            // Auto-size columns
+            foreach (range('A', 'K') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $filename = 'neraca_lajur_' . $startDate . '_' . $endDate . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer->save('php://output');
+            exit;
+        }
     }
 
     /**

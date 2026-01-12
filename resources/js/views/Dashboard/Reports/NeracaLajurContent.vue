@@ -393,6 +393,63 @@
                         </tr>
                     </template>
 
+                    <!-- Closing Entry (Net Income/Loss) -->
+                    <template
+                        v-for="account in getAccountsByType('closing')"
+                        :key="account.id || 'closing'"
+                    >
+                        <tr
+                            class="bg-blue-50 dark:bg-blue-900/20 font-semibold border-t-2 border-blue-300 dark:border-blue-700"
+                        >
+                            <td
+                                class="px-4 py-3 text-sm font-bold text-blue-900 dark:text-blue-300"
+                                colspan="2"
+                            >
+                                {{ account.account_name }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-gray-900 dark:text-white"
+                            >
+                                {{ account.adjustment_debit > 0 ? formatCurrency(account.adjustment_debit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-gray-900 dark:text-white"
+                            >
+                                {{ account.adjustment_credit > 0 ? formatCurrency(account.adjustment_credit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-gray-900 dark:text-white"
+                            >
+                                {{ account.adjusted_debit > 0 ? formatCurrency(account.adjusted_debit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-gray-900 dark:text-white"
+                            >
+                                {{ account.adjusted_credit > 0 ? formatCurrency(account.adjusted_credit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-blue-900 dark:text-blue-300 font-bold"
+                            >
+                                {{ account.neraca_debit > 0 ? formatCurrency(account.neraca_debit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-blue-900 dark:text-blue-300 font-bold"
+                            >
+                                {{ account.neraca_credit > 0 ? formatCurrency(account.neraca_credit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-blue-900 dark:text-blue-300 font-bold"
+                            >
+                                {{ account.laba_rugi_debit > 0 ? formatCurrency(account.laba_rugi_debit) : '-' }}
+                            </td>
+                            <td
+                                class="px-4 py-3 text-sm text-right text-blue-900 dark:text-blue-300 font-bold"
+                            >
+                                {{ account.laba_rugi_credit > 0 ? formatCurrency(account.laba_rugi_credit) : '-' }}
+                            </td>
+                        </tr>
+                    </template>
+
                     <!-- Totals Row -->
                     <tr
                         class="bg-gray-100 dark:bg-gray-700 font-semibold"
@@ -715,31 +772,31 @@ const getTotalAdjustedCredit = () => {
 };
 
 const getTotalNeracaDebit = () => {
-    return props.data.reduce(
-        (total, account) => total + (account.neraca_debit || 0),
-        0
-    );
+    // Exclude closing entry from summary
+    return props.data
+        .filter(account => account.account_type !== 'closing')
+        .reduce((total, account) => total + (account.neraca_debit || 0), 0);
 };
 
 const getTotalNeracaCredit = () => {
-    return props.data.reduce(
-        (total, account) => total + (account.neraca_credit || 0),
-        0
-    );
+    // Exclude closing entry from summary
+    return props.data
+        .filter(account => account.account_type !== 'closing')
+        .reduce((total, account) => total + (account.neraca_credit || 0), 0);
 };
 
 const getTotalLabaRugiDebit = () => {
-    return props.data.reduce(
-        (total, account) => total + (account.laba_rugi_debit || 0),
-        0
-    );
+    // Exclude closing entry from summary
+    return props.data
+        .filter(account => account.account_type !== 'closing')
+        .reduce((total, account) => total + (account.laba_rugi_debit || 0), 0);
 };
 
 const getTotalLabaRugiCredit = () => {
-    return props.data.reduce(
-        (total, account) => total + (account.laba_rugi_credit || 0),
-        0
-    );
+    // Exclude closing entry from summary
+    return props.data
+        .filter(account => account.account_type !== 'closing')
+        .reduce((total, account) => total + (account.laba_rugi_credit || 0), 0);
 };
 
 const formatCurrency = (value) => {

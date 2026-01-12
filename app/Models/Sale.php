@@ -228,7 +228,8 @@ class Sale extends Model
         ]);
 
         // Debit Cash/Bank account (depending on payment method)
-        $accountCode = $this->payment_method === 'cash' ? '1-1010' : '1-1020'; // Cash or Bank
+        // 1-1100 = Kas (Cash), 1-1200 = Bank
+        $accountCode = $this->payment_method === 'cash' ? '1-1100' : '1-1200';
         $cashAccount = ChartOfAccount::where('account_code', $accountCode)->active()->first();
 
         if ($cashAccount) {
@@ -242,7 +243,8 @@ class Sale extends Model
         }
 
         // Credit Sales Revenue account
-        $salesAccount = ChartOfAccount::where('account_code', '4-1010')->active()->first();
+        // 4-1000 = Pendapatan Penjualan (Sales Revenue)
+        $salesAccount = ChartOfAccount::where('account_code', '4-1000')->active()->first();
 
         if ($salesAccount) {
             JournalEntryDetail::create([
@@ -256,7 +258,8 @@ class Sale extends Model
 
         // Credit Tax Payable account if applicable
         if ($this->tax_amount > 0) {
-            $taxAccount = ChartOfAccount::where('account_code', '2-1030')->active()->first();
+            // 2-1300 = Hutang Pajak (Tax Payable)
+            $taxAccount = ChartOfAccount::where('account_code', '2-1300')->active()->first();
 
             if ($taxAccount) {
                 JournalEntryDetail::create([

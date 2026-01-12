@@ -3,6 +3,7 @@
         title="Neraca Lajur"
         description="Worksheet untuk menyiapkan Neraca dan Laporan Laba Rugi"
         ref="reportLayout"
+        :exporting="exporting"
         @generate="handleGenerate"
         @export="handleExport"
     >
@@ -33,7 +34,7 @@ const reportData = ref([]);
 
 const printDate = computed(() => {
   const now = new Date();
-  return `Makassar, ${now.toLocaleDateString("id-ID", {
+  return `Denpasar, ${now.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric"
@@ -50,6 +51,7 @@ const reportSettings = ref({
 });
 
 // Methods
+const exporting = ref(false);
 const handleGenerateSedangDiclick = ref(false);
 const handleGenerate = async (period) => {
     if(handleGenerateSedangDiclick.value) {
@@ -61,8 +63,11 @@ const handleGenerate = async (period) => {
             period.start_date,
             period.end_date
         );
-        reportData.value = response.data || [];
-        reportLayout.value?.setReportData(response.data);
+
+        // Handle API response structure: { success: true, data: [...] }
+        const data = response.data || response;
+        reportData.value = data;
+        reportLayout.value?.setReportData(data);
 
         // Fetch report signature settings
         try {
@@ -77,6 +82,8 @@ const handleGenerate = async (period) => {
         } catch (settingsErr) {
           console.warn('Failed to fetch settings:', settingsErr);
         }
+
+        notification.success("Neraca Lajur report generated successfully");
     } catch (error) {
         notification.error("Failed to generate Neraca Lajur report");
         throw error;
@@ -86,6 +93,10 @@ const handleGenerate = async (period) => {
 };
 
 const handleExport = async (params) => {
+    if(exporting.value) {
+        return;
+    }
+    exporting.value = true;
     try {
         await reportService.exportNeracaLajur(
             params.start_date,
@@ -96,6 +107,8 @@ const handleExport = async (params) => {
     } catch (error) {
         notification.error("Failed to export report");
         throw error;
+    } finally {
+        exporting.value = false;
     }
 };
 </script>

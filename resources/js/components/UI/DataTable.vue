@@ -415,21 +415,43 @@
                                 <div
                                     class="flex items-center justify-end gap-2"
                                 >
+                                    <!-- Custom Actions -->
+                                    <template v-for="customAction in customActions" :key="customAction.label">
+                                        <button
+                                            v-if="!customAction.condition || customAction.condition(item)"
+                                            type="button"
+                                            @click.stop.prevent="handleCustomAction(customAction, item)"
+                                            :class="[
+                                                'p-1.5 rounded-lg transition-colors duration-200',
+                                                customAction.class || 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700'
+                                            ]"
+                                            :title="customAction.label"
+                                        >
+                                            <!-- Render icon based on name -->
+                                            <EyeIcon v-if="customAction.icon === 'eye'" class="w-4 h-4" />
+                                            <PencilIcon v-else-if="customAction.icon === 'pencil'" class="w-4 h-4" />
+                                            <TrashIcon v-else-if="customAction.icon === 'trash'" class="w-4 h-4" />
+                                            <CheckIcon v-else-if="customAction.icon === 'check'" class="w-4 h-4" />
+                                            <XMarkIcon v-else-if="customAction.icon === 'x'" class="w-4 h-4" />
+                                            <PrinterIcon v-else-if="customAction.icon === 'printer'" class="w-4 h-4" />
+                                            <span v-else class="text-xs">{{ customAction.label }}</span>
+                                        </button>
+                                    </template>
+
+                                    <!-- Default Edit/Delete buttons (only if no custom actions provided) -->
                                     <button
+                                        v-if="customActions.length === 0"
                                         type="button"
-                                        @click.stop.prevent="
-                                            $emit('edit', item)
-                                        "
+                                        @click.stop.prevent="$emit('edit', item)"
                                         class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
                                         title="Edit"
                                     >
                                         <PencilIcon class="w-4 h-4" />
                                     </button>
                                     <button
+                                        v-if="customActions.length === 0"
                                         type="button"
-                                        @click.stop.prevent="
-                                            $emit('delete', item)
-                                        "
+                                        @click.stop.prevent="$emit('delete', item)"
                                         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                                         title="Delete"
                                     >
@@ -625,6 +647,10 @@ import {
     DocumentIcon,
     PencilIcon,
     TrashIcon,
+    EyeIcon,
+    CheckIcon,
+    XMarkIcon,
+    PrinterIcon,
 } from "@heroicons/vue/24/outline";
 
 // Props
@@ -714,6 +740,10 @@ const props = defineProps({
             last_page: 1,
         }),
     },
+    customActions: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Emits
@@ -728,6 +758,7 @@ const emit = defineEmits([
     "search",
     "page-change",
     "sort",
+    "custom-action",
 ]);
 
 // Reactive data
@@ -934,6 +965,10 @@ const handleSearchEnter = () => {
 
 const exportData = () => {
     emit("export", filteredData.value);
+};
+
+const handleCustomAction = (action, item) => {
+    emit("custom-action", { action, item });
 };
 
 // Watchers

@@ -244,6 +244,7 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
 
     // Financial Reports routes
     Route::get('reports/neraca-lajur', [ReportController::class, 'neracaLajur']);
+    Route::get('reports/neraca-lajur/export', [ReportController::class, 'exportNeracaLajur']);
     Route::get('reports/neraca', [ReportController::class, 'neraca']);
     Route::get('reports/neraca/export', [ReportController::class, 'exportNeraca']);
     Route::get('reports/laba-rugi', [ReportController::class, 'labaRugi']);
