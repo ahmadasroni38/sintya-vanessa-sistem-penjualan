@@ -808,13 +808,37 @@ const isAllSelected = computed(() => {
 
 const visiblePages = computed(() => {
     const pages = [];
-    const delta = 2;
-    const start = Math.max(1, currentPage.value - delta);
-    const end = Math.min(totalPages.value, currentPage.value + delta);
+    const total = totalPages.value;
+    const current = currentPage.value;
 
-    for (let i = start; i <= end; i++) {
-        pages.push(i);
+    // If total pages is 6 or less, show all pages
+    if (total <= 6) {
+        for (let i = 1; i <= total; i++) {
+            pages.push(i);
+        }
+        return pages;
     }
+
+    // Always show first 2 pages
+    pages.push(1, 2);
+
+    // Add ellipsis if current page is far from start
+    if (current > 4) {
+        pages.push('...');
+    }
+
+    // Show current page if it's not in the first 2 or last 3
+    if (current > 2 && current < total - 2) {
+        pages.push(current);
+    }
+
+    // Add ellipsis if current page is far from end
+    if (current < total - 3) {
+        pages.push('...');
+    }
+
+    // Always show last 3 pages
+    pages.push(total - 2, total - 1, total);
 
     return pages;
 });

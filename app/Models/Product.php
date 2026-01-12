@@ -197,13 +197,17 @@ class Product extends Model
      */
     public function scopeLowStock($query, ?int $locationId = null)
     {
-        return $query->whereHas('stockCards', function ($q) use ($locationId) {
+        return $query->whereExists(function ($q) use ($locationId) {
+            $q->selectRaw('1')
+              ->from('stock_cards')
+              ->whereColumn('products.id', 'stock_cards.product_id');
+
             if ($locationId) {
-                $q->where('location_id', $locationId);
+                $q->where('stock_cards.location_id', $locationId);
             }
-            $q->selectRaw('product_id, MAX(balance) as current_stock')
-              ->groupBy('product_id')
-              ->havingRaw('current_stock < minimum_stock');
+
+            $q->groupBy('stock_cards.product_id')
+              ->havingRaw('MAX(stock_cards.balance) < products.minimum_stock');
         });
     }
 
