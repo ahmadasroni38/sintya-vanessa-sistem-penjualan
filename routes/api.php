@@ -247,6 +247,7 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
     Route::get('reports/neraca', [ReportController::class, 'neraca']);
     Route::get('reports/neraca/export', [ReportController::class, 'exportNeraca']);
     Route::get('reports/laba-rugi', [ReportController::class, 'labaRugi']);
+    Route::get('reports/laba-rugi/export', [ReportController::class, 'exportLabaRugi']);
     Route::get('reports/perubahan-modal', [ReportController::class, 'perubahanModal']);
     Route::get('reports/arus-kas', [ReportController::class, 'arusKas']);
 

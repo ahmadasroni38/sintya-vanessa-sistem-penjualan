@@ -220,67 +220,6 @@ const generateDummyNeraca = (endDate) => {
     };
 };
 
-const generateDummyLabaRugi = (startDate, endDate) => {
-    return {
-        revenues: [
-            {
-                code: "4-1000",
-                name: "Penjualan Barang",
-                balance: 150000000,
-                level: 1,
-            },
-            {
-                code: "4-1100",
-                name: "Penjualan Jasa",
-                balance: 25000000,
-                level: 1,
-            },
-            {
-                code: "4-1200",
-                name: "Pendapatan Lainnya",
-                balance: 5000000,
-                level: 2,
-            },
-        ],
-        expenses: [
-            {
-                code: "5-1000",
-                name: "Harga Pokok Penjualan",
-                balance: 80000000,
-                level: 1,
-            },
-            { code: "5-1100", name: "Beban Gaji", balance: 30000000, level: 1 },
-            { code: "5-1200", name: "Beban Sewa", balance: 10000000, level: 1 },
-            {
-                code: "5-1300",
-                name: "Beban Listrik",
-                balance: 5000000,
-                level: 1,
-            },
-            {
-                code: "5-1400",
-                name: "Beban Telepon",
-                balance: 2000000,
-                level: 2,
-            },
-            {
-                code: "5-1500",
-                name: "Beban Marketing",
-                balance: 5000000,
-                level: 2,
-            },
-        ],
-        totals: {
-            revenue: 180000000,
-            expenses: 132000000,
-            net_income: 48000000,
-        },
-        period: {
-            start_date: startDate,
-            end_date: endDate,
-        },
-    };
-};
 
 const generateDummyPerubahanModal = (startDate, endDate) => {
     return {
@@ -359,9 +298,13 @@ const reportService = {
     // Laba Rugi (Income Statement)
     async getLabaRugi(startDate, endDate) {
         try {
-            // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            return generateDummyLabaRugi(startDate, endDate);
+            const response = await apiGet("reports/laba-rugi", {
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                }
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching laba rugi:", error);
             throw error;
@@ -451,14 +394,39 @@ const reportService = {
 
     async exportLabaRugi(startDate, endDate, format = "pdf") {
         try {
-            const response = await apiGet("reports/laba-rugi/export", {
-                params: {
-                    start_date: startDate,
-                    end_date: endDate,
-                    format: format,
-                }
+            // For export, we need to handle file download differently
+            const token = localStorage.getItem('token');
+            const apiUrl = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/reports/laba-rugi/export`;
+
+            const params = new URLSearchParams({
+                start_date: startDate,
+                end_date: endDate,
+                format: format,
             });
-            return response;
+
+            const response = await fetch(`${apiUrl}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `laba_rugi_${startDate}_${endDate}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            return { success: true };
         } catch (error) {
             console.error("Error exporting laba rugi:", error);
             throw error;

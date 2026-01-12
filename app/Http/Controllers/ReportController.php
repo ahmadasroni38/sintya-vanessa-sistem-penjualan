@@ -465,37 +465,196 @@ class ReportController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
+        // For Income Statement, we only get transactions within the period
+        // Revenue and Expense accounts don't carry forward opening balance
         $revenues = ChartOfAccount::active()
             ->where('account_type', 'revenue')
             ->orderBy('account_code')
             ->get()
             ->map(function ($account) use ($validated) {
+                // Get only period transactions (no opening balance)
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($validated) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                    });
+
+                $results = $query->selectRaw('
+                        transaction_type,
+                        SUM(amount) as total
+                    ')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                $debit = $results['debit'] ?? 0;
+                $credit = $results['credit'] ?? 0;
+
+                // For revenue accounts (credit normal balance), balance = credit - debit
+                $balance = $credit - $debit;
+
                 return [
                     'code' => $account->account_code,
                     'name' => $account->account_name,
-                    'balance' => $account->getBalance($validated['start_date'], $validated['end_date']),
+                    'balance' => $balance,
                     'level' => $account->level,
                 ];
-            });
+            })
+            ->filter(function ($account) {
+                // Only include accounts with transactions
+                return abs($account['balance']) >= 0.01;
+            })
+            ->values();
 
         $expenses = ChartOfAccount::active()
             ->where('account_type', 'expense')
             ->orderBy('account_code')
             ->get()
             ->map(function ($account) use ($validated) {
+                // Get only period transactions (no opening balance)
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($validated) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                    });
+
+                $results = $query->selectRaw('
+                        transaction_type,
+                        SUM(amount) as total
+                    ')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                $debit = $results['debit'] ?? 0;
+                $credit = $results['credit'] ?? 0;
+
+                // For expense accounts (debit normal balance), balance = debit - credit
+                $balance = $debit - $credit;
+
                 return [
                     'code' => $account->account_code,
                     'name' => $account->account_name,
-                    'balance' => $account->getBalance($validated['start_date'], $validated['end_date']),
+                    'balance' => $balance,
                     'level' => $account->level,
                 ];
-            });
+            })
+            ->filter(function ($account) {
+                // Only include accounts with transactions
+                return abs($account['balance']) >= 0.01;
+            })
+            ->values();
 
         $totalRevenue = $revenues->sum('balance');
         $totalExpenses = $expenses->sum('balance');
         $netIncome = $totalRevenue - $totalExpenses;
 
-        return Inertia::render('Dashboard/Reports/LabaRugi', [
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'revenues' => $revenues,
+                'expenses' => $expenses,
+                'totals' => [
+                    'revenue' => $totalRevenue,
+                    'expenses' => $totalExpenses,
+                    'net_income' => $netIncome,
+                ],
+                'period' => [
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Export Laba Rugi (Income Statement)
+     */
+    public function exportLabaRugi(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'format' => 'required|in:pdf,xlsx',
+        ]);
+
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $format = $validated['format'];
+
+        // Get revenues
+        $revenues = ChartOfAccount::active()
+            ->where('account_type', 'revenue')
+            ->orderBy('account_code')
+            ->get()
+            ->map(function ($account) use ($startDate, $endDate) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$startDate, $endDate]);
+                    });
+
+                $results = $query->selectRaw('
+                        transaction_type,
+                        SUM(amount) as total
+                    ')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                $debit = $results['debit'] ?? 0;
+                $credit = $results['credit'] ?? 0;
+                $balance = $credit - $debit;
+
+                return [
+                    'code' => $account->account_code,
+                    'name' => $account->account_name,
+                    'balance' => $balance,
+                    'level' => $account->level,
+                ];
+            })
+            ->filter(function ($account) {
+                return abs($account['balance']) >= 0.01;
+            })
+            ->values();
+
+        // Get expenses
+        $expenses = ChartOfAccount::active()
+            ->where('account_type', 'expense')
+            ->orderBy('account_code')
+            ->get()
+            ->map(function ($account) use ($startDate, $endDate) {
+                $query = $account->journalEntryDetails()
+                    ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                        $q->where('status', 'posted')
+                          ->whereBetween('entry_date', [$startDate, $endDate]);
+                    });
+
+                $results = $query->selectRaw('
+                        transaction_type,
+                        SUM(amount) as total
+                    ')
+                    ->groupBy('transaction_type')
+                    ->pluck('total', 'transaction_type');
+
+                $debit = $results['debit'] ?? 0;
+                $credit = $results['credit'] ?? 0;
+                $balance = $debit - $credit;
+
+                return [
+                    'code' => $account->account_code,
+                    'name' => $account->account_name,
+                    'balance' => $balance,
+                    'level' => $account->level,
+                ];
+            })
+            ->filter(function ($account) {
+                return abs($account['balance']) >= 0.01;
+            })
+            ->values();
+
+        $totalRevenue = $revenues->sum('balance');
+        $totalExpenses = $expenses->sum('balance');
+        $netIncome = $totalRevenue - $totalExpenses;
+
+        $data = [
             'revenues' => $revenues,
             'expenses' => $expenses,
             'totals' => [
@@ -504,10 +663,93 @@ class ReportController extends Controller
                 'net_income' => $netIncome,
             ],
             'period' => [
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ],
-        ]);
+        ];
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $pdf = \PDF::loadView('reports.laba-rugi', $data);
+            $filename = 'laba_rugi_' . $startDate . '_' . $endDate . '.pdf';
+            return $pdf->download($filename);
+        } else {
+            // Generate Excel
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $sheet->setCellValue('A1', 'LAPORAN LABA RUGI');
+            $sheet->setCellValue('A2', 'Periode: ' . date('d/m/Y', strtotime($startDate)) . ' - ' . date('d/m/Y', strtotime($endDate)));
+            $sheet->setCellValue('A3', '');
+
+            // Revenue section
+            $row = 4;
+            $sheet->setCellValue('A' . $row, 'PENDAPATAN');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Kode');
+            $sheet->setCellValue('B' . $row, 'Nama Akun');
+            $sheet->setCellValue('C' . $row, 'Jumlah');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row++;
+
+            foreach ($revenues as $revenue) {
+                $sheet->setCellValue('A' . $row, $revenue['code']);
+                $sheet->setCellValue('B' . $row, $revenue['name']);
+                $sheet->setCellValue('C' . $row, $revenue['balance']);
+                $row++;
+            }
+
+            $sheet->setCellValue('B' . $row, 'JUMLAH PENDAPATAN');
+            $sheet->setCellValue('C' . $row, $totalRevenue);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row += 2;
+
+            // Expenses section
+            $sheet->setCellValue('A' . $row, 'BEBAN');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+
+            $sheet->setCellValue('A' . $row, 'Kode');
+            $sheet->setCellValue('B' . $row, 'Nama Akun');
+            $sheet->setCellValue('C' . $row, 'Jumlah');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row++;
+
+            foreach ($expenses as $expense) {
+                $sheet->setCellValue('A' . $row, $expense['code']);
+                $sheet->setCellValue('B' . $row, $expense['name']);
+                $sheet->setCellValue('C' . $row, $expense['balance']);
+                $row++;
+            }
+
+            $sheet->setCellValue('B' . $row, 'JUMLAH BEBAN');
+            $sheet->setCellValue('C' . $row, $totalExpenses);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $row += 2;
+
+            // Net Income
+            $sheet->setCellValue('B' . $row, 'LABA (RUGI) BERSIH');
+            $sheet->setCellValue('C' . $row, $netIncome);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+
+            // Auto-size columns
+            foreach (['A', 'B', 'C'] as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $filename = 'laba_rugi_' . $startDate . '_' . $endDate . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer->save('php://output');
+            exit;
+        }
     }
 
     /**
