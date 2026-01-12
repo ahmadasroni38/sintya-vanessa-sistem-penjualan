@@ -96,8 +96,8 @@ export function useSales() {
 
         try {
             const response = await api.get(`/sales/${id}`);
-            sale.value = response.data;
-            return response.data;
+            sale.value = response;
+            return response;
         } catch (err) {
             console.error("Error fetching sale:", err);
             notificationStore.error(

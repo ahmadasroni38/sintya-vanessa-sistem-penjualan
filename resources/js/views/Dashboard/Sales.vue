@@ -130,10 +130,12 @@
             :sale="viewingSale"
             @close="closeDetailsModal"
         />
+    </div>
 
-        <!-- Print Receipt Template (hidden by default, shown when printing) -->
-        <div id="print-receipt" class="hidden print:block print:fixed print:inset-0 print:z-50 print:bg-white">
-            <div class="print:p-6 print:max-w-sm print:mx-auto print:text-sm">
+    <!-- Print Receipt Template (teleported to body for proper printing) -->
+    <teleport to="body">
+        <div id="print-receipt" class="hidden print:block print:fixed print:inset-0 print:z-50 print:bg-white print:overflow-auto">
+            <div class="print:p-6 print:max-w-sm print:mx-auto print:text-sm print:text-black print:bg-white">
                 <!-- Header -->
                 <div class="text-center mb-4">
                     <h1 class="text-lg font-bold">SINTIYA WAREHOUSE</h1>
@@ -145,7 +147,7 @@
                 <div class="border-t border-b border-gray-300 py-2 mb-4">
                     <div class="flex justify-between text-xs mb-1">
                         <span>No. Transaksi:</span>
-                        <span class="font-mono">{{ printingSale?.transaction_number }}</span>
+                        <span class="font-mono">{{ printingSale?.transaction_number || '-' }}</span>
                     </div>
                     <div class="flex justify-between text-xs mb-1">
                         <span>Tanggal:</span>
@@ -153,11 +155,11 @@
                     </div>
                     <div class="flex justify-between text-xs mb-1">
                         <span>Pelanggan:</span>
-                        <span>{{ printingSale?.customer?.customer_name || 'Walk-in Customer' }}</span>
+                        <span>{{ printingSale?.customer?.customer_name || printingSale?.customer_name || 'Walk-in Customer' }}</span>
                     </div>
                     <div class="flex justify-between text-xs">
                         <span>Lokasi:</span>
-                        <span>{{ printingSale?.location?.name }}</span>
+                        <span>{{ printingSale?.location?.name || printingSale?.location_name || '-' }}</span>
                     </div>
                 </div>
 
@@ -173,12 +175,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in printingSale?.details" :key="item.id" class="border-b border-gray-200">
+                            <tr v-for="(item, index) in (printingSale?.details || [])" :key="item.id || index" class="border-b border-gray-200">
                                 <td class="py-1">
-                                    <div class="font-medium">{{ item.product?.product_name }}</div>
-                                    <div class="text-gray-500 text-xs">{{ item.product?.product_code }}</div>
+                                    <div class="font-medium">{{ item.product?.product_name || item.product_name || '-' }}</div>
+                                    <div class="text-gray-500 text-xs">{{ item.product?.product_code || item.product_code || '' }}</div>
                                 </td>
-                                <td class="text-center py-1">{{ item.quantity }}</td>
+                                <td class="text-center py-1">{{ item.quantity || 0 }}</td>
                                 <td class="text-right py-1">{{ formatCurrency(item.unit_price) }}</td>
                                 <td class="text-right py-1">{{ formatCurrency(item.total_price) }}</td>
                             </tr>
@@ -190,7 +192,7 @@
                 <div class="border-t border-gray-300 pt-2">
                     <div class="flex justify-between text-sm font-bold mb-2">
                         <span>TOTAL:</span>
-                        <span>{{ formatCurrency(printingSale?.total_amount) }}</span>
+                        <span>{{ formatCurrency(printingSale?.total_amount || 0) }}</span>
                     </div>
                     <div class="flex justify-between text-xs">
                         <span>Pembayaran:</span>
@@ -210,7 +212,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </teleport>
 </template>
 
 <script setup>
@@ -498,16 +500,45 @@ const handleView = async (sale) => {
 
 const handlePrint = async (sale) => {
     try {
+        console.log("Starting print for sale:", sale.id);
+
+        // Fetch the full sale data
         const fullSale = await fetchSale(sale.id);
+
+        console.log("Full sale data received:", fullSale);
+
+        // Ensure we have the data before proceeding
+        if (!fullSale) {
+            console.error("No sale data received");
+            return;
+        }
+
+        // Set the printing sale data
         printingSale.value = fullSale;
+
+        console.log("Printing sale set:", printingSale.value);
 
         // Wait for next tick to ensure DOM is updated
         await nextTick();
 
+        // Add a longer delay to ensure all data is rendered
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Verify the data is set before printing
+        console.log("About to print, printingSale.value:", printingSale.value);
+        console.log("Receipt element exists:", document.getElementById('print-receipt'));
+
         // Print the receipt
         window.print();
+
+        // Clear the printing sale data after print dialog closes
+        setTimeout(() => {
+            printingSale.value = null;
+        }, 1000);
     } catch (error) {
         console.error("Error printing sale:", error);
+        // Clear any partial data
+        printingSale.value = null;
     }
 };
 
@@ -661,26 +692,91 @@ onMounted(async () => {
 
 <style>
 @media print {
+    /* Hide all elements except the receipt */
+    body > * {
+        display: none !important;
+    }
+
+    /* Show only the receipt */
     #print-receipt {
         display: block !important;
-        position: fixed !important;
-        inset: 0 !important;
-        z-index: 50 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        z-index: 9999 !important;
         background: white !important;
         padding: 1.5rem !important;
         max-width: 24rem !important;
         margin: 0 auto !important;
         font-size: 0.875rem !important;
+        overflow: visible !important;
     }
 
-    /* Hide everything else when printing */
-    body * {
-        visibility: hidden;
-    }
-
-    #print-receipt,
+    /* Ensure all text in receipt is visible */
     #print-receipt * {
-        visibility: visible;
+        visibility: visible !important;
+        display: block !important;
+        color: black !important;
+        background: white !important;
+    }
+
+    /* Make table elements display as table */
+    #print-receipt table {
+        display: table !important;
+    }
+
+    #print-receipt thead {
+        display: table-header-group !important;
+    }
+
+    #print-receipt tbody {
+        display: table-row-group !important;
+    }
+
+    #print-receipt tr {
+        display: table-row !important;
+    }
+
+    #print-receipt th,
+    #print-receipt td {
+        display: table-cell !important;
+    }
+
+    /* Make flex containers work */
+    #print-receipt .flex {
+        display: flex !important;
+    }
+
+    #print-receipt .text-center {
+        text-align: center !important;
+    }
+
+    #print-receipt .text-right {
+        text-align: right !important;
+    }
+
+    #print-receipt .text-left {
+        text-align: left !important;
+    }
+
+    /* Reset body styles for printing */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    /* Hide scrollbars */
+    ::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* Ensure page breaks don't split the receipt */
+    #print-receipt {
+        page-break-inside: avoid !important;
     }
 }
 </style>
