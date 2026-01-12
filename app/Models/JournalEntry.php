@@ -648,7 +648,7 @@ class JournalEntry extends Model
         $year = $year ?? date('Y');
 
         $lastEntry = static::whereYear('created_at', $year)
-            ->orderBy('id', 'desc')
+            ->orderBy('entry_number', 'desc')
             ->first();
 
         if ($lastEntry && preg_match('/JE-(\d{4})(\d{5})/', $lastEntry->entry_number, $matches)) {

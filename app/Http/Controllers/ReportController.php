@@ -5,12 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ReportController extends Controller
 {
     /**
      * Generate Neraca Lajur (Worksheet)
+     *
+     * Neraca Lajur format:
+     * 1. Saldo Awal (Opening Balance)
+     * 2. Penyesuaian Debit/Kredit (Adjustments from adjustment entries)
+     * 3. Saldo Disesuaikan (Adjusted Balance)
+     * 4. Neraca Debit/Kredit (Balance Sheet items)
+     * 5. Laba Rugi Debit/Kredit (Income Statement items)
      */
     public function neracaLajur(Request $request)
     {
@@ -23,47 +31,158 @@ class ReportController extends Controller
             ->orderBy('account_code')
             ->get();
 
+        Log::info('NeracaLajur: Total accounts found', ['count' => $accounts->count()]);
+
         $data = [];
 
         foreach ($accounts as $account) {
+            // Get opening balance (balance before period starts)
+            // We need to get all transactions before start_date
+            $openingBalanceData = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($validated) {
+                    $q->where('status', 'posted')
+                      ->where('entry_date', '<', $validated['start_date']);
+                })
+                ->selectRaw('
+                    transaction_type,
+                    SUM(amount) as total
+                ')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $openingDebit = $openingBalanceData['debit'] ?? 0;
+            $openingCredit = $openingBalanceData['credit'] ?? 0;
+
+            // Calculate opening balance based on normal balance
+            if ($account->normal_balance === 'debit') {
+                $openingBalance = $account->opening_balance + $openingDebit - $openingCredit;
+            } else {
+                $openingBalance = $account->opening_balance + $openingCredit - $openingDebit;
+            }
+
+            // Get ALL transactions within date range
+            $allPeriodData = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($validated) {
+                    $q->where('status', 'posted')
+                      ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                })
+                ->selectRaw('
+                    transaction_type,
+                    SUM(amount) as total
+                ')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $allPeriodDebit = $allPeriodData['debit'] ?? 0;
+            $allPeriodCredit = $allPeriodData['credit'] ?? 0;
+
+            // Get adjustment entries (adjustment type) within period
+            $adjustmentQuery = $account->journalEntryDetails()
+                ->whereHas('journalEntry', function ($q) use ($validated) {
+                    $q->where('status', 'posted')
+                      ->where('entry_type', 'adjustment')
+                      ->whereBetween('entry_date', [$validated['start_date'], $validated['end_date']]);
+                });
+
+            $adjustmentResults = $adjustmentQuery->selectRaw('
+                    transaction_type,
+                    SUM(amount) as total
+                ')
+                ->groupBy('transaction_type')
+                ->pluck('total', 'transaction_type');
+
+            $adjustmentDebit = $adjustmentResults['debit'] ?? 0;
+            $adjustmentCredit = $adjustmentResults['credit'] ?? 0;
+
+            // Calculate regular transactions (all transactions - adjustments)
+            $regularDebit = $allPeriodDebit - $adjustmentDebit;
+            $regularCredit = $allPeriodCredit - $adjustmentCredit;
+
+            // Calculate adjusted balance (opening + regular transactions + adjustments)
+            if ($account->normal_balance === 'debit') {
+                $adjustedBalance = $openingBalance + $regularDebit - $regularCredit + $adjustmentDebit - $adjustmentCredit;
+            } else {
+                $adjustedBalance = $openingBalance + $regularCredit - $regularDebit + $adjustmentCredit - $adjustmentDebit;
+            }
+
+            // Get final balance for reference
             $balanceData = $account->calculateBalance($validated['start_date'], $validated['end_date']);
             $balance = $balanceData['balance'];
 
-            // Classify into financial statement categories
+            // Skip accounts with zero balance (both opening and adjusted balance)
+            // Use abs() to handle floating point comparison
+            if (abs($adjustedBalance) < 0.01 && abs($openingBalance) < 0.01) {
+                continue;
+            }
+
+            // Classify into Neraca (Balance Sheet) or Laba Rugi (Income Statement)
+            // Based on normal_balance for accurate classification
+            $saldoDisesuaikanDebit = 0;
+            $saldoDisesuaikanCredit = 0;
             $neracaDebit = 0;
             $neracaCredit = 0;
             $labaRugiDebit = 0;
             $labaRugiCredit = 0;
 
-            if (in_array($account->account_type, ['asset', 'expense'])) {
-                if ($account->account_type == 'asset') {
-                    $neracaDebit = $balance >= 0 ? $balance : 0;
-                    $neracaCredit = $balance < 0 ? abs($balance) : 0;
-                } else { // expense
-                    $labaRugiDebit = $balance >= 0 ? $balance : 0;
-                    $labaRugiCredit = $balance < 0 ? abs($balance) : 0;
+            // Determine Saldo Disesuaikan column based on normal balance
+            if ($adjustedBalance > 0) {
+                // Positive balance (follows normal balance)
+                if ($account->normal_balance === 'debit') {
+                    $saldoDisesuaikanDebit = $adjustedBalance;
+                } else {
+                    $saldoDisesuaikanCredit = $adjustedBalance;
                 }
             } else {
-                if (in_array($account->account_type, ['liability', 'equity', 'revenue'])) {
-                    if ($account->account_type == 'revenue') {
-                        $labaRugiCredit = $balance >= 0 ? $balance : 0;
-                        $labaRugiDebit = $balance < 0 ? abs($balance) : 0;
-                    } else { // liability or equity
-                        $neracaCredit = $balance >= 0 ? $balance : 0;
-                        $neracaDebit = $balance < 0 ? abs($balance) : 0;
-                    }
+                // Negative balance (opposite of normal balance)
+                if ($account->normal_balance === 'debit') {
+                    $saldoDisesuaikanCredit = abs($adjustedBalance);
+                } else {
+                    $saldoDisesuaikanDebit = abs($adjustedBalance);
                 }
             }
 
+            // Classify to Neraca or Laba Rugi based on account type
+            if (in_array($account->account_type, ['asset', 'liability', 'equity'])) {
+                // Goes to Neraca (Balance Sheet)
+                $neracaDebit = $saldoDisesuaikanDebit;
+                $neracaCredit = $saldoDisesuaikanCredit;
+            } else {
+                // Goes to Laba Rugi (Income Statement) - revenue & expense
+                $labaRugiDebit = $saldoDisesuaikanDebit;
+                $labaRugiCredit = $saldoDisesuaikanCredit;
+            }
+
             $data[] = [
+                'id' => $account->id,
                 'account_code' => $account->account_code,
                 'account_name' => $account->account_name,
                 'account_type' => $account->account_type,
-                'balance' => $balance,
+                'normal_balance' => $account->normal_balance,
+
+                // Column 1: Saldo Awal
+                'opening_balance' => $openingBalance,
+
+                // Column 2-3: Penyesuaian (Adjustments)
+                'adjustment_debit' => $adjustmentDebit,
+                'adjustment_credit' => $adjustmentCredit,
+
+                // Column 4-5: Saldo Disesuaikan (Adjusted Balance)
+                'adjusted_debit' => $saldoDisesuaikanDebit,
+                'adjusted_credit' => $saldoDisesuaikanCredit,
+
+                // Column 6-7: Neraca (Balance Sheet)
                 'neraca_debit' => $neracaDebit,
                 'neraca_credit' => $neracaCredit,
+
+                // Column 8-9: Laba Rugi (Income Statement)
                 'laba_rugi_debit' => $labaRugiDebit,
                 'laba_rugi_credit' => $labaRugiCredit,
+
+                // For reference - include regular transactions (non-adjustment)
+                'regular_debit' => $regularDebit,
+                'regular_credit' => $regularCredit,
+                'balance' => $balance,
+                'adjusted_balance' => $adjustedBalance,
             ];
         }
 
