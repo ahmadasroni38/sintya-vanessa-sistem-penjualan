@@ -76,9 +76,13 @@ class ProductService
         // Low stock filter
         if (!empty($filters['low_stock']) && filter_var($filters['low_stock'], FILTER_VALIDATE_BOOLEAN)) {
             $query->whereHas('stockCards', function ($q) {
-                $q->selectRaw('MAX(balance) as current_stock')
-                  ->groupBy('product_id')
-                  ->havingRaw('MAX(balance) < minimum_stock');
+                $q->whereRaw('balance < minimum_stock')
+                  ->whereIn('id', function ($subquery) {
+                      $subquery->selectRaw('MAX(id)')
+                               ->from('stock_cards')
+                               ->whereColumn('product_id', 'stock_cards.product_id')
+                               ->groupBy('product_id');
+                  });
             });
         }
     }
@@ -243,9 +247,13 @@ class ProductService
 
             // Count low stock products
             $lowStock = Product::whereHas('stockCards', function ($q) {
-                $q->selectRaw('product_id, MAX(balance) as current_stock')
-                  ->groupBy('product_id')
-                  ->havingRaw('current_stock < minimum_stock');
+                $q->whereRaw('balance < minimum_stock')
+                  ->whereIn('id', function ($subquery) {
+                      $subquery->selectRaw('MAX(id)')
+                               ->from('stock_cards')
+                               ->whereColumn('product_id', 'stock_cards.product_id')
+                               ->groupBy('product_id');
+                  });
             })->count();
 
             return [
