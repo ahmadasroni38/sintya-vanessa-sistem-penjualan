@@ -1,36 +1,36 @@
 <template>
     <div class="space-y-4">
         <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Sale Items</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('sales.form.items.title') }}</h3>
             <button
                 type="button"
                 @click="addItem"
                 :disabled="saving || !canAddItems"
-                :title="!canAddItems ? 'Please select a location first' : ''"
+                :title="!canAddItems ? t('sales.form.items.selectLocationFirst') : ''"
                 class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Add Item
+                {{ t('sales.form.items.addItem') }}
             </button>
         </div>
 
         <div v-if="items.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-            No items added. Click "Add Item" to start.
+            {{ t('sales.form.items.noItems') }}
         </div>
 
         <div v-else class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Product</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-32">Quantity</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-32">Unit Price</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-28">Disc %</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-28">Tax %</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-36">Total</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-20">Action</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">{{ t('sales.form.items.product') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-32">{{ t('sales.form.items.quantity') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-32">{{ t('sales.form.items.unitPrice') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-28">{{ t('sales.form.items.discountPercent') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-28">{{ t('sales.form.items.taxPercent') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-36">{{ t('sales.form.items.total') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase w-20">{{ t('sales.form.items.action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -44,7 +44,7 @@
                                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     :class="{ 'border-red-500': errors?.[`items.${index}.product_id`] }"
                                 >
-                                    <option value="">Select Product</option>
+                                    <option value="">{{ t('sales.form.items.selectProduct') }}</option>
                                     <option
                                         v-for="product in productOptions"
                                         :key="product.id"
@@ -66,8 +66,8 @@
                                     >
                                         <span class="font-medium">●</span> Stock: {{ item._available_stock || item.product.stock_quantity || 0 }}
                                     </span>
-                                    <span v-if="(item._available_stock || item.product.stock_quantity || 0) === 0" class="text-red-600 dark:text-red-400">(Out of stock)</span>
-                                    <span v-else-if="(item._available_stock || item.product.stock_quantity || 0) < 10" class="text-orange-600 dark:text-orange-400">(Low stock)</span>
+                                    <span v-if="(item._available_stock || item.product.stock_quantity || 0) === 0" class="text-red-600 dark:text-red-400">{{ t('sales.form.items.outOfStock') }}</span>
+                                    <span v-else-if="(item._available_stock || item.product.stock_quantity || 0) < 10" class="text-orange-600 dark:text-orange-400">{{ t('sales.form.items.lowStock') }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3">
@@ -174,6 +174,9 @@
 
 <script setup>
 import { watch, computed, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
     modelValue: {
@@ -245,8 +248,8 @@ const removeItem = (index) => {
     // Ask for confirmation if item has data
     const hasData = item.product_id || item.quantity > 1 || item.unit_price > 0;
     if (hasData) {
-        const productName = item.product?.product_name || "this item";
-        const confirmed = confirm(`Are you sure you want to remove ${productName}?`);
+        const productName = item.product?.product_name || t('sales.form.items.confirmRemove').replace('?', '');
+        const confirmed = confirm(`${t('sales.form.items.confirmRemove')} ${productName}?`);
         if (!confirmed) {
             return;
         }
@@ -285,27 +288,27 @@ const calculateItemTotal = (index) => {
 
     // Validate product selection
     if (!item.product_id || item.product_id === "") {
-        item._validation_errors.push("Please select a product");
+        item._validation_errors.push(t('sales.form.items.validationSelectProduct'));
     }
 
     // Validate quantity
     if (quantity <= 0) {
-        item._validation_errors.push("Quantity must be greater than 0");
+        item._validation_errors.push(t('sales.form.items.validationQuantityGreaterZero'));
     }
 
     // Validate unit price
     if (unitPrice <= 0) {
-        item._validation_errors.push("Unit price must be greater than 0");
+        item._validation_errors.push(t('sales.form.items.validationUnitPriceGreaterZero'));
     }
 
     // Validate discount percentage
     if (discountPercent < 0 || discountPercent > 100) {
-        item._validation_errors.push("Discount must be between 0% and 100%");
+        item._validation_errors.push(t('sales.form.items.validationDiscountRange'));
     }
 
     // Validate tax percentage
     if (taxPercent < 0 || taxPercent > 100) {
-        item._validation_errors.push("Tax must be between 0% and 100%");
+        item._validation_errors.push(t('sales.form.items.validationTaxRange'));
     }
 
     // Check stock availability (only if product is selected and quantity is valid)
@@ -322,14 +325,14 @@ const calculateItemTotal = (index) => {
 
         // Validate stock availability
         if (availableStock === 0) {
-            item._validation_errors.push("Product is out of stock");
+            item._validation_errors.push(t('sales.form.items.validationOutOfStock'));
         } else if (quantity > availableStock) {
-            item._validation_errors.push(`Quantity exceeds available stock (${availableStock})`);
+            item._validation_errors.push(`${t('sales.form.items.validationExceedsStock')} (${availableStock})`);
         }
 
         // Add low stock warning (not an error, just info)
         if (availableStock > 0 && availableStock < 10 && quantity <= availableStock) {
-            item._stock_warning = `Low stock: Only ${availableStock} units available`;
+            item._stock_warning = t('sales.form.items.warningLowStock', { count: availableStock });
         } else {
             item._stock_warning = null;
         }

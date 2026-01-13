@@ -1,7 +1,7 @@
 <template>
     <Modal
         :is-open="isOpen"
-        :title="editingItem ? 'Edit Sale Transaction' : 'New Sale Transaction'"
+        :title="editingItem ? t('sales.form.editTitle') : t('sales.form.newTitle')"
         size="6xl"
         @close="handleClose"
     >
@@ -10,7 +10,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormInput
                     v-model="formData.transaction_date"
-                    label="Transaction Date"
+                    :label="t('sales.form.transactionDate')"
                     type="date"
                     required
                     :disabled="saving"
@@ -18,7 +18,7 @@
                 />
                 <FormSelect
                     v-model="formData.location_id"
-                    label="Location"
+                    :label="t('sales.form.location')"
                     :options="locationOptions"
                     required
                     :disabled="saving || formData.items.length > 0"
@@ -27,7 +27,7 @@
                 />
                 <FormSelect
                     v-model="formData.customer_id"
-                    label="Customer"
+                    :label="t('sales.form.customer')"
                     :options="customerOptions"
                     :disabled="saving"
                     :error="errors?.customer_id"
@@ -36,8 +36,8 @@
 
             <FormTextarea
                 v-model="formData.notes"
-                label="Notes"
-                placeholder="Additional notes (optional)"
+                :label="t('sales.form.notes')"
+                :placeholder="t('sales.form.notesPlaceholder')"
                 rows="2"
                 :disabled="saving"
                 :error="errors?.notes"
@@ -62,19 +62,19 @@
                 <div class="flex justify-end">
                     <div class="w-full md:w-1/2 space-y-2">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ t('sales.form.subtotal') }}:</span>
                             <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(totals.subtotal) }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">Discount:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ t('sales.form.discount') }}:</span>
                             <span class="font-medium text-red-600">-{{ formatCurrency(totals.discount) }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">Tax:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ t('sales.form.tax') }}:</span>
                             <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(totals.tax) }}</span>
                         </div>
                         <div class="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-700 pt-2">
-                            <span class="text-gray-900 dark:text-white">Total:</span>
+                            <span class="text-gray-900 dark:text-white">{{ t('sales.form.total') }}:</span>
                             <span class="text-blue-600">{{ formatCurrency(totals.total) }}</span>
                         </div>
                     </div>
@@ -86,7 +86,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormSelect
                         v-model="formData.payment_method"
-                        label="Payment Method"
+                        :label="t('sales.form.paymentMethod')"
                         :options="paymentMethodOptions"
                         required
                         :disabled="saving"
@@ -94,7 +94,7 @@
                     />
                     <FormInput
                         v-model="formData.paid_amount"
-                        label="Paid Amount"
+                        :label="t('sales.form.paidAmount')"
                         type="number"
                         step="0.01"
                         min="0"
@@ -104,7 +104,7 @@
                     />
                     <FormInput
                         v-model="formData.change_amount"
-                        label="Change Amount"
+                        :label="t('sales.form.changeAmount')"
                         type="number"
                         step="0.01"
                         min="0"
@@ -122,15 +122,15 @@
                     @click="handleClose"
                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
                 >
-                    Cancel
+                    {{ t('sales.form.cancel') }}
                 </button>
                 <button
                     type="submit"
                     :disabled="saving || formData.items.length === 0 || hasValidationError"
                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <span v-if="saving">Saving...</span>
-                    <span v-else>{{ editingItem ? "Update" : "Save" }}</span>
+                    <span v-if="saving">{{ t('sales.form.saving') }}</span>
+                    <span v-else>{{ editingItem ? t('sales.form.update') : t('sales.form.save') }}</span>
                 </button>
             </div>
         </form>
@@ -139,11 +139,14 @@
 
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import Modal from "@/components/Overlays/Modal.vue";
 import FormInput from "@/components/Forms/FormInput.vue";
 import FormSelect from "@/components/Forms/FormSelect.vue";
 import FormTextarea from "@/components/Forms/FormTextarea.vue";
 import SalesItemsTable from "./SalesItemsTable.vue";
+
+const { t } = useI18n();
 
 const props = defineProps({
     isOpen: {
@@ -178,11 +181,11 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "saved", "locationChanged"]);
 
-const paymentMethodOptions = [
-    { value: "cash", label: "Cash" },
-    { value: "transfer", label: "Bank Transfer" },
-    { value: "credit", label: "Credit" },
-];
+const paymentMethodOptions = computed(() => [
+    { value: "cash", label: t('sales.form.paymentMethodCash') },
+    { value: "transfer", label: t('sales.form.paymentMethodTransfer') },
+    { value: "credit", label: t('sales.form.paymentMethodCredit') },
+]);
 
 const formData = ref({
     transaction_date: new Date().toISOString().split("T")[0],
@@ -361,7 +364,7 @@ watch(
             // Clear all items when location changes
             if (formData.value.items.length > 0) {
                 const confirmed = confirm(
-                    "Changing location will clear all added items. Continue?"
+                    t('sales.form.locationChangeWarning')
                 );
                 if (!confirmed) {
                     // Revert to old location
@@ -382,7 +385,7 @@ watch(
 const handleClose = () => {
     // Warn user about unsaved changes
     if (isFormDirty.value) {
-        const confirmed = confirm("You have unsaved changes. Are you sure you want to close this form?");
+        const confirmed = confirm(t('sales.form.unsavedChangesWarning'));
         if (!confirmed) {
             return;
         }
