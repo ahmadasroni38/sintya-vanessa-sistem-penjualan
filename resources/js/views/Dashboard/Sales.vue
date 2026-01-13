@@ -138,9 +138,22 @@
             <div class="print:p-6 print:max-w-sm print:mx-auto print:text-sm print:text-black print:bg-white">
                 <!-- Header -->
                 <div class="text-center mb-4">
-                    <h1 class="text-lg font-bold">SINTIYA WAREHOUSE</h1>
-                    <p class="text-xs text-gray-600">Jl. Contoh No. 123, Kota</p>
-                    <p class="text-xs text-gray-600">Telp: (021) 12345678</p>
+                    <div class="flex justify-center mb-2">
+                        <div class="w-16 h-16 rounded-lg flex items-center justify-center bg-gray-100">
+                            <img
+                                v-if="settings.logo_sistem"
+                                :src="`/storage/logo/${settings.logo_sistem}`"
+                                :alt="settings.nama_sistem"
+                                class="w-full h-full object-contain p-2"
+                            />
+                            <span v-else class="text-2xl font-bold text-gray-700">{{ settings.nama_sistem?.charAt(0) || 'S' }}</span>
+                        </div>
+                    </div>
+                    <h1 class="text-lg font-bold">{{ settings.nama_sistem || 'SINTIYA WAREHOUSE' }}</h1>
+                    <p v-if="settings.nama_perusahaan" class="text-xs text-gray-600">{{ settings.nama_perusahaan }}</p>
+                    <p v-if="settings.alamat_lengkap" class="text-xs text-gray-600">{{ settings.alamat_lengkap }}</p>
+                    <p v-if="settings.nomor_telepon" class="text-xs text-gray-600">Telp: {{ settings.nomor_telepon }}</p>
+                    <p v-if="settings.email_perusahaan" class="text-xs text-gray-600">Email: {{ settings.email_perusahaan }}</p>
                 </div>
 
                 <!-- Transaction Info -->
@@ -208,6 +221,7 @@
                 <div class="text-center mt-6 text-xs text-gray-600">
                     <p>Terima kasih atas kunjungan Anda!</p>
                     <p>Barang yang sudah dibeli tidak dapat dikembalikan.</p>
+                    <p v-if="settings.footer_text" class="mt-2">{{ settings.footer_text }}</p>
                     <p class="mt-2 font-mono">{{ new Date().toLocaleString('id-ID') }}</p>
                 </div>
             </div>
@@ -216,10 +230,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSales } from "@/composables/useSales";
 import { useSelectOptions } from "@/composables/useSelectOptions";
+import { apiGet } from "@/utils/api";
 import DataTable from "@/components/UI/DataTable.vue";
 import ConfirmationModal from "@/components/Overlays/ConfirmationModal.vue";
 import SalesStats from "@/components/Sales/SalesStats.vue";
@@ -233,6 +248,18 @@ import {
 } from "@heroicons/vue/24/outline";
 
 const { t } = useI18n();
+
+// System settings for receipt
+const settings = reactive({
+    logo_sistem: "",
+    nama_sistem: "SINTIYA WAREHOUSE",
+    deskripsi_sistem: "",
+    nama_perusahaan: "",
+    alamat_lengkap: "",
+    email_perusahaan: "",
+    nomor_telepon: "",
+    footer_text: "",
+});
 
 // Use Sales Composable
 const {
@@ -669,10 +696,26 @@ const handleExport = async () => {
     }
 };
 
+// Fetch system settings for receipt
+const fetchSettings = async () => {
+    try {
+        const response = await apiGet("/settings");
+        if (response.success) {
+            Object.assign(settings, response.data);
+        }
+    } catch (error) {
+        console.error("Error fetching settings:", error);
+        // Keep default values if fetch fails
+    }
+};
+
 // Lifecycle
 onMounted(async () => {
     try {
-        // Load options first (non-blocking)
+        // Load settings first
+        await fetchSettings();
+
+        // Load options (non-blocking)
         await Promise.all([
             loadLocations(),
             loadOptions(),
