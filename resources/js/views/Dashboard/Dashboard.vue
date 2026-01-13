@@ -50,23 +50,23 @@
                         <div class="hidden md:flex items-center space-x-6">
                             <div class="text-center">
                                 <div class="text-lg font-bold text-white">
-                                    {{ stats.totalCustomers.toLocaleString() }}
+                                    {{ stats.totalProducts.toLocaleString() }}
                                 </div>
                                 <div class="text-xs text-blue-100">
-                                    {{ $t('dashboard.customers') }}
+                                    {{ $t('dashboard.products') }}
                                 </div>
                             </div>
                             <div class="text-center">
                                 <div class="text-lg font-bold text-white">
-                                    {{ stats.totalSales.toLocaleString() }}
+                                    {{ stats.totalCustomers.toLocaleString() }}
                                 </div>
-                                <div class="text-xs text-blue-100">{{ $t('dashboard.sales') }}</div>
+                                <div class="text-xs text-blue-100">{{ $t('dashboard.customers') }}</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-lg font-bold text-white">
-                                    {{ formatCurrency(stats.totalRevenue) }}
+                                    {{ stats.currentStock.toLocaleString() }}
                                 </div>
-                                <div class="text-xs text-blue-100">{{ $t('dashboard.revenue') }}</div>
+                                <div class="text-xs text-blue-100">{{ $t('dashboard.stock') }}</div>
                             </div>
                         </div>
                         <div class="text-sm text-blue-100">
@@ -79,145 +79,6 @@
 
         <!-- Business Overview Stats -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Total Customers -->
-            <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
-            >
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div
-                                class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"
-                            >
-                                <svg
-                                    class="w-6 h-6 text-white"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M5 5h14l1 12H4L5 9z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-4 w-0 flex-1">
-                            <dl>
-                                <dt
-                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
-                                >
-                                    {{ $t('dashboard.totalCustomers') }}
-                                </dt>
-                                <dd
-                                    class="text-2xl font-bold text-gray-900 dark:text-white"
-                                >
-                                    <span v-if="statisticsLoading">...</span>
-                                    <span v-else>{{
-                                        stats.totalCustomers.toLocaleString()
-                                    }}</span>
-                                </dd>
-                            </dl>
-                        </div>
-                        <div
-                            class="flex items-center text-sm text-blue-600 dark:text-blue-400"
-                        >
-                            <svg
-                                class="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                />
-                            </svg>
-                            +{{ stats.customerGrowth }}%
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ stats.activeCustomers || 0 }} {{ $t('dashboard.active') }} •
-                            {{ stats.inactiveCustomers || 0 }} {{ $t('dashboard.inactive') }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Sales -->
-            <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
-            >
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div
-                                class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center"
-                            >
-                                <svg
-                                    class="w-6 h-6 text-white"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0h6v-1a6 6 0 00-9-5.197m13.5-14a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-4 w-0 flex-1">
-                            <dl>
-                                <dt
-                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
-                                >
-                                    {{ $t('dashboard.totalSales') }}
-                                </dt>
-                                <dd
-                                    class="text-2xl font-bold text-gray-900 dark:text-white"
-                                >
-                                    <span v-if="statisticsLoading">...</span>
-                                    <span v-else>{{
-                                        stats.totalSales.toLocaleString()
-                                    }}</span>
-                                </dd>
-                            </dl>
-                        </div>
-                        <div
-                            class="flex items-center text-sm text-green-600 dark:text-green-400"
-                        >
-                            <svg
-                                class="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                />
-                            </svg>
-                            +{{ stats.salesGrowth }}%
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ $t('dashboard.thisMonth') }}: {{ stats.monthlySales || 0 }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Total Products -->
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
@@ -260,34 +121,120 @@
                                 </dd>
                             </dl>
                         </div>
-                        <div
-                            class="flex items-center text-sm text-purple-600 dark:text-purple-400"
-                        >
-                            <svg
-                                class="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                />
-                            </svg>
-                            +{{ stats.productGrowth }}%
-                        </div>
                     </div>
                     <div class="mt-4">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ $t('dashboard.lowStock') }}: {{ stats.lowStockProducts || 0 }}
+                            {{ stats.activeProducts || 0 }} {{ $t('dashboard.active') }} •
+                            {{ stats.inactiveProducts || 0 }} {{ $t('dashboard.inactive') }}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Total Revenue -->
+            <!-- Total Customers -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
+            >
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"
+                            >
+                                <svg
+                                    class="w-6 h-6 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M5 5h14l1 12H4L5 9z"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt
+                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                                >
+                                    {{ $t('dashboard.totalCustomers') }}
+                                </dt>
+                                <dd
+                                    class="text-2xl font-bold text-gray-900 dark:text-white"
+                                >
+                                    <span v-if="statisticsLoading">...</span>
+                                    <span v-else>{{
+                                        stats.totalCustomers.toLocaleString()
+                                    }}</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ stats.activeCustomers || 0 }} {{ $t('dashboard.active') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Transactions -->
+            <div
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
+            >
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center"
+                            >
+                                <svg
+                                    class="w-6 h-6 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt
+                                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                                >
+                                    {{ $t('dashboard.stockTransactions') }}
+                                </dt>
+                                <dd
+                                    class="text-2xl font-bold text-gray-900 dark:text-white"
+                                >
+                                    <span v-if="statisticsLoading">...</span>
+                                    <span v-else>{{
+                                        stats.totalStockTransactions.toLocaleString()
+                                    }}</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ $t('dashboard.in') }}: {{ stats.totalStockIn.toLocaleString() }} •
+                            {{ $t('dashboard.out') }}: {{ stats.totalStockOut.toLocaleString() }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Stock Balance -->
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
             >
@@ -307,7 +254,7 @@
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
                                         stroke-width="2"
-                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m0-8v16"
                                     />
                                 </svg>
                             </div>
@@ -317,50 +264,31 @@
                                 <dt
                                     class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
                                 >
-                                    {{ $t('dashboard.totalRevenue') }}
+                                    {{ $t('dashboard.currentStock') }}
                                 </dt>
                                 <dd
                                     class="text-2xl font-bold text-gray-900 dark:text-white"
                                 >
                                     <span v-if="statisticsLoading">...</span>
                                     <span v-else>{{
-                                        formatCurrency(stats.totalRevenue)
+                                        stats.currentStock.toLocaleString()
                                     }}</span>
                                 </dd>
                             </dl>
                         </div>
-                        <div
-                            class="flex items-center text-sm text-yellow-600 dark:text-yellow-400"
-                        >
-                            <svg
-                                class="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                />
-                            </svg>
-                            +{{ stats.revenueGrowth }}%
-                        </div>
                     </div>
                     <div class="mt-4">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ $t('dashboard.thisMonth') }}:
-                            {{ formatCurrency(stats.monthlyRevenue || 0) }}
+                            {{ stats.locationsWithStock || 0 }} {{ $t('dashboard.locationsWithStock') }}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Inventory Status & Alerts -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Low Stock Alert -->
+        <!-- Additional Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Total Locations -->
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
             >
@@ -369,7 +297,7 @@
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div
-                                    class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center"
+                                    class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center"
                                 >
                                     <svg
                                         class="w-5 h-5 text-white"
@@ -381,7 +309,13 @@
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
                                             stroke-width="2"
-                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                        ></path>
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                                         ></path>
                                     </svg>
                                 </div>
@@ -390,25 +324,20 @@
                                 <h3
                                     class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    {{ $t('dashboard.lowStockAlert') }}
+                                    {{ $t('dashboard.totalLocations') }}
                                 </h3>
                                 <p
                                     class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.lowStockProducts || 0 }} {{ $t('dashboard.productsNeedAttention') }}
+                                    {{ stats.totalLocations || 0 }} {{ $t('dashboard.locations') }}
                                 </p>
                             </div>
                         </div>
-                        <button
-                            class="text-red-600 hover:text-red-500 text-sm font-medium"
-                        >
-                            {{ $t('dashboard.viewAll') }}
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Stock Movements Today -->
+            <!-- Product Categories -->
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
             >
@@ -417,7 +346,7 @@
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div
-                                    class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"
+                                    class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center"
                                 >
                                     <svg
                                         class="w-5 h-5 text-white"
@@ -429,7 +358,7 @@
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
                                             stroke-width="2"
-                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
                                         ></path>
                                     </svg>
                                 </div>
@@ -438,26 +367,22 @@
                                 <h3
                                     class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    {{ $t('dashboard.stockMovements') }}
+                                    {{ $t('dashboard.productCategories') }}
                                 </h3>
                                 <p
                                     class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.todayMovements || 0 }} {{ $t('dashboard.transactionsToday') }}
+                                    {{ stats.totalCategories || 0 }} {{ $t('dashboard.categories') }}
                                 </p>
                             </div>
                         </div>
-                        <button
-                            class="text-blue-600 hover:text-blue-500 text-sm font-medium"
-                        >
-                            {{ $t('dashboard.viewDetails') }}
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Approvals -->
+            <!-- Work Orders (if available) -->
             <div
+                v-if="stats.totalWorkOrders !== undefined"
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
             >
                 <div class="p-6">
@@ -465,7 +390,7 @@
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div
-                                    class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center"
+                                    class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center"
                                 >
                                     <svg
                                         class="w-5 h-5 text-white"
@@ -477,7 +402,7 @@
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
                                             stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                                         ></path>
                                     </svg>
                                 </div>
@@ -486,20 +411,15 @@
                                 <h3
                                     class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    {{ $t('dashboard.pendingApprovals') }}
+                                    {{ $t('dashboard.workOrders') }}
                                 </h3>
                                 <p
                                     class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.pendingApprovals || 0 }} {{ $t('dashboard.itemsWaiting') }}
+                                    {{ stats.totalWorkOrders || 0 }} {{ $t('dashboard.total') }}
                                 </p>
                             </div>
                         </div>
-                        <button
-                            class="text-yellow-600 hover:text-yellow-500 text-sm font-medium"
-                        >
-                            {{ $t('dashboard.review') }}
-                        </button>
                     </div>
                 </div>
             </div>
@@ -507,7 +427,7 @@
 
         <!-- Charts and Activity Section -->
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <!-- Sales Revenue Chart -->
+            <!-- Stock Movement Trend Chart -->
             <div class="xl:col-span-2">
                 <div
                     class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
@@ -517,28 +437,18 @@
                             <h3
                                 class="text-lg font-medium text-gray-900 dark:text-white"
                             >
-                                {{ $t('dashboard.salesRevenueTrend') }}
+                                {{ $t('dashboard.stockMovementTrend') }}
                             </h3>
-                            <div class="flex items-center space-x-2">
-                                <select
-                                    class="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                >
-                                    <option>{{ $t('dashboard.last12Months') }}</option>
-                                    <option>{{ $t('dashboard.last6Months') }}</option>
-                                    <option>{{ $t('dashboard.last3Months') }}</option>
-                                </select>
-                            </div>
                         </div>
                         <div class="h-80">
-                            <canvas ref="salesChartRef"></canvas>
+                            <canvas ref="stockChartRef"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Activity & Quick Actions -->
+            <!-- Products by Category Chart -->
             <div class="space-y-6">
-                <!-- Recent Activity -->
                 <div
                     class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
                 >
@@ -547,91 +457,11 @@
                             <h3
                                 class="text-lg font-medium text-gray-900 dark:text-white"
                             >
-                                {{ $t('dashboard.recentActivity') }}
+                                {{ $t('dashboard.productsByCategory') }}
                             </h3>
-                            <button
-                                class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-                            >
-                                {{ $t('dashboard.viewAll') }}
-                            </button>
                         </div>
-                        <div class="space-y-4 max-h-80 overflow-y-auto">
-                            <div
-                                v-for="activity in recentActivities"
-                                :key="activity.id"
-                                class="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                            >
-                                <div class="flex-shrink-0">
-                                    <div
-                                        :class="[
-                                            'w-10 h-10 rounded-full flex items-center justify-center text-white',
-                                            activity.type === 'customer'
-                                                ? 'bg-blue-500'
-                                                : activity.type === 'sale'
-                                                ? 'bg-green-500'
-                                                : activity.type === 'product'
-                                                ? 'bg-purple-500'
-                                                : activity.type === 'user'
-                                                ? 'bg-gray-500'
-                                                : 'bg-red-500',
-                                        ]"
-                                    >
-                                        <svg
-                                            class="w-5 h-5 text-white"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                v-if="
-                                                    activity.type === 'customer'
-                                                "
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M5 5h14l1 12H4L5 9z"
-                                            />
-                                            <path
-                                                v-else-if="
-                                                    activity.type === 'sale'
-                                                "
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0h6v-1a6 6 0 00-9-5.197m13.5-14a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
-                                            />
-                                            <path
-                                                v-else-if="
-                                                    activity.type === 'product'
-                                                "
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M20 7l-8-4-8 4m16 0l-8 4m0-8v16"
-                                            />
-                                            <path
-                                                v-else
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M16 7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"
-                                            />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p
-                                        class="text-sm font-medium text-gray-900 dark:text-white"
-                                    >
-                                        {{ activity.description }}
-                                    </p>
-                                    <p
-                                        class="text-xs text-gray-500 dark:text-gray-400"
-                                    >
-                                        {{ activity.time }}
-                                    </p>
-                                </div>
-                            </div>
+                        <div class="h-64">
+                            <canvas ref="categoryChartRef"></canvas>
                         </div>
                     </div>
                 </div>
@@ -685,9 +515,9 @@
             </div>
         </div>
 
-        <!-- Business Insights & Alerts -->
+        <!-- Recent Activity -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Business Insights -->
+            <!-- Recent Stock Transactions -->
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
             >
@@ -696,109 +526,123 @@
                         <h3
                             class="text-lg font-medium text-gray-900 dark:text-white"
                         >
-                            {{ $t('dashboard.businessInsights') }}
+                            {{ $t('dashboard.recentStockTransactions') }}
                         </h3>
-                        <div
-                            class="flex items-center text-sm text-gray-500 dark:text-gray-400"
+                        <button
+                            @click="navigateTo('/buku-stock')"
+                            class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                         >
-                            <svg
-                                class="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                                ></path>
-                            </svg>
-                            {{ $t('dashboard.analytics') }}
+                            {{ $t('dashboard.viewAll') }}
+                        </button>
+                    </div>
+                    <div class="space-y-4 max-h-96 overflow-y-auto">
+                        <div
+                            v-for="transaction in recentStockTransactions"
+                            :key="transaction.id"
+                            class="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        >
+                            <div class="flex-shrink-0">
+                                <div
+                                    :class="[
+                                        'w-10 h-10 rounded-full flex items-center justify-center text-white',
+                                        transaction.quantity_in > 0 ? 'bg-green-500' : 'bg-red-500',
+                                    ]"
+                                >
+                                    <svg
+                                        class="w-5 h-5 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            v-if="transaction.quantity_in > 0"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                                        />
+                                        <path
+                                            v-else
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M7 4V16m0 0L3 12m4 4l4-4m6-8v12m0 0l4-4m-4 4l-4-4"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p
+                                    class="text-sm font-medium text-gray-900 dark:text-white"
+                                >
+                                    {{ transaction.product_name }}
+                                </p>
+                                <p
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ transaction.transaction_type }} • {{ transaction.location_name }}
+                                </p>
+                                <p
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ formatTimeAgo(transaction.transaction_date) }}
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span
+                                    :class="[
+                                        'text-sm font-medium',
+                                        transaction.quantity_in > 0 ? 'text-green-600' : 'text-red-600'
+                                    ]"
+                                >
+                                    {{ transaction.quantity_in > 0 ? '+' : '' }}{{ transaction.quantity_in || transaction.quantity_out }}
+                                </span>
+                            </div>
+                        </div>
+                        <div
+                            v-if="recentStockTransactions.length === 0"
+                            class="text-center text-gray-500 dark:text-gray-400 py-8"
+                        >
+                            {{ $t('dashboard.noRecentTransactions') }}
                         </div>
                     </div>
-                    <div class="space-y-4">
-                        <div
-                            class="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg"
-                        >
-                            <div class="flex items-center">
-                                <div
-                                    class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center"
-                                >
-                                    <svg
-                                        class="w-4 h-4 text-white"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                        ></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p
-                                        class="text-sm font-medium text-green-800 dark:text-green-200"
-                                    >
-                                        {{ $t('dashboard.revenueGrowth') }}
-                                    </p>
-                                    <p
-                                        class="text-xs text-green-600 dark:text-green-400"
-                                    >
-                                        +{{ stats.revenueGrowth }}% {{ $t('dashboard.fromLastMonth') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+            </div>
 
-                        <div
-                            class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+            <!-- Recent Products -->
+            <div
+                v-if="recentProducts.length > 0"
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3
+                            class="text-lg font-medium text-gray-900 dark:text-white"
                         >
-                            <div class="flex items-center">
+                            {{ $t('dashboard.recentProducts') }}
+                        </h3>
+                        <button
+                            @click="navigateTo('/products')"
+                            class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                            {{ $t('dashboard.viewAll') }}
+                        </button>
+                    </div>
+                    <div class="space-y-4 max-h-96 overflow-y-auto">
+                        <div
+                            v-for="product in recentProducts"
+                            :key="product.id"
+                            class="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        >
+                            <div class="flex-shrink-0">
                                 <div
-                                    class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
+                                    :class="[
+                                        'w-10 h-10 rounded-full flex items-center justify-center text-white',
+                                        product.is_active ? 'bg-purple-500' : 'bg-gray-500',
+                                    ]"
                                 >
                                     <svg
-                                        class="w-4 h-4 text-white"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M5 5h14l1 12H4L5 9z"
-                                        ></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p
-                                        class="text-sm font-medium text-blue-800 dark:text-blue-200"
-                                    >
-                                        {{ $t('dashboard.customerAcquisition') }}
-                                    </p>
-                                    <p
-                                        class="text-xs text-blue-600 dark:text-blue-400"
-                                    >
-                                        {{ stats.activeCustomers }} {{ $t('dashboard.activeCustomersThisMonth') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg"
-                        >
-                            <div class="flex items-center">
-                                <div
-                                    class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center"
-                                >
-                                    <svg
-                                        class="w-4 h-4 text-white"
+                                        class="w-5 h-5 text-white"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -808,29 +652,47 @@
                                             stroke-linejoin="round"
                                             stroke-width="2"
                                             d="M20 7l-8-4-8 4m16 0l-8 4m0-8v16"
-                                        ></path>
+                                        />
                                     </svg>
                                 </div>
-                                <div class="ml-3">
-                                    <p
-                                        class="text-sm font-medium text-purple-800 dark:text-purple-200"
-                                    >
-                                        {{ $t('dashboard.inventoryHealth') }}
-                                    </p>
-                                    <p
-                                        class="text-xs text-purple-600 dark:text-purple-400"
-                                    >
-                                        {{ stats.lowStockProducts }} {{ $t('dashboard.productsNeedRestocking') }}
-                                    </p>
-                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p
+                                    class="text-sm font-medium text-gray-900 dark:text-white"
+                                >
+                                    {{ product.product_name }}
+                                </p>
+                                <p
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ product.product_code }}
+                                </p>
+                                <p
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ formatTimeAgo(product.created_at) }}
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span
+                                    :class="[
+                                        'text-xs px-2 py-1 rounded-full',
+                                        product.is_active
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                    ]"
+                                >
+                                    {{ product.is_active ? $t('dashboard.active') : $t('dashboard.inactive') }}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- System Alerts & Notifications -->
+            <!-- Recent Work Orders (if available) -->
             <div
+                v-if="recentWorkOrders.length > 0"
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
             >
                 <div class="p-6">
@@ -838,123 +700,64 @@
                         <h3
                             class="text-lg font-medium text-gray-900 dark:text-white"
                         >
-                            {{ $t('dashboard.systemAlerts') }}
+                            {{ $t('dashboard.recentWorkOrders') }}
                         </h3>
-                        <div
-                            class="flex items-center text-sm text-gray-500 dark:text-gray-400"
+                        <button
+                            @click="navigateTo('/work-orders')"
+                            class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                         >
-                            <svg
-                                class="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15 17h5l-5 5v-5zM4.868 12.683A17.925 17.925 0 0112 21c7.962 0 12-1.21 12-2.683m-12 2.683a17.925 17.925 0 01-7.132-8.317M12 21V9m0 0l-4 4m4-4l4 4"
-                                ></path>
-                            </svg>
-                            {{ $t('dashboard.liveUpdates') }}
-                        </div>
+                            {{ $t('dashboard.viewAll') }}
+                        </button>
                     </div>
-                    <div class="space-y-4">
+                    <div class="space-y-4 max-h-96 overflow-y-auto">
                         <div
-                            v-if="stats.lowStockProducts > 0"
-                            class="flex items-start p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
+                            v-for="wo in recentWorkOrders"
+                            :key="wo.id"
+                            class="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                         >
                             <div class="flex-shrink-0">
-                                <svg
-                                    class="w-5 h-5 text-yellow-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                                <div
+                                    :class="[
+                                        'w-10 h-10 rounded-full flex items-center justify-center text-white',
+                                        getWorkOrderStatusColor(wo.status)
+                                    ]"
                                 >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                                    ></path>
-                                </svg>
+                                    <svg
+                                        class="w-5 h-5 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                        ></path>
+                                    </svg>
+                                </div>
                             </div>
-                            <div class="ml-3">
+                            <div class="flex-1 min-w-0">
                                 <p
-                                    class="text-sm font-medium text-yellow-800 dark:text-yellow-200"
+                                    class="text-sm font-medium text-gray-900 dark:text-white"
                                 >
-                                    {{ $t('dashboard.lowStockAlert') }}
+                                    {{ wo.title }}
                                 </p>
                                 <p
-                                    class="text-xs text-yellow-700 dark:text-yellow-300"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    {{ stats.lowStockProducts }} {{ $t('dashboard.productsRunningLow') }}
+                                    {{ formatTimeAgo(wo.created_at) }}
                                 </p>
                             </div>
-                        </div>
-
-                        <div
-                            v-if="stats.pendingApprovals > 0"
-                            class="flex items-start p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
-                        >
                             <div class="flex-shrink-0">
-                                <svg
-                                    class="w-5 h-5 text-blue-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                                <span
+                                    :class="[
+                                        'text-xs px-2 py-1 rounded-full',
+                                        getWorkOrderStatusBadgeColor(wo.status)
+                                    ]"
                                 >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    ></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p
-                                    class="text-sm font-medium text-blue-800 dark:text-blue-200"
-                                >
-                                    {{ $t('dashboard.pendingApprovals') }}
-                                </p>
-                                <p
-                                    class="text-xs text-blue-700 dark:text-blue-300"
-                                >
-                                    {{ stats.pendingApprovals }} {{ $t('dashboard.itemsWaitingApproval') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div
-                            class="flex items-start p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
-                        >
-                            <div class="flex-shrink-0">
-                                <svg
-                                    class="w-5 h-5 text-green-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    ></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p
-                                    class="text-sm font-medium text-green-800 dark:text-green-200"
-                                >
-                                    {{ $t('dashboard.systemStatus') }}
-                                </p>
-                                <p
-                                    class="text-xs text-green-700 dark:text-green-300"
-                                >
-                                    {{ $t('dashboard.allSystemsOperational') }}
-                                </p>
+                                    {{ wo.status }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -970,11 +773,13 @@ import { useAuthStore } from "../../stores/auth";
 import { apiGet } from "@/utils/api";
 import { useNotificationStore } from "@/stores/notification";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import Chart from "chart.js/auto";
 
 const authStore = useAuthStore();
 const notification = useNotificationStore();
 const { t } = useI18n();
+const router = useRouter();
 
 // Loading states
 const loading = ref(true);
@@ -1000,204 +805,124 @@ const statistics = ref({});
 const chartData = ref({});
 const recentActivity = ref({});
 
-// Chart instance and ref
-let salesChart = null;
-const salesChartRef = ref(null);
+// Chart instances and refs
+let stockChart = null;
+let categoryChart = null;
+const stockChartRef = ref(null);
+const categoryChartRef = ref(null);
 
 // Computed stats for easy access
 const stats = computed(() => ({
-    totalCustomers: statistics.value.customers?.total || 0,
-    totalSales: statistics.value.sales?.total || 0,
     totalProducts: statistics.value.products?.total || 0,
-    totalRevenue: statistics.value.sales?.revenue || 0,
-    customerGrowth: statistics.value.customers?.growth || 0,
-    salesGrowth: statistics.value.sales?.growth || 0,
-    productGrowth: statistics.value.products?.growth || 0,
-    revenueGrowth: statistics.value.sales?.growth || 0,
-    lowStockProducts: statistics.value.products?.low_stock || 0,
+    activeProducts: statistics.value.products?.active || 0,
+    inactiveProducts: statistics.value.products?.inactive || 0,
+    totalCustomers: statistics.value.customers?.total || 0,
     activeCustomers: statistics.value.customers?.active || 0,
-    inactiveCustomers: statistics.value.customers?.inactive || 0,
-    monthlySales: statistics.value.sales?.monthly || 0,
-    monthlyRevenue: statistics.value.sales?.monthly_revenue || 0,
-    todayMovements: statistics.value.inventory?.today_movements || 0,
-    pendingApprovals: statistics.value.approvals?.pending || 0,
+    totalStockTransactions: statistics.value.stock?.total_transactions || 0,
+    totalStockIn: statistics.value.stock?.total_in || 0,
+    totalStockOut: statistics.value.stock?.total_out || 0,
+    currentStock: statistics.value.stock?.current_balance || 0,
+    totalLocations: statistics.value.locations?.total || 0,
+    locationsWithStock: statistics.value.locations?.with_stock || 0,
+    totalCategories: statistics.value.product_categories?.total || 0,
+    totalWorkOrders: statistics.value.work_orders?.total,
+    totalUsers: statistics.value.users?.total,
+    totalRoles: statistics.value.roles?.total,
 }));
 
-const recentActivities = computed(() => {
-    const activities = [];
+const recentStockTransactions = computed(() => {
+    return recentActivity.value.recent_stock_transactions || [];
+});
 
-    // Recent Sales
-    if (recentActivity.value.recent_sales) {
-        recentActivity.value.recent_sales.forEach((sale) => {
-            activities.push({
-                id: `sale-${sale.id}`,
-                type: "sale",
-                description: `${t('dashboard.sale')} #${
-                    sale.transaction_number
-                } - ${formatCurrency(sale.total_amount)}`,
-                status: sale.status,
-                time: formatTimeAgo(sale.transaction_date),
-            });
-        });
-    }
+const recentProducts = computed(() => {
+    return recentActivity.value.recent_products || [];
+});
 
-    // Recent Customers
-    if (recentActivity.value.recent_customers) {
-        recentActivity.value.recent_customers.forEach((customer) => {
-            activities.push({
-                id: `customer-${customer.id}`,
-                type: "customer",
-                description: `${t('dashboard.newCustomer')}: ${customer.customer_name}`,
-                status: customer.status,
-                time: formatTimeAgo(customer.created_at),
-            });
-        });
-    }
-
-    // Recent Products
-    if (recentActivity.value.recent_products) {
-        recentActivity.value.recent_products.forEach((product) => {
-            activities.push({
-                id: `product-${product.id}`,
-                type: "product",
-                description: `${t('dashboard.newProduct')}: ${product.product_name}`,
-                status: product.status,
-                time: formatTimeAgo(product.created_at),
-            });
-        });
-    }
-
-    // Stock Movements
-    if (recentActivity.value.recent_stock_movements) {
-        recentActivity.value.recent_stock_movements.forEach((movement) => {
-            activities.push({
-                id: `movement-${movement.id}`,
-                type: "stock",
-                description: `${movement.type}: ${movement.product_name} (${movement.quantity})`,
-                status: movement.status,
-                time: formatTimeAgo(movement.created_at),
-            });
-        });
-    }
-
-    // Work Orders (legacy)
-    if (recentActivity.value.recent_work_orders) {
-        recentActivity.value.recent_work_orders.forEach((wo) => {
-            activities.push({
-                id: `wo-${wo.id}`,
-                type: "work_order",
-                description: `Work Order: ${wo.title}`,
-                status: wo.status,
-                time: formatTimeAgo(wo.created_at),
-            });
-        });
-    }
-
-    // Sort by time (most recent first) and limit to 8
-    return activities.slice(0, 8);
+const recentWorkOrders = computed(() => {
+    return recentActivity.value.recent_work_orders || [];
 });
 
 const quickActions = computed(() => [
     {
-        name: t("dashboard.addCustomer"),
-        action: "add-customer",
-        route: "/customers",
-        icon: "M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M5 5h14l1 12H4L5 9z",
-        color: "bg-blue-500",
-    },
-    {
-        name: t("dashboard.createSale"),
-        action: "create-sale",
-        route: "/sales",
-        icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0h6v-1a6 6 0 00-9-5.197m13.5-14a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
-        color: "bg-green-500",
-    },
-    {
         name: t("dashboard.addProduct"),
         action: "add-product",
         route: "/products",
-        icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+        icon: "M12 4v16m8-8H4",
         color: "bg-purple-500",
     },
     {
         name: t("dashboard.stockIn"),
         action: "stock-in",
-        route: "/stock-in",
+        route: "/stock-masuk",
         icon: "M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4",
+        color: "bg-green-500",
+    },
+    {
+        name: t("dashboard.stockMutation"),
+        action: "stock-mutation",
+        route: "/mutasi",
+        icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
+        color: "bg-blue-500",
+    },
+    {
+        name: t("dashboard.stockAdjustment"),
+        action: "stock-adjustment",
+        route: "/adjustment",
+        icon: "M12 6v6m0 0v6m0-6h6m-6 0H6",
+        color: "bg-yellow-500",
+    },
+    {
+        name: t("dashboard.stockOpname"),
+        action: "stock-opname",
+        route: "/stockopname",
+        icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
         color: "bg-indigo-500",
     },
     {
-        name: t("dashboard.stockOut"),
-        action: "stock-out",
-        route: "/stock-mutations",
-        icon: "M7 4V16m0 0L3 12m4 4l4-4m6-8v12m0 0l4-4m-4 4l-4-4",
-        color: "bg-orange-500",
-    },
-    {
-        name: t("dashboard.viewReports"),
-        action: "view-reports",
-        route: "/reports",
-        icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
-        color: "bg-yellow-500",
+        name: t("dashboard.stockBook"),
+        action: "stock-book",
+        route: "/buku-stock",
+        icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+        color: "bg-pink-500",
     },
 ]);
 
-const recentUsers = ref([]);
+// Initialize stock movement trend chart
+const initStockChart = () => {
+    if (!stockChartRef.value) return;
 
-// Initialize sales chart
-const initSalesChart = () => {
-    if (!salesChartRef.value) return;
-
-    // Destroy existing chart if it exists
-    if (salesChart) {
-        salesChart.destroy();
+    if (stockChart) {
+        stockChart.destroy();
     }
 
-    const ctx = salesChartRef.value.getContext("2d");
+    const ctx = stockChartRef.value.getContext("2d");
 
-    // Sample data - in real app this would come from API
-    const chartData = {
-        labels: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-        ],
-        revenue: [
-            12000000, 19000000, 15000000, 25000000, 22000000, 30000000,
-            28000000, 35000000, 40000000, 42000000, 48000000, 52000000,
-        ],
-        sales: [120, 190, 150, 250, 220, 300, 280, 350, 400, 420, 480, 520],
-    };
+    const stockMovementData = chartData.value.stock_movement_trend || [];
+    const labels = stockMovementData.map(item => {
+        const date = new Date(item.month + '-01');
+        return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    });
+    const totalIn = stockMovementData.map(item => item.total_in || 0);
+    const totalOut = stockMovementData.map(item => item.total_out || 0);
 
-    salesChart = new Chart(ctx, {
+    stockChart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: chartData.labels,
+            labels: labels.length ? labels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             datasets: [
                 {
-                    label: "Revenue (IDR)",
-                    data: chartData.revenue,
-                    borderColor: "rgb(59, 130, 246)",
-                    backgroundColor: "rgba(59, 130, 246, 0.1)",
-                    yAxisID: "y",
+                    label: t('dashboard.stockIn'),
+                    data: totalIn.length ? totalIn : [100, 150, 120, 180, 200, 170],
+                    borderColor: "rgb(16, 185, 129)",
+                    backgroundColor: "rgba(16, 185, 129, 0.1)",
                     tension: 0.4,
                     fill: true,
                 },
                 {
-                    label: "Sales Count",
-                    data: chartData.sales,
-                    borderColor: "rgb(16, 185, 129)",
-                    backgroundColor: "rgba(16, 185, 129, 0.1)",
-                    yAxisID: "y1",
+                    label: t('dashboard.stockOut'),
+                    data: totalOut.length ? totalOut : [80, 120, 100, 150, 180, 150],
+                    borderColor: "rgb(239, 68, 68)",
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
                     tension: 0.4,
                     fill: true,
                 },
@@ -1215,56 +940,75 @@ const initSalesChart = () => {
                     display: true,
                     position: "top",
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            let label = context.dataset.label || "";
-                            if (label) {
-                                label += ": ";
-                            }
-                            if (context.datasetIndex === 0) {
-                                label +=
-                                    "Rp " + context.parsed.y.toLocaleString();
-                            } else {
-                                label += context.parsed.y + " sales";
-                            }
-                            return label;
-                        },
-                    },
-                },
             },
             scales: {
                 x: {
                     display: true,
                     title: {
                         display: true,
-                        text: "Month",
+                        text: t('dashboard.month'),
                     },
                 },
                 y: {
-                    type: "linear",
                     display: true,
-                    position: "left",
                     title: {
                         display: true,
-                        text: "Revenue (IDR)",
-                    },
-                    ticks: {
-                        callback: function (value) {
-                            return "Rp " + (value / 1000000).toFixed(0) + "M";
-                        },
+                        text: t('dashboard.quantity'),
                     },
                 },
-                y1: {
-                    type: "linear",
+            },
+        },
+    });
+};
+
+// Initialize products by category chart
+const initCategoryChart = () => {
+    if (!categoryChartRef.value) return;
+
+    if (categoryChart) {
+        categoryChart.destroy();
+    }
+
+    const ctx = categoryChartRef.value.getContext("2d");
+
+    const categoryData = chartData.value.products_by_category || [];
+    const labels = categoryData.map(item => item.label);
+    const values = categoryData.map(item => item.value);
+
+    const colors = [
+        'rgb(59, 130, 246)',
+        'rgb(16, 185, 129)',
+        'rgb(139, 92, 246)',
+        'rgb(245, 158, 11)',
+        'rgb(239, 68, 68)',
+        'rgb(236, 72, 153)',
+        'rgb(20, 184, 166)',
+        'rgb(99, 102, 241)',
+    ];
+
+    categoryChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: labels.length ? labels : [t('dashboard.noData')],
+            datasets: [
+                {
+                    data: values.length ? values : [1],
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
                     display: true,
-                    position: "right",
-                    title: {
-                        display: true,
-                        text: "Sales Count",
-                    },
-                    grid: {
-                        drawOnChartArea: false,
+                    position: "bottom",
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10,
                     },
                 },
             },
@@ -1306,61 +1050,82 @@ const loadDashboardData = async () => {
 
 // Format time ago helper
 const formatTimeAgo = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
 
-    if (diffInSeconds < 60) return "Just now";
+    if (diffInSeconds < 60) return t('dashboard.justNow');
     if (diffInSeconds < 3600)
-        return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+        return `${Math.floor(diffInSeconds / 60)} ${t('dashboard.minutesAgo')}`;
     if (diffInSeconds < 86400)
-        return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+        return `${Math.floor(diffInSeconds / 3600)} ${t('dashboard.hoursAgo')}`;
+    return `${Math.floor(diffInSeconds / 86400)} ${t('dashboard.daysAgo')}`;
 };
 
-// Format currency helper
-const formatCurrency = (value) => {
-    if (!value && value !== 0) return "Rp 0";
-    return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-    }).format(value);
+// Get work order status color
+const getWorkOrderStatusColor = (status) => {
+    const colors = {
+        draft: 'bg-gray-500',
+        pending: 'bg-yellow-500',
+        assigned: 'bg-blue-500',
+        in_progress: 'bg-indigo-500',
+        on_hold: 'bg-orange-500',
+        completed: 'bg-green-500',
+        cancelled: 'bg-red-500',
+    };
+    return colors[status] || 'bg-gray-500';
+};
+
+// Get work order status badge color
+const getWorkOrderStatusBadgeColor = (status) => {
+    const colors = {
+        draft: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+        pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        assigned: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        in_progress: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+        on_hold: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+        completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
 };
 
 const handleQuickAction = (action) => {
-    // Handle quick actions - redirect to relevant pages
     const actionItem = quickActions.value.find((a) => a.action === action);
     if (actionItem && actionItem.route) {
-        window.location.href = actionItem.route;
+        router.push(actionItem.route);
     }
 };
 
+const navigateTo = (path) => {
+    router.push(path);
+};
+
 onMounted(async () => {
-    // Load dashboard data
     await loadDashboardData();
 
-    // Initialize chart after data is loaded
     nextTick(() => {
-        initSalesChart();
+        initStockChart();
+        initCategoryChart();
     });
 
-    // Update time every minute
     timeInterval = setInterval(() => {
         currentTime.value = new Date();
     }, 60000);
 
-    // Refresh dashboard data every 5 minutes
     const refreshInterval = setInterval(() => {
         loadDashboardData();
-    }, 300000); // 5 minutes
+    }, 300000);
 
-    // Cleanup on unmount
     onUnmounted(() => {
         if (timeInterval) clearInterval(timeInterval);
         if (refreshInterval) clearInterval(refreshInterval);
-        if (salesChart) {
-            salesChart.destroy();
+        if (stockChart) {
+            stockChart.destroy();
+        }
+        if (categoryChart) {
+            categoryChart.destroy();
         }
     });
 });
