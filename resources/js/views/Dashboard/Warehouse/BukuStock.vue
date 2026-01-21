@@ -92,6 +92,21 @@
                 v-else-if="stockBookStore.viewMode === 'balance'"
             />
 
+            <!-- Best Selling View -->
+            <BestSellingView
+                v-else-if="stockBookStore.viewMode === 'best_selling'"
+            />
+
+            <!-- Slow Moving View -->
+            <SlowMovingView
+                v-else-if="stockBookStore.viewMode === 'slow_moving'"
+            />
+
+            <!-- Sales Recap View -->
+            <SalesRecapView
+                v-else-if="stockBookStore.viewMode === 'sales_recap'"
+            />
+
             <!-- Default/Stock Cards View -->
             <div v-else class="space-y-6">
                 <StockBookTable
@@ -124,6 +139,9 @@ import LedgerView from "../../../components/Warehouse/StockBook/LedgerView.vue";
 import ProductView from "../../../components/Warehouse/StockBook/ProductView.vue";
 import LocationView from "../../../components/Warehouse/StockBook/LocationView.vue";
 import CurrentBalanceView from "../../../components/Warehouse/StockBook/CurrentBalanceView.vue";
+import BestSellingView from "../../../components/Warehouse/StockBook/BestSellingView.vue";
+import SlowMovingView from "../../../components/Warehouse/StockBook/SlowMovingView.vue";
+import SalesRecapView from "../../../components/Warehouse/StockBook/SalesRecapView.vue";
 import StockBookTable from "../../../components/Warehouse/StockBook/StockBookTable.vue";
 import ExportModal from "../../../components/Warehouse/StockBook/ExportModal.vue";
 import { ArrowDownTrayIcon, FunnelIcon } from "@heroicons/vue/24/outline";
@@ -142,6 +160,9 @@ const viewTabs = [
     { key: "product", label: "Product View" },
     { key: "location", label: "Location View" },
     { key: "balance", label: "Current Balance" },
+    { key: "best_selling", label: "Barang Terlaris" },
+    { key: "slow_moving", label: "Barang Kurang Laris" },
+    { key: "sales_recap", label: "Rekap Penjualan" },
 ];
 
 // Methods

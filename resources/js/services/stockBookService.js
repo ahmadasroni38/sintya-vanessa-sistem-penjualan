@@ -56,4 +56,22 @@ export const stockBookService = {
         });
         return response.data;
     },
+
+    // Get best selling products
+    async getBestSelling(params = {}) {
+        const response = await api.get("/stock-book/best-selling", { params });
+        return response.data;
+    },
+
+    // Get slow moving products
+    async getSlowMoving(params = {}) {
+        const response = await api.get("/stock-book/slow-moving", { params });
+        return response.data;
+    },
+
+    // Get sales recap
+    async getSalesRecap(params = {}) {
+        const response = await api.get("/stock-book/sales-recap", { params });
+        return response.data;
+    },
 };

@@ -4,7 +4,7 @@ import { stockBookService } from "../services/stockBookService";
 export const useStockBookStore = defineStore("stockBook", {
     state: () => ({
         // View modes
-        viewMode: "default", // ledger, product, location, balance
+        viewMode: "default", // ledger, product, location, balance, best_selling, slow_moving, sales_recap
 
         // Filters
         filters: {
@@ -360,6 +360,11 @@ export const useStockBookStore = defineStore("stockBook", {
                     case "product":
                     case "location":
                         await this.fetchStockCards();
+                        break;
+                    case "best_selling":
+                    case "slow_moving":
+                    case "sales_recap":
+                        // These views manage their own data loading
                         break;
                     default:
                         await this.fetchStockCards();

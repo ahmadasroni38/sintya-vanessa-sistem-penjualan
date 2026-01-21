@@ -7,6 +7,8 @@ use App\Models\Product;
 use App\Models\Location;
 use App\Models\StockCard;
 use App\Models\StockBalance;
+use App\Models\Sale;
+use App\Models\SaleDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -418,5 +420,277 @@ class StockBookController extends Controller
             // This is a placeholder implementation
             return response()->json(['error' => 'PDF export not implemented yet']);
         }
+    }
+
+    /**
+     * Get best selling products
+     */
+    public function getBestSelling(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'limit' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        $limit = $request->get('limit', 10);
+
+        $bestSelling = SaleDetail::select(
+                'sale_details.product_id',
+                DB::raw('SUM(sale_details.quantity) as total_quantity'),
+                DB::raw('COUNT(DISTINCT sale_details.sale_id) as transaction_count'),
+                DB::raw('SUM(sale_details.total_price) as total_sales')
+            )
+            ->join('sales', 'sale_details.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_details.product_id', '=', 'products.id')
+            ->where('sales.status', 'posted')
+            ->whereNull('sales.deleted_at')
+            ->whereBetween('sales.transaction_date', [$request->start_date, $request->end_date])
+            ->groupBy('sale_details.product_id')
+            ->orderByDesc('total_quantity')
+            ->limit($limit)
+            ->get()
+            ->map(function ($item) {
+                $product = Product::find($item->product_id);
+                return [
+                    'product_id' => $item->product_id,
+                    'product_code' => $product->product_code ?? '',
+                    'product_name' => $product->product_name ?? '',
+                    'total_quantity' => (float) $item->total_quantity,
+                    'transaction_count' => (int) $item->transaction_count,
+                    'total_sales' => (float) $item->total_sales,
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Best selling products retrieved successfully',
+            'data' => $bestSelling,
+        ]);
+    }
+
+    /**
+     * Get slow moving products (least sold or not sold)
+     */
+    public function getSlowMoving(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'limit' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        $limit = $request->get('limit', 10);
+
+        // Get all active products with their sales data
+        $salesData = SaleDetail::select(
+                'sale_details.product_id',
+                DB::raw('SUM(sale_details.quantity) as total_quantity'),
+                DB::raw('COUNT(DISTINCT sale_details.sale_id) as transaction_count'),
+                DB::raw('SUM(sale_details.total_price) as total_sales')
+            )
+            ->join('sales', 'sale_details.sale_id', '=', 'sales.id')
+            ->where('sales.status', 'posted')
+            ->whereNull('sales.deleted_at')
+            ->whereBetween('sales.transaction_date', [$request->start_date, $request->end_date])
+            ->groupBy('sale_details.product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        // Get all active products
+        $products = Product::where('is_active', true)
+            ->select('id', 'product_code', 'product_name')
+            ->get();
+
+        // Combine with stock balance data
+        $slowMoving = $products->map(function ($product) use ($salesData) {
+            $sales = $salesData->get($product->id);
+            $currentStock = StockBalance::where('product_id', $product->id)
+                ->sum('current_balance');
+
+            return [
+                'product_id' => $product->id,
+                'product_code' => $product->product_code,
+                'product_name' => $product->product_name,
+                'current_stock' => (float) $currentStock,
+                'total_quantity' => $sales ? (float) $sales->total_quantity : 0,
+                'transaction_count' => $sales ? (int) $sales->transaction_count : 0,
+                'total_sales' => $sales ? (float) $sales->total_sales : 0,
+            ];
+        })
+        ->sortBy('total_quantity')
+        ->take($limit)
+        ->values();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Slow moving products retrieved successfully',
+            'data' => $slowMoving,
+        ]);
+    }
+
+    /**
+     * Get sales recap grouped by period, category, or location
+     */
+    public function getSalesRecap(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'group_by' => 'nullable|in:daily,weekly,monthly,category,location',
+        ]);
+
+        $groupBy = $request->get('group_by', 'daily');
+
+        switch ($groupBy) {
+            case 'daily':
+                $salesRecap = DB::table('sales')
+                    ->selectRaw('DATE(transaction_date) as group_key, COUNT(*) as transaction_count, SUM(total_amount) as total_sales')
+                    ->where('status', 'posted')
+                    ->whereNull('deleted_at')
+                    ->whereBetween('transaction_date', [$request->start_date, $request->end_date])
+                    ->groupByRaw('DATE(transaction_date)')
+                    ->orderByRaw('DATE(transaction_date) asc')
+                    ->get();
+
+                // Calculate total quantity from details
+                $salesRecap = $salesRecap->map(function ($item) {
+                    $totalQty = SaleDetail::join('sales', 'sale_details.sale_id', '=', 'sales.id')
+                        ->where('sales.status', 'posted')
+                        ->whereNull('sales.deleted_at')
+                        ->whereDate('sales.transaction_date', $item->group_key)
+                        ->sum('sale_details.quantity');
+
+                    return [
+                        'group_key' => $item->group_key,
+                        'group_label' => date('d M Y', strtotime($item->group_key)),
+                        'transaction_count' => (int) $item->transaction_count,
+                        'total_quantity' => (float) $totalQty,
+                        'total_sales' => (float) $item->total_sales,
+                    ];
+                });
+                break;
+
+            case 'weekly':
+                $salesRecap = DB::table('sales')
+                    ->selectRaw('YEARWEEK(transaction_date, 1) as group_key, MIN(transaction_date) as week_start, COUNT(*) as transaction_count, SUM(total_amount) as total_sales')
+                    ->where('status', 'posted')
+                    ->whereNull('deleted_at')
+                    ->whereBetween('transaction_date', [$request->start_date, $request->end_date])
+                    ->groupByRaw('YEARWEEK(transaction_date, 1)')
+                    ->orderByRaw('YEARWEEK(transaction_date, 1) asc')
+                    ->get();
+
+                $salesRecap = $salesRecap->map(function ($item) {
+                    $weekStart = date('d M Y', strtotime($item->week_start));
+                    $weekEnd = date('d M Y', strtotime($item->week_start . ' +6 days'));
+
+                    $totalQty = SaleDetail::join('sales', 'sale_details.sale_id', '=', 'sales.id')
+                        ->where('sales.status', 'posted')
+                        ->whereNull('sales.deleted_at')
+                        ->whereRaw('YEARWEEK(sales.transaction_date, 1) = ?', [$item->group_key])
+                        ->sum('sale_details.quantity');
+
+                    return [
+                        'group_key' => $item->group_key,
+                        'group_label' => $weekStart . ' - ' . $weekEnd,
+                        'transaction_count' => (int) $item->transaction_count,
+                        'total_quantity' => (float) $totalQty,
+                        'total_sales' => (float) $item->total_sales,
+                    ];
+                });
+                break;
+
+            case 'monthly':
+                $salesRecap = DB::table('sales')
+                    ->selectRaw('DATE_FORMAT(transaction_date, "%Y-%m") as group_key, COUNT(*) as transaction_count, SUM(total_amount) as total_sales')
+                    ->where('status', 'posted')
+                    ->whereNull('deleted_at')
+                    ->whereBetween('transaction_date', [$request->start_date, $request->end_date])
+                    ->groupByRaw('DATE_FORMAT(transaction_date, "%Y-%m")')
+                    ->orderByRaw('DATE_FORMAT(transaction_date, "%Y-%m") asc')
+                    ->get();
+
+                $salesRecap = $salesRecap->map(function ($item) {
+                    $totalQty = SaleDetail::join('sales', 'sale_details.sale_id', '=', 'sales.id')
+                        ->where('sales.status', 'posted')
+                        ->whereNull('sales.deleted_at')
+                        ->whereRaw('DATE_FORMAT(sales.transaction_date, "%Y-%m") = ?', [$item->group_key])
+                        ->sum('sale_details.quantity');
+
+                    return [
+                        'group_key' => $item->group_key,
+                        'group_label' => date('F Y', strtotime($item->group_key . '-01')),
+                        'transaction_count' => (int) $item->transaction_count,
+                        'total_quantity' => (float) $totalQty,
+                        'total_sales' => (float) $item->total_sales,
+                    ];
+                });
+                break;
+
+            case 'category':
+                $salesRecap = SaleDetail::select(
+                        'products.category_id as group_key',
+                        'product_categories.category_name as group_label',
+                        DB::raw('COUNT(DISTINCT sale_details.sale_id) as transaction_count'),
+                        DB::raw('SUM(sale_details.quantity) as total_quantity'),
+                        DB::raw('SUM(sale_details.total_price) as total_sales')
+                    )
+                    ->join('sales', 'sale_details.sale_id', '=', 'sales.id')
+                    ->join('products', 'sale_details.product_id', '=', 'products.id')
+                    ->leftJoin('product_categories', 'products.category_id', '=', 'product_categories.id')
+                    ->where('sales.status', 'posted')
+                    ->whereNull('sales.deleted_at')
+                    ->whereBetween('sales.transaction_date', [$request->start_date, $request->end_date])
+                    ->groupBy('products.category_id', 'product_categories.category_name')
+                    ->orderByDesc('total_sales')
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'group_key' => $item->group_key ?? 'uncategorized',
+                            'group_label' => $item->group_label ?? 'Tanpa Kategori',
+                            'transaction_count' => (int) $item->transaction_count,
+                            'total_quantity' => (float) $item->total_quantity,
+                            'total_sales' => (float) $item->total_sales,
+                        ];
+                    });
+                break;
+
+            case 'location':
+                $salesRecap = DB::table('sales')
+                    ->selectRaw('location_id as group_key, COUNT(*) as transaction_count, SUM(total_amount) as total_sales')
+                    ->where('status', 'posted')
+                    ->whereNull('deleted_at')
+                    ->whereBetween('transaction_date', [$request->start_date, $request->end_date])
+                    ->groupBy('location_id')
+                    ->orderByDesc('total_sales')
+                    ->get();
+
+                $salesRecap = $salesRecap->map(function ($item) use ($request) {
+                    $location = Location::find($item->group_key);
+
+                    $totalQty = SaleDetail::join('sales', 'sale_details.sale_id', '=', 'sales.id')
+                        ->where('sales.status', 'posted')
+                        ->whereNull('sales.deleted_at')
+                        ->where('sales.location_id', $item->group_key)
+                        ->whereBetween('sales.transaction_date', [$request->start_date, $request->end_date])
+                        ->sum('sale_details.quantity');
+
+                    return [
+                        'group_key' => $item->group_key,
+                        'group_label' => $location ? $location->name : 'Unknown Location',
+                        'transaction_count' => (int) $item->transaction_count,
+                        'total_quantity' => (float) $totalQty,
+                        'total_sales' => (float) $item->total_sales,
+                    ];
+                });
+                break;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Sales recap retrieved successfully',
+            'data' => $salesRecap,
+        ]);
     }
 }

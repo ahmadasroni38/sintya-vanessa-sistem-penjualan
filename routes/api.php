@@ -407,5 +407,8 @@ Route::middleware(['auth:api', 'user.status'])->group(function () {
         Route::get('/current-balances', [StockBookController::class, 'getCurrentBalances']);
         Route::get('/movement-summary', [StockBookController::class, 'getMovementSummary']);
         Route::get('/export', [StockBookController::class, 'export']);
+        Route::get('/best-selling', [StockBookController::class, 'getBestSelling']);
+        Route::get('/slow-moving', [StockBookController::class, 'getSlowMoving']);
+        Route::get('/sales-recap', [StockBookController::class, 'getSalesRecap']);
     });
 });
