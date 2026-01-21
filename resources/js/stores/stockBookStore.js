@@ -241,10 +241,11 @@ export const useStockBookStore = defineStore("stockBook", {
                 const response = await stockBookService.getCurrentBalances(
                     params
                 );
-                this.currentBalances = response.balances;
+                this.currentBalances = response?.balances || response || [];
                 this.cacheTimestamps.currentBalances = Date.now();
             } catch (error) {
                 console.error("Failed to fetch current balances:", error);
+                this.currentBalances = [];
                 throw error;
             } finally {
                 this.loading = false;

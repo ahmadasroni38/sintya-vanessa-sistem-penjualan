@@ -600,7 +600,9 @@ const loadLocationProducts = async () => {
         let totalOut = 0;
         let currentBalance = 0;
 
-        response.data.forEach((card) => {
+        // Handle response - it could be { data: [...] } or just [...]
+        const stockCards = response?.data || response || [];
+        stockCards.forEach((card) => {
             const productId = card.product_id;
             if (!productGroups[productId]) {
                 productGroups[productId] = {

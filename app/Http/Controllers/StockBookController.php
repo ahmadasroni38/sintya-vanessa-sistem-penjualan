@@ -25,27 +25,27 @@ class StockBookController extends Controller
         $query = StockCard::with(['product', 'location']);
 
         // Apply filters
-        if ($request->has('product_id')) {
+        if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
 
-        if ($request->has('location_id')) {
+        if ($request->filled('location_id')) {
             $query->where('location_id', $request->location_id);
         }
 
-        if ($request->has('start_date')) {
+        if ($request->filled('start_date')) {
             $query->whereDate('transaction_date', '>=', $request->start_date);
         }
 
-        if ($request->has('end_date')) {
+        if ($request->filled('end_date')) {
             $query->whereDate('transaction_date', '<=', $request->end_date);
         }
 
-        if ($request->has('transaction_type')) {
+        if ($request->filled('transaction_type')) {
             $query->where('transaction_type', $request->transaction_type);
         }
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('product', function ($productQuery) use ($search) {
@@ -233,7 +233,7 @@ class StockBookController extends Controller
             ->where('location_id', $request->location_id);
 
         // Apply search filter
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->whereHas('product', function ($productQuery) use ($search) {
                 $productQuery->where('product_code', 'like', "%{$search}%")
@@ -242,7 +242,7 @@ class StockBookController extends Controller
         }
 
         // Apply status filter
-        if ($request->has('status_filter') && $request->status_filter !== 'all') {
+        if ($request->filled('status_filter') && $request->status_filter !== 'all') {
             $statusFilter = $request->status_filter;
             $query->where('status', $statusFilter);
         }
@@ -250,7 +250,11 @@ class StockBookController extends Controller
         $balances = $query->get();
 
         return response()->json([
-            'balances' => $balances,
+            'status' => true,
+            'message' => 'Current balances retrieved successfully',
+            'data' => [
+                'balances' => $balances,
+            ],
         ]);
     }
 
@@ -267,11 +271,11 @@ class StockBookController extends Controller
         $query = StockCard::with(['product', 'location']);
 
         // Apply filters
-        if ($request->has('product_id')) {
+        if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
 
-        if ($request->has('location_id')) {
+        if ($request->filled('location_id')) {
             $query->where('location_id', $request->location_id);
         }
 
@@ -320,25 +324,25 @@ class StockBookController extends Controller
         $query = StockCard::with(['product', 'location']);
 
         // Apply filters
-        if ($request->has('export_type') && $request->export_type === 'current_view') {
+        if ($request->filled('export_type') && $request->export_type === 'current_view') {
             // Apply current view filters
-            if ($request->has('product_id')) {
+            if ($request->filled('product_id')) {
                 $query->where('product_id', $request->product_id);
             }
 
-            if ($request->has('location_id')) {
+            if ($request->filled('location_id')) {
                 $query->where('location_id', $request->location_id);
             }
 
-            if ($request->has('start_date')) {
+            if ($request->filled('start_date')) {
                 $query->whereDate('transaction_date', '>=', $request->start_date);
             }
 
-            if ($request->has('end_date')) {
+            if ($request->filled('end_date')) {
                 $query->whereDate('transaction_date', '<=', $request->end_date);
             }
 
-            if ($request->has('transaction_type')) {
+            if ($request->filled('transaction_type')) {
                 $query->where('transaction_type', $request->transaction_type);
             }
         }
